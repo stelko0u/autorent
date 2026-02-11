@@ -1,0 +1,301 @@
+import { query, queryOne, transaction } from './db';
+import { User, Company, Car, Reservation, Review, Office, PasswordResetToken } from '../types/database';
+
+export class UserRepository {
+  static async findById(id: number): Promise<User | null> {
+    return queryOne<User>('SELECT * FROM "User" WHERE id = $1', [id]);
+  }
+
+  static async findByEmail(email: string): Promise<User | null> {
+    return queryOne<User>('SELECT * FROM "User" WHERE email = $1', [email]);
+  }
+
+  static async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<User>(
+      `INSERT INTO "User" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async update(id: number, data: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<User | null> {
+    const entries = Object.entries(data);
+    if (entries.length === 0) return this.findById(id);
+    
+    const setClause = entries.map(([key, _], i) => `${key} = $${i + 2}`).join(', ');
+    const values = [id, ...entries.map(([_, value]) => value)];
+    
+    return queryOne<User>(
+      `UPDATE "User" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
+      values
+    );
+  }
+
+  static async delete(id: number): Promise<boolean> {
+    const result = await query('DELETE FROM "User" WHERE id = $1', [id]);
+    return result.length > 0;
+  }
+
+  static async findMany(where?: Partial<User>): Promise<User[]> {
+    if (!where) return query<User>('SELECT * FROM "User"');
+    
+    const entries = Object.entries(where);
+    const whereClause = entries.map(([key, _], i) => `${key} = $${i + 1}`).join(' AND ');
+    const values = entries.map(([_, value]) => value);
+    
+    return query<User>(`SELECT * FROM "User" WHERE ${whereClause}`, values);
+  }
+}
+
+export class CompanyRepository {
+  static async findById(id: number): Promise<Company | null> {
+    return queryOne<Company>('SELECT * FROM "Company" WHERE id = $1', [id]);
+  }
+
+  static async findByEmail(email: string): Promise<Company | null> {
+    return queryOne<Company>('SELECT * FROM "Company" WHERE email = $1', [email]);
+  }
+
+  static async create(data: Omit<Company, 'id' | 'createdAt' | 'updatedAt'>): Promise<Company> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<Company>(
+      `INSERT INTO "Company" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async update(id: number, data: Partial<Omit<Company, 'id' | 'createdAt'>>): Promise<Company | null> {
+    const entries = Object.entries(data);
+    if (entries.length === 0) return this.findById(id);
+    
+    const setClause = entries.map(([key, _], i) => `${key} = $${i + 2}`).join(', ');
+    const values = [id, ...entries.map(([_, value]) => value)];
+    
+    return queryOne<Company>(
+      `UPDATE "Company" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
+      values
+    );
+  }
+
+  static async findMany(where?: Partial<Company>): Promise<Company[]> {
+    if (!where) return query<Company>('SELECT * FROM "Company"');
+    
+    const entries = Object.entries(where);
+    const whereClause = entries.map(([key, _], i) => `${key} = $${i + 1}`).join(' AND ');
+    const values = entries.map(([_, value]) => value);
+    
+    return query<Company>(`SELECT * FROM "Company" WHERE ${whereClause}`, values);
+  }
+}
+
+export class CarRepository {
+  static async findById(id: number): Promise<Car | null> {
+    return queryOne<Car>('SELECT * FROM "Car" WHERE id = $1', [id]);
+  }
+
+  static async create(data: Omit<Car, 'id' | 'createdAt' | 'updatedAt'>): Promise<Car> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<Car>(
+      `INSERT INTO "Car" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async update(id: number, data: Partial<Omit<Car, 'id' | 'createdAt'>>): Promise<Car | null> {
+    const entries = Object.entries(data);
+    if (entries.length === 0) return this.findById(id);
+    
+    const setClause = entries.map(([key, _], i) => `${key} = $${i + 2}`).join(', ');
+    const values = [id, ...entries.map(([_, value]) => value)];
+    
+    return queryOne<Car>(
+      `UPDATE "Car" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
+      values
+    );
+  }
+
+  static async findMany(where?: Partial<Car>): Promise<Car[]> {
+    if (!where) return query<Car>('SELECT * FROM "Car"');
+    
+    const entries = Object.entries(where);
+    const whereClause = entries.map(([key, _], i) => `${key} = $${i + 1}`).join(' AND ');
+    const values = entries.map(([_, value]) => value);
+    
+    return query<Car>(`SELECT * FROM "Car" WHERE ${whereClause}`, values);
+  }
+
+  static async findByOwner(ownerId: number): Promise<Car[]> {
+    return query<Car>('SELECT * FROM "Car" WHERE "ownerId" = $1', [ownerId]);
+  }
+
+  static async findByCompany(companyId: number): Promise<Car[]> {
+    return query<Car>('SELECT * FROM "Car" WHERE "companyId" = $1', [companyId]);
+  }
+
+  static async delete(id: number): Promise<boolean> {
+    const result = await query('DELETE FROM "Car" WHERE id = $1', [id]);
+    return result.length > 0;
+  }
+}
+
+export class ReservationRepository {
+  static async findById(id: number): Promise<Reservation | null> {
+    return queryOne<Reservation>('SELECT * FROM "Reservation" WHERE id = $1', [id]);
+  }
+
+  static async create(data: Omit<Reservation, 'id' | 'createdAt'>): Promise<Reservation> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<Reservation>(
+      `INSERT INTO "Reservation" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async update(id: number, data: Partial<Omit<Reservation, 'id' | 'createdAt'>>): Promise<Reservation | null> {
+    const entries = Object.entries(data);
+    if (entries.length === 0) return this.findById(id);
+    
+    const setClause = entries.map(([key, _], i) => `${key} = $${i + 2}`).join(', ');
+    const values = [id, ...entries.map(([_, value]) => value)];
+    
+    return queryOne<Reservation>(
+      `UPDATE "Reservation" SET ${setClause} WHERE id = $1 RETURNING *`,
+      values
+    );
+  }
+
+  static async findByUser(userId: number): Promise<Reservation[]> {
+    return query<Reservation>('SELECT * FROM "Reservation" WHERE "userId" = $1', [userId]);
+  }
+
+  static async findByCar(carId: number): Promise<Reservation[]> {
+    return query<Reservation>('SELECT * FROM "Reservation" WHERE "carId" = $1', [carId]);
+  }
+
+  static async findConflicting(carId: number, startDate: Date, endDate: Date): Promise<Reservation[]> {
+    return query<Reservation>(
+      `SELECT * FROM "Reservation" 
+       WHERE "carId" = $1 
+       AND (("startDate" <= $2 AND "endDate" >= $2) 
+            OR ("startDate" <= $3 AND "endDate" >= $3)
+            OR ("startDate" >= $2 AND "endDate" <= $3))
+       AND status NOT IN ('CANCELLED', 'COMPLETED', 'RETURNED')`,
+      [carId, startDate, endDate]
+    );
+  }
+}
+
+export class ReviewRepository {
+  static async findById(id: number): Promise<Review | null> {
+    return queryOne<Review>('SELECT * FROM "Review" WHERE id = $1', [id]);
+  }
+
+  static async create(data: Omit<Review, 'id' | 'createdAt'>): Promise<Review> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<Review>(
+      `INSERT INTO "Review" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async findByCar(carId: number): Promise<Review[]> {
+    return query<Review>('SELECT * FROM "Review" WHERE "carId" = $1 ORDER BY "createdAt" DESC', [carId]);
+  }
+
+  static async findByUser(userId: number): Promise<Review[]> {
+    return query<Review>('SELECT * FROM "Review" WHERE "userId" = $1 ORDER BY "createdAt" DESC', [userId]);
+  }
+}
+
+export class OfficeRepository {
+  static async findById(id: number): Promise<Office | null> {
+    return queryOne<Office>('SELECT * FROM "Office" WHERE id = $1', [id]);
+  }
+
+  static async create(data: Omit<Office, 'id' | 'createdAt' | 'updatedAt'>): Promise<Office> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<Office>(
+      `INSERT INTO "Office" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async update(id: number, data: Partial<Omit<Office, 'id' | 'createdAt'>>): Promise<Office | null> {
+    const entries = Object.entries(data);
+    if (entries.length === 0) return this.findById(id);
+    
+    const setClause = entries.map(([key, _], i) => `${key} = $${i + 2}`).join(', ');
+    const values = [id, ...entries.map(([_, value]) => value)];
+    
+    return queryOne<Office>(
+      `UPDATE "Office" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
+      values
+    );
+  }
+
+  static async findByCompany(companyId: number): Promise<Office[]> {
+    return query<Office>('SELECT * FROM "Office" WHERE "companyId" = $1', [companyId]);
+  }
+
+  static async findMany(where?: Partial<Office>): Promise<Office[]> {
+    if (!where) return query<Office>('SELECT * FROM "Office"');
+    
+    const entries = Object.entries(where);
+    const whereClause = entries.map(([key, _], i) => `${key} = $${i + 1}`).join(' AND ');
+    const values = entries.map(([_, value]) => value);
+    
+    return query<Office>(`SELECT * FROM "Office" WHERE ${whereClause}`, values);
+  }
+}
+
+export class PasswordResetTokenRepository {
+  static async create(data: Omit<PasswordResetToken, 'id' | 'createdAt'>): Promise<PasswordResetToken> {
+    const fields = Object.keys(data).join(', ');
+    const placeholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+    const values = Object.values(data);
+    
+    const result = await queryOne<PasswordResetToken>(
+      `INSERT INTO "PasswordResetToken" (${fields}) VALUES (${placeholders}) RETURNING *`,
+      values
+    );
+    return result!;
+  }
+
+  static async findByToken(token: string): Promise<PasswordResetToken | null> {
+    return queryOne<PasswordResetToken>('SELECT * FROM "PasswordResetToken" WHERE token = $1', [token]);
+  }
+
+  static async deleteByEmail(email: string): Promise<boolean> {
+    const result = await query('DELETE FROM "PasswordResetToken" WHERE email = $1', [email]);
+    return result.length > 0;
+  }
+
+  static async deleteExpired(): Promise<boolean> {
+    const result = await query('DELETE FROM "PasswordResetToken" WHERE "expiresAt" < NOW()', []);
+    return result.length > 0;
+  }
+}

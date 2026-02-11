@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import prisma from "../../../../lib/prisma";
+import { UserRepository, CompanyRepository } from "../../../lib/repositories";
 
 export async function POST(req: Request) {
   try {
@@ -19,33 +19,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid maintenancePercent (0-100)" }, { status: 400 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+const existing = await UserRepository.findByEmail(email);
     if (existing) {
       return NextResponse.json({ error: "Email already in use" }, { status: 409 });
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashed,
-        name: name,
-        role: "COMPANY",
-      },
+    const user = await UserRepository.create({
+      email,
+      password: hashed,
+      name: name,
+      role: "COMPANY",
+      emailVerified: false,
     });
 
     try {
-      await prisma.company.create({
-        data: {
-          ownerId: user.id,
-          name,
-          maintenancePercent: maintenance,
-          email,
-        },
+      await CompanyRepository.create({
+        ownerId: user.id,
+        name,
+        maintenancePercent: maintenance,
+        email,
       });
     } catch (e) {
       try {
-        await prisma.user.delete({ where: { id: user.id } });
+        await UserRepository.delete(user.id);
       } catch (delErr) {
         console.error("Failed to rollback user after company create error:", delErr);
       }

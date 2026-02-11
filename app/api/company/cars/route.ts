@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import prisma from '../../../lib/prisma';
+import { CarRepository } from '../../../lib/repositories';
 import type {
   CarFormValues,
   CarType,
   TransmissionType,
 } from '../../../types/types';
-import { FuelType } from '@/app/generated/prisma/enums';
+
+type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRICITY';
 
 export const runtime = 'nodejs';
 
@@ -232,34 +233,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const created = await prisma.car.create({
-      data: {
-        make,
-        model,
-        year: Number(year),
-        pricePerDay: Number(pricePerDay),
-        images,
-        ownerId: Number(ownerId),
-        companyId: Number(companyId),
-        carType: carType as CarType,
-        transmissionType: transmissionType as TransmissionType,
-        fuelType: fuelType as FuelType,
-        officeId: officeId ?? undefined,
-      },
-      select: {
-        id: true,
-        make: true,
-        model: true,
-        year: true,
-        pricePerDay: true,
-        images: true,
-        carType: true,
-        transmissionType: true,
-        fuelType: true,
-        officeId: true,
-        companyId: true,
-        createdAt: true,
-      },
+const created = await CarRepository.create({
+      make,
+      model,
+      year: Number(year),
+      pricePerDay: Number(pricePerDay),
+      images,
+      ownerId: Number(ownerId),
+      companyId: Number(companyId),
+      carType: carType as CarType,
+      transmissionType: transmissionType as TransmissionType,
+      fuelType: fuelType as FuelType,
+      officeId: officeId ?? undefined,
     });
 
     return NextResponse.json({ car: created }, { status: 201 });
@@ -275,21 +260,7 @@ export async function POST(req: NextRequest) {
 // GET handler
 export async function GET(req: NextRequest) {
   try {
-    const cars = await prisma.car.findMany({
-      select: {
-        id: true,
-        make: true,
-        model: true,
-        year: true,
-        pricePerDay: true,
-        images: true,
-        carType: true,
-        transmissionType: true,
-        fuelType: true,
-        officeId: true,
-        companyId: true,
-      },
-    });
+const cars = await CarRepository.findMany();
 
     return NextResponse.json({ cars }, { status: 200 });
   } catch (err) {
