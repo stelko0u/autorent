@@ -45,7 +45,14 @@ const existing = await UserRepository.findByEmail(email);
       role: 'USER',
     });
 
-    try {
+    // Return only the fields we want to expose
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
+
+try {
       await sendVerificationEmail(user.email, user.id);
     } catch (sendErr) {
       console.error('sendVerificationEmail failed:', sendErr);

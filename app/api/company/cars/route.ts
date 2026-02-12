@@ -247,7 +247,23 @@ const created = await CarRepository.create({
       officeId: officeId ?? undefined,
     });
 
-    return NextResponse.json({ car: created }, { status: 201 });
+    // Return only the fields we want to expose
+    const carResponse = {
+      id: created.id,
+      make: created.make,
+      model: created.model,
+      year: created.year,
+      pricePerDay: created.pricePerDay,
+      images: created.images,
+      carType: created.carType,
+      transmissionType: created.transmissionType,
+      fuelType: created.fuelType,
+      officeId: created.officeId,
+      companyId: created.companyId,
+      createdAt: created.createdAt,
+    };
+
+    return NextResponse.json({ car: carResponse }, { status: 201 });
   } catch (err) {
     console.error('company/cars POST error:', err);
     return NextResponse.json(
