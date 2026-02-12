@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import CompanySidebar from '../../components/company/CompanySidebar';
-import CompanyDashboard from '../../components/company/CompanyDashboard';
-import ManageCars from '../../components/company/ManageCars';
-import AddCarForm from '../../components/company/AddCarForm';
-import { useSearchParams, useRouter } from 'next/navigation';
+import CompanySidebar from './CompanySidebar';
+import CompanyDashboard from './CompanyDashboard';
+import CompanyReservations from './CompanyReservations';
+import CompanyPayments from './CompanyPayments';
+import ManageCars from './ManageCars';
+import AddCarForm from './AddCarForm';
 import CompanyOffices from './CompanyOffices';
 import EditCarModal from './EditCarModal';
 import DeleteCarModal from './DeleteCarModal';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Car, CarFormValues } from '../../types/types';
 
 async function parseJsonSafe(res: Response) {
@@ -16,7 +18,7 @@ async function parseJsonSafe(res: Response) {
   const ct = (res.headers.get('content-type') || '').toLowerCase();
   if (!ct.includes('application/json'))
     throw new Error(
-      `Expected JSON but got ${ct || 'unknown'} (status ${res.status})`
+      `Expected JSON but got ${ct || 'unknown'} (status ${res.status})`,
     );
   try {
     return JSON.parse(text);
@@ -28,26 +30,29 @@ async function parseJsonSafe(res: Response) {
 export default function CompanyArea() {
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>('dashboard');
-  const [companyName, setCompanyName] = useState<string | null>(null);
-  const [companyId, setCompanyId] = useState<number | null>(null);
+  const [company, setCompany] = useState<any>(null);
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editing, setEditing] = useState<CarFormValues | null>(null);
 
-  // извикване от ManageCars
   const [formBusy, setFormBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (active === 'manage-cars' || active === 'dashboard')
-      loadCompanyAndCars();
+    loadCompanyData();
+  }, []);
+
+  useEffect(() => {
+    if (active === 'manage-cars') {
+      loadCars();
+    }
   }, [active]);
 
   useEffect(() => {
@@ -57,9 +62,8 @@ export default function CompanyArea() {
     }
   }, [searchParams]);
 
-  async function loadCompanyAndCars() {
+  async function loadCompanyData() {
     setLoading(true);
-    setError(null);
     try {
       const meRes = await fetch('/api/company/me', {
         credentials: 'include',
@@ -67,9 +71,16 @@ export default function CompanyArea() {
       });
       if (!meRes.ok) throw new Error(`Auth error (${meRes.status})`);
       const me = await parseJsonSafe(meRes);
-      setCompanyName(me.company?.name ?? null);
-      setCompanyId(me.company?.id ?? null);
+      setCompany(me.company);
+    } catch (err: any) {
+      setError(err.message || 'Loading failed');
+    } finally {
+      setLoading(false);
+    }
+  }
 
+  async function loadCars() {
+    try {
       const carsRes = await fetch('/api/company/cars', {
         credentials: 'include',
         cache: 'no-store',
@@ -78,31 +89,13 @@ export default function CompanyArea() {
       const carsJson = await parseJsonSafe(carsRes);
       setCars(Array.isArray(carsJson.cars) ? carsJson.cars : []);
     } catch (err: any) {
-      setError(err.message || 'Loading failed');
-    } finally {
-      setLoading(false);
+      setError(err.message || 'Failed to load cars');
     }
   }
 
-  async function handleAdd(data: {
-    make: string;
-    model: string;
-    year: number;
-    pricePerDay: number;
-    images: string[];
-  }) {
-    const res = await fetch('/api/company/cars', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`Add failed (${res.status}) ${txt}`);
-    }
-    const json = await parseJsonSafe(res);
-    setCars((c) => [json.car, ...c]);
+  async function handleCarCreated(car: any) {
+    setCars((c) => [car, ...c]);
+    await loadCars();
   }
 
   async function handleDelete(id: number) {
@@ -125,7 +118,7 @@ export default function CompanyArea() {
   }
 
   function handleDetails(id: number) {
-    router.push(`/cars/${id}`);
+    router.push(`/car/${id}`);
   }
 
   async function confirmDelete() {
@@ -177,15 +170,16 @@ export default function CompanyArea() {
       } catch {}
       if (!res.ok) {
         throw new Error(
-          (json && json.error) || text || `Update failed (${res.status})`
+          (json && json.error) || text || `Update failed (${res.status})`,
         );
       }
       const updated = json?.car ?? json;
       setCars((list) =>
-        list.map((c) => (c.id === updated.id ? { ...c, ...updated } : c))
+        list.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
       );
       setIsEditOpen(false);
       setEditing(null);
+      await loadCars();
     } catch (err: any) {
       setFormError(err?.message ?? 'Update failed');
     } finally {
@@ -194,59 +188,73 @@ export default function CompanyArea() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <div className="flex">
-        <CompanySidebar active={active} setActive={setActive} />
-        <main className="flex-1 p-6">
-          <header className="mb-6">
-            <h1 className="text-2xl font-semibold">
-              {companyName ? `Company: ${companyName}` : 'Company area'}
-            </h1>
-            <p className="text-sm text-gray-500">
-              Use the sidebar to manage cars
-            </p>
-          </header>
-
-          {loading && <div>Loading…</div>}
-          {error && <div className="mb-4 text-red-600">{error}</div>}
-
-          {active === 'dashboard' && <CompanyDashboard cars={cars} />}
-          {active === 'manage-cars' && (
-            <ManageCars
-              cars={cars}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onDetails={handleDetails}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <CompanySidebar
+              company={company}
+              activeTab={active}
+              onTabChange={setActive}
             />
-          )}
-          {active === 'add-car' && (
-            <AddCarForm onCreated={(car) => setCars((c) => [car, ...c])} />
-          )}
-          {active === 'offices' && companyId !== null && <CompanyOffices companyId={companyId} />}
-        </main>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {error && (
+              <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {active === 'dashboard' && <CompanyDashboard />}
+            {active === 'reservations' && <CompanyReservations />}
+            {active === 'payments' && <CompanyPayments />}
+            {active === 'manage-cars' && (
+              <ManageCars
+                cars={cars}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onDetails={handleDetails}
+              />
+            )}
+            {active === 'add-car' && (
+              <AddCarForm onCreated={handleCarCreated} />
+            )}
+            {active === 'offices' && company && (
+              <CompanyOffices companyId={company.id} />
+            )}
+          </div>
+        </div>
       </div>
 
-      <DeleteCarModal
-        isOpen={isDeleteOpen}
-        onClose={() => {
-          setIsDeleteOpen(false);
-          setDeleteId(null);
-        }}
-        onConfirm={confirmDelete}
-      />
+      {/* Modals */}
+      {isDeleteOpen && (
+        <DeleteCarModal
+          isOpen={isDeleteOpen}
+          onClose={() => {
+            setIsDeleteOpen(false);
+            setDeleteId(null);
+          }}
+          onConfirm={confirmDelete}
+        />
+      )}
 
-      <EditCarModal
-        isOpen={isEditOpen}
-        onClose={() => {
-          setIsEditOpen(false);
-          setEditing(null);
-        }}
-        editing={editing}
-        onChange={setEditing}
-        onSubmit={submitEdit}
-        busy={formBusy}
-        error={formError}
-      />
+      {isEditOpen && editing && (
+        <EditCarModal
+          isOpen={isEditOpen}
+          onClose={() => {
+            setIsEditOpen(false);
+            setEditing(null);
+          }}
+          editing={editing}
+          onChange={setEditing}
+          onSubmit={submitEdit}
+          busy={formBusy}
+          error={formError}
+        />
+      )}
     </div>
   );
 }

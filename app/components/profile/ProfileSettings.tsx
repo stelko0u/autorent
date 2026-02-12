@@ -191,7 +191,7 @@ export default function ProfileSettings({ user, onUpdate }: Props) {
                 type="email"
                 value={user.email}
                 disabled
-                className="w-full px-4 py-2 border text-gray-600 border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                className="w-full px-4 py-2 border  border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Email cannot be changed
