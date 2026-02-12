@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import AdminShell from "../components/admin/AdminShell";
 
-async function getMe() {
+export async function getMe() {
   try {
     const all = (await cookies()).getAll();
     const tokenCookieName =

@@ -1,9 +1,60 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? 'token';
+
+// Paths that banned users ARE allowed to access
+const ALLOWED_BANNED_PATHS = [
+  '/api/auth/signout',
+  '/api/auth/me',
+  '/signin',
+  '/signup',
+  '/banned',
+];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  /**
+   * ---------------------------
+   * Skip public/static paths
+   * ---------------------------
+   */
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname === '/' ||
+    ALLOWED_BANNED_PATHS.some((path) => pathname.startsWith(path))
+  ) {
+    return NextResponse.next();
+  }
+
+  /**
+   * ---------------------------
+   * JWT / banned user check
+   * ---------------------------
+   */
+  const token = req.cookies.get(COOKIE_NAME)?.value;
+
+  if (token && JWT_SECRET) {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as any;
+
+      if (payload?.banned) {
+        return NextResponse.redirect(new URL('/banned', req.url));
+      }
+    } catch {
+      // Invalid token → ignore and continue
+    }
+  }
+
+  /**
+   * ---------------------------
+   * Admin route protection
+   * ---------------------------
+   */
   if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
     return NextResponse.next();
   }
@@ -48,7 +99,8 @@ export async function middleware(req: NextRequest) {
 
     return NextResponse.next();
   } catch (err) {
-    console.error('middleware /admin auth error:', err);
+    console.error('middleware auth error:', err);
+
     if (pathname.startsWith('/api/')) {
       return new NextResponse(
         JSON.stringify({ ok: false, error: 'internal_error' }),
@@ -58,10 +110,16 @@ export async function middleware(req: NextRequest) {
         },
       );
     }
+
     return NextResponse.redirect(new URL('/signin', req.nextUrl.origin));
   }
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except static assets
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };

@@ -8,6 +8,15 @@ export interface User {
   updatedAt?: Date;
   emailVerified: boolean;
   companyId?: number;
+  banned?: boolean;
+  bannedAt?: Date;
+  banReason?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  dateOfBirth?: Date;
 }
 
 export interface Company {
@@ -32,7 +41,18 @@ export interface Car {
   officeId?: number;
   createdAt: Date;
   updatedAt?: Date;
-  carType: 'SEDAN' | 'HATCHBACK' | 'SUV' | 'COUPE' | 'CONVERTIBLE' | 'CABRIO' | 'WAGON' | 'VAN' | 'PICKUP' | 'COMBI' | 'OTHER';
+  carType:
+    | 'SEDAN'
+    | 'HATCHBACK'
+    | 'SUV'
+    | 'COUPE'
+    | 'CONVERTIBLE'
+    | 'CABRIO'
+    | 'WAGON'
+    | 'VAN'
+    | 'PICKUP'
+    | 'COMBI'
+    | 'OTHER';
   transmissionType: 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC' | 'OTHER';
   fuelType: 'PETROL' | 'DIESEL' | 'ELECTRICITY';
 }
@@ -43,8 +63,39 @@ export interface Reservation {
   carId: number;
   startDate: Date;
   endDate: Date;
-  status: 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'RETURNED' | 'CANCELLED';
+  status:
+    | 'PENDING'
+    | 'CONFIRMED'
+    | 'IN_PROGRESS'
+    | 'COMPLETED'
+    | 'RETURNED'
+    | 'CANCELLED';
+
   createdAt: Date;
+  totalPrice: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  notes?: string;
+
+  paymentIntentId?: string;
+  paymentMethod?: 'CARD' | 'ON_SPOT';
+  paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+}
+
+export interface Payment {
+  id: number;
+  reservationId: number;
+  companyId: number;
+  amount: number;
+  platformFee: number;
+  companyEarnings: number;
+  paymentMethod: 'CARD' | 'ON_SPOT';
+  paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+  paidAt?: Date;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface Review {
@@ -72,5 +123,12 @@ export interface PasswordResetToken {
   email: string;
   token: string;
   expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface Favorite {
+  id: number;
+  userId: number;
+  carId: number;
   createdAt: Date;
 }

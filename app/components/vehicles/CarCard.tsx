@@ -47,7 +47,10 @@ export default function CarCard({
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between">
-          <button className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+          <button
+            className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+            onClick={() => router.push(`/payment/${car.id}`)}
+          >
             Rent now
           </button>
           <button

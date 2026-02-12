@@ -14,6 +14,7 @@ export default function AdminSidebar({
     { key: "companies", label: "Manage Companies" },
     { key: "add-company", label: "Add Company" },
     { key: "cars", label: "Manage Cars" },
+    { key: "users", label: "Manage Users" },
   ];
 
   return (
