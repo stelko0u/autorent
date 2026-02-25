@@ -332,9 +332,19 @@ export class ReviewRepository {
     return result!;
   }
 
-  static async findByCar(carId: number): Promise<Review[]> {
-    return query<Review>(
-      'SELECT * FROM "Review" WHERE "carId" = $1 ORDER BY "createdAt" DESC',
+  static async findByCar(carId: number): Promise<any[]> {
+    return query(
+      `SELECT 
+        r.*,
+        json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'email', u.email
+        ) as user
+      FROM "Review" r
+      LEFT JOIN "User" u ON r."userId" = u.id
+      WHERE r."carId" = $1 
+      ORDER BY r."createdAt" DESC`,
       [carId],
     );
   }
