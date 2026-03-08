@@ -126,7 +126,6 @@ export default function ProfileSettings({ user, onUpdate }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Profile Information */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">
           Profile Information
@@ -298,7 +297,6 @@ export default function ProfileSettings({ user, onUpdate }: Props) {
         </form>
       </div>
 
-      {/* Change Password */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-6 text-gray-800">
           Change Password

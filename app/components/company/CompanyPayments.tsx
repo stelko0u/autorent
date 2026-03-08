@@ -81,13 +81,12 @@ export default function CompanyPayments() {
         Payments & Earnings
       </h2>
 
-      {/* Total Earnings Card */}
       <div className="bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 mb-8 text-white">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-90">Total Earnings (Paid)</p>
             <h3 className="text-4xl font-bold mt-2">
-              ${totalEarnings.toFixed(2)}
+              €{totalEarnings.toFixed(2)}
             </h3>
           </div>
           <svg
@@ -105,7 +104,6 @@ export default function CompanyPayments() {
         </div>
       </div>
 
-      {/* Payments Table */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -157,13 +155,13 @@ export default function CompanyPayments() {
                       #{payment.reservationId}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                      ${payment.amount}
+                      €{payment.amount}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                      -${payment.platformFee}
+                      -€{payment.platformFee}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
-                      ${payment.companyEarnings}
+                      €{payment.companyEarnings}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {payment.paymentMethod === 'CARD'

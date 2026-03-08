@@ -40,7 +40,6 @@ export default function ImageSlider({ images, carName }: ImageSliderProps) {
           onClick={toggleFullScreen}
         />
 
-        {/* Navigation Arrows */}
         {images.length > 1 && (
           <>
             <button
@@ -59,12 +58,10 @@ export default function ImageSlider({ images, carName }: ImageSliderProps) {
           </>
         )}
 
-        {/* Counter */}
         <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-base">
           {currentIndex + 1} / {images.length}
         </div>
       </div>
-      {/* Thumbnails */}
       {images.length > 1 && (
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
           {images.map((img, i) => (

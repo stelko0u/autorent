@@ -6,6 +6,7 @@ import {
   CarRepository,
   CompanyRepository,
 } from '../../../lib/repositories';
+import { sendReservationConfirmation } from '../../../lib/mail';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -175,18 +176,46 @@ export async function POST(req: Request) {
       console.log('Updated payment:', updatedPayment);
 
       console.log(
-        'Updating reservation status to CONFIRMED and paymentStatus to PAID',
+        'Updating reservation paymentStatus to PAID but keeping status PENDING',
       );
       await ReservationRepository.update(reservationId, {
-        status: 'CONFIRMED',
+        status: 'PENDING', // Keep PENDING until email confirmation
         paymentStatus: 'PAID',
       });
 
-      console.log('SUCCESS: Payment updated to PAID and reservation confirmed');
+      console.log(
+        'SUCCESS: Payment updated to PAID, sending confirmation email',
+      );
+
+      // Send confirmation email
+      try {
+        await sendReservationConfirmation(
+          {
+            id: reservation.id,
+            firstName: reservation.firstName,
+            lastName: reservation.lastName,
+            email: reservation.email,
+            startDate: reservation.startDate,
+            endDate: reservation.endDate,
+            totalPrice: reservation.totalPrice,
+          },
+          {
+            make: car.make,
+            model: car.model,
+            year: car.year,
+            pricePerDay: car.pricePerDay,
+          },
+        );
+        console.log('Confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the payment if email fails
+      }
 
       return NextResponse.json({
         ok: true,
-        message: 'Payment confirmed and updated',
+        message:
+          'Payment confirmed. Please check your email to confirm the reservation.',
         payment: updatedPayment,
         reservationId,
       });
@@ -215,18 +244,44 @@ export async function POST(req: Request) {
     console.log('Payment created:', payment);
 
     console.log(
-      'Updating reservation status to CONFIRMED and paymentStatus to PAID',
+      'Updating reservation paymentStatus to PAID but keeping status PENDING',
     );
     await ReservationRepository.update(reservationId, {
-      status: 'CONFIRMED',
+      status: 'PENDING', // Keep PENDING until email confirmation
       paymentStatus: 'PAID',
     });
 
-    console.log('SUCCESS: Payment created and reservation confirmed');
+    console.log('SUCCESS: Payment created, sending confirmation email');
+
+    // Send confirmation email
+    try {
+      await sendReservationConfirmation(
+        {
+          id: reservation.id,
+          firstName: reservation.firstName,
+          lastName: reservation.lastName,
+          email: reservation.email,
+          startDate: reservation.startDate,
+          endDate: reservation.endDate,
+          totalPrice: reservation.totalPrice,
+        },
+        {
+          make: car.make,
+          model: car.model,
+          year: car.year,
+          pricePerDay: car.pricePerDay,
+        },
+      );
+      console.log('Confirmation email sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // Don't fail the payment if email fails
+    }
 
     return NextResponse.json({
       ok: true,
-      message: 'Payment confirmed and recorded',
+      message:
+        'Payment confirmed. Please check your email to confirm the reservation.',
       payment,
       reservationId,
     });

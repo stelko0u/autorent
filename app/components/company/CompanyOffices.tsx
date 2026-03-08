@@ -82,86 +82,158 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
   }
 
   return (
-    <section>
-      <h2 className="text-xl font-medium mb-4 text-gray-600">Offices</h2>
-      <div className="flex gap-6">
-        <div className="w-1/3">
-          <button
-            onClick={startCreate}
-            className="mb-3 px-3 py-2 bg-indigo-600 text-white rounded"
-          >
-            Add office
-          </button>
-          {offices.map((o) => (
-            <div key={o.id} className="p-2 border rounded mb-2">
-              <div className="font-semibold text-gray-700">{o.name ?? `Office #${o.id}`}</div>
-              <div className="text-sm text-gray-600">{o.address}</div>
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => startEdit(o)}
-                  className="px-2 py-1 bg-yellow-600 rounded"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => del(o.id)}
-                  className="px-2 py-1 bg-red-600 rounded"
-                >
-                  Delete
-                </button>
-              </div>
+    <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="border-b border-gray-100 px-6 py-5">
+        <h2 className="text-2xl font-semibold text-gray-800">Offices</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Manage office locations and pin them on the map.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
+        {/* Left panel */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-4 rounded-2xl bg-gray-50 p-4 border border-gray-100">
+            <button
+              onClick={startCreate}
+              className="mb-4 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              + Add Office
+            </button>
+
+            <div className="space-y-3">
+              {offices.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center text-sm text-gray-500">
+                  No offices yet. Add your first office.
+                </div>
+              ) : (
+                offices.map((o) => (
+                  <div
+                    key={o.id}
+                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-base font-semibold text-gray-800">
+                          {o.name ?? `Office #${o.id}`}
+                        </div>
+                        <div className="mt-1 text-sm leading-5 text-gray-500">
+                          {o.address}
+                        </div>
+                      </div>
+                      <div className="h-3 w-3 rounded-full bg-indigo-500 mt-1 shrink-0" />
+                    </div>
+
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={() => startEdit(o)}
+                        className="flex-1 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-200"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => del(o.id)}
+                        className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          ))}
+          </div>
         </div>
 
-        <div className="flex-1">
-          <MapComponent
-            offices={offices}
-            editing={editing}
-            pos={pos}
-            setPos={setPos}
-            companyColors={companyColors}
-          />
+        {/* Right panel */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-100 px-4 py-3">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                Office Map
+              </h3>
+            </div>
+
+            <div className="p-3">
+              <div className="overflow-hidden rounded-xl border border-gray-100">
+                <MapComponent
+                  offices={offices}
+                  editing={editing}
+                  pos={pos}
+                  setPos={setPos}
+                  companyColors={companyColors}
+                />
+              </div>
+            </div>
+          </div>
 
           {editing && (
-            <div className="mt-3">
-              <label htmlFor="office-name" className="block text-sm font-medium text-gray-700 mb-1">
-                Office Name
-              </label>
-              <input
-                value={editing.name}
-                onChange={(e) =>
-                  setEditing({ ...editing, name: e.target.value })
-                }
-                className="px-3 py-2 border rounded w-full mb-2 text-gray-600"
-              />
-              <label htmlFor="office-address" className="block text-sm font-medium text-gray-700 mb-1">
-                Address
-              </label>
-              <input
-                value={editing.address}
-                onChange={(e) =>
-                  setEditing({ ...editing, address: e.target.value })
-                }
-                className="px-3 py-2 border rounded w-full mb-2 text-gray-600"
-              />
-              <div className="mb-2 text-sm text-gray-600">
-                Click on the map to set coordinates.
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-5 shadow-sm">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {editing.id ? 'Edit Office' : 'Create Office'}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Update the office details and choose its location on the map.
+                </p>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={save}
-                  disabled={saving}
-                  className="px-3 py-2 bg-indigo-600 text-white rounded"
-                >
-                  {saving ? 'Saving…' : 'Save'}
-                </button>
-                <button
-                  onClick={() => setEditing(null)}
-                  className="px-3 py-2 bg-gray-400 rounded"
-                >
-                  Cancel
-                </button>
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="office-name"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Office Name
+                  </label>
+                  <input
+                    id="office-name"
+                    value={editing.name}
+                    onChange={(e) =>
+                      setEditing({ ...editing, name: e.target.value })
+                    }
+                    placeholder="Enter office name"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="office-address"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Address
+                  </label>
+                  <input
+                    id="office-address"
+                    value={editing.address}
+                    onChange={(e) =>
+                      setEditing({ ...editing, address: e.target.value })
+                    }
+                    placeholder="Enter office address"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-indigo-100 bg-white px-4 py-3 text-sm text-gray-600">
+                  Click on the map to set office coordinates.
+                </div>
+
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <button
+                    onClick={save}
+                    disabled={saving}
+                    className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {saving ? 'Saving…' : 'Save Office'}
+                  </button>
+                  <button
+                    onClick={() => setEditing(null)}
+                    className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-gray-700 border border-gray-200 transition hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )}

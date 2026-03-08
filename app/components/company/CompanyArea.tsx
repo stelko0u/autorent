@@ -90,7 +90,6 @@ export default function CompanyArea() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-375 mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <CompanySidebar
               company={company}
@@ -99,7 +98,6 @@ export default function CompanyArea() {
             />
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3">
             {error && (
               <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">

@@ -96,7 +96,6 @@ export default function CompanyReservations() {
         </p>
       </div>
 
-      {/* Filter Tabs */}
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex flex-wrap gap-2">
           {[
@@ -123,7 +122,6 @@ export default function CompanyReservations() {
         </div>
       </div>
 
-      {/* Reservations Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -193,7 +191,7 @@ export default function CompanyReservations() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      ${reservation.totalPrice}
+                      €{reservation.totalPrice}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div

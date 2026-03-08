@@ -30,7 +30,7 @@ export default function CarCard({
 
   return (
     <article
-      className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition cursor-pointer"
+      className="bg-white rounded-xl shadow-sm overflow-hidden transition-all cursor-pointer hover:shadow-2xl"
       onClick={() => router.push(`/car/${car.id}`)}
     >
       <div className="h-62 bg-gray-100 flex items-center justify-center text-gray-500">
@@ -38,7 +38,6 @@ export default function CarCard({
           <img
             src={car.img}
             alt={car.name}
-            /* Тук добавихме object-center (или сложи object-bottom, ако колата е в долната част на оригиналната снимка) */
             className="w-full h-full object-cover"
           />
         ) : (
@@ -64,10 +63,10 @@ export default function CarCard({
         </div>
         <div className="mt-4 flex items-center justify-between">
           <button
-            className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 cursor-pointer"
+            className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 cursor-pointer hover:scale-105 transition-all"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/payment/${car.id}`);
+              router.push(`/reservation/${car.id}`);
             }}
           >
             Rent now

@@ -20,7 +20,6 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="mt-6">
                 <h2 className="text-xl font-semibold mb-2">Recent Reservations</h2>
-                {/* Placeholder for recent reservations list */}
             </div>
         </div>
     );

@@ -2,7 +2,6 @@ export interface User {
   id: number;
   email: string;
   password: string;
-  name?: string;
   role: 'USER' | 'ADMIN' | 'COMPANY';
   createdAt: Date;
   updatedAt?: Date;
@@ -17,6 +16,9 @@ export interface User {
   country?: string;
   postalCode?: string;
   dateOfBirth?: Date;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
 }
 
 export interface Company {

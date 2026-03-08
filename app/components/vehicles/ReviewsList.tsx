@@ -40,7 +40,6 @@ export default function ReviewsList({ reviews, loading }: ReviewsListProps) {
           {reviews.map((review, idx) => (
             <div key={review.id ?? idx} className="border rounded p-4">
               <div className="flex items-start gap-4">
-                {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
                   {review.user?.name
                     ? review.user.name.trim().charAt(0).toUpperCase()

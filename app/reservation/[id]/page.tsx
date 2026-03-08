@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Calendar from '../../components/reservations/Calendar';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 interface Car {
   id: number;
@@ -42,6 +43,8 @@ export default function ReservationPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const { userData, loading: userLoading } = useCurrentUser();
+
   useEffect(() => {
     if (!carId) return;
 
@@ -68,6 +71,20 @@ export default function ReservationPage() {
     }
 
     loadData();
+    if (userData) {
+      const nameParts = userData.name?.split(' ') || [];
+      if (nameParts.length >= 2 && !firstName && !lastName) {
+        setFirstName(nameParts[0]);
+        setLastName(nameParts.slice(1).join(' '));
+      }
+      if (userData.email && !email) {
+        setEmail(userData.email);
+      }
+      // Phone from user profile if available
+      if ((userData as any).phone && !phone) {
+        setPhone((userData as any).phone);
+      }
+    }
   }, [carId]);
 
   const calculateDays = () => {
@@ -155,7 +172,6 @@ export default function ReservationPage() {
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition"
@@ -177,9 +193,7 @@ export default function ReservationPage() {
         </button>
 
         <div className="grid lg:grid-cols-3 gap-10">
-          {/* LEFT SIDE */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Car Info */}
             <div className="bg-white rounded-2xl shadow p-6">
               <h2 className="text-2xl font-bold mb-4 text-gray-800">
                 {car.make} {car.model}
@@ -201,7 +215,6 @@ export default function ReservationPage() {
               </p>
             </div>
 
-            {/* Calendar */}
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
                 Select Reservation Dates
@@ -218,7 +231,6 @@ export default function ReservationPage() {
               />
             </div>
 
-            {/* Personal Info */}
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
                 Personal Information
@@ -276,7 +288,6 @@ export default function ReservationPage() {
               </div>
             </div>
 
-            {/* Payment Method Selection */}
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
                 Payment Method
@@ -372,7 +383,6 @@ export default function ReservationPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE - SUMMARY */}
           <div className="bg-white rounded-2xl shadow p-6 h-fit sticky top-10">
             <h3 className="text-xl font-semibold mb-6 text-gray-800">
               Reservation Summary

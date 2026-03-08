@@ -176,7 +176,6 @@ export default function Calendar({
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={previousMonth}
@@ -219,7 +218,6 @@ export default function Calendar({
         </button>
       </div>
 
-      {/* Day labels */}
       <div className="grid grid-cols-7 gap-2 mb-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div
@@ -231,10 +229,8 @@ export default function Calendar({
         ))}
       </div>
 
-      {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-2">{days}</div>
 
-      {/* Legend */}
       <div className="mt-6 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-300 rounded" />
