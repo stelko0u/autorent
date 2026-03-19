@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { UserRepository } from '@/lib/repositories/userRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
 
 export const runtime = 'nodejs';
 
@@ -34,6 +34,15 @@ export async function POST(req: Request) {
     }
 
     const user = await UserRepository.findByEmail(String(email).toLowerCase());
+    if (user?.mustChangePassword) {
+      return NextResponse.json(
+        {
+          mustChangePassword: true,
+          redirectTo: `/change-temporary-password?userId=${user.id}`,
+        },
+        { status: 403 },
+      );
+    }
 
     if (!user || !user.password) {
       return NextResponse.json(

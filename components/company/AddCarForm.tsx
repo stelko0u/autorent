@@ -110,9 +110,14 @@ export default function AddCarForm({
 
   useEffect(() => {
     fetch('/api/company/offices', { credentials: 'include', cache: 'no-store' })
-      .then((r) => r.json())
-      .then((j) => setOffices(Array.isArray(j) ? j : []))
-      .catch(() => {});
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error('Failed to fetch offices');
+        }
+        return r.json();
+      })
+      .then((data) => setOffices(data.offices || []))
+      .catch((err) => setError(err.message));
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -469,7 +474,7 @@ export default function AddCarForm({
                     <div className="mb-3 text-4xl">
                       {/* 📷 */}
 
-                    <Images className="mx-auto h-12 w-12 text-slate-400" />
+                      <Images className="mx-auto h-12 w-12 text-slate-400" />
                     </div>
                     {isDragActive ? (
                       <p className="text-base font-medium text-indigo-700">

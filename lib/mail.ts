@@ -20,7 +20,7 @@ interface MailPayload {
   attachments?: Mail.Attachment[];
 }
 
-function createTransporter(provider: Provider) {
+export function createTransporter(provider: Provider) {
   return nodemailer.createTransport({
     host: 'smtp.abv.bg',
     port: 465,

@@ -1,7 +1,7 @@
 import { query, queryOne } from '@/lib/db';
 import { Office } from '@/types/database';
 
-class OfficeRepository {
+export class OfficeRepository {
   static async findById(id: number): Promise<Office | null> {
     return queryOne<Office>('SELECT * FROM "Office" WHERE id = $1', [id]);
   }
@@ -59,5 +59,17 @@ class OfficeRepository {
 
     return query<Office>(`SELECT * FROM "Office" WHERE ${whereClause}`, values);
   }
-}
 
+  static async findManyByCompanyId(companyId: number) {
+    const offices = await query(
+      'SELECT * FROM "Office" WHERE "companyId" = $1',
+      [companyId],
+    );
+    return offices;
+  }
+
+  // Add the delete method
+  static async delete(id: number): Promise<void> {
+    await query('DELETE FROM "Office" WHERE id = $1', [id]);
+  }
+}

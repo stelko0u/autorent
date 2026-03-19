@@ -1,4 +1,4 @@
-import { CarRepository } from '@/lib/repositories/CarRepository';
+import { CarRepository } from '@/lib/repository/CarRepository';
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {

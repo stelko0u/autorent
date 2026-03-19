@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { UserRepository } from '@/lib/repositories/userRepository';
-import { CompanyRepository } from '@/lib/repositories/CompanyRepository';
-
+import { CompanyRepository } from '@/lib/repository/CompanyRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
 
 export async function POST(req: Request) {
   try {

@@ -4,7 +4,7 @@ import jwt, {
   JsonWebTokenError,
   TokenExpiredError,
 } from 'jsonwebtoken';
-import { UserRepository } from './repositories';
+import { UserRepository } from './repository/UserRepository';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? 'token';
@@ -107,34 +107,3 @@ export async function getAuthUser() {
   }
 }
 
-export async function getMe() {
-  try {
-    const all = (await cookies()).getAll();
-    const tokenCookieName =
-      process.env.AUTH_COOKIE_NAME ??
-      process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME ??
-      'token';
-    const named = (await cookies()).get(tokenCookieName);
-    const cookieHeader = named
-      ? `${named.name}=${named.value}`
-      : all.map((c) => `${c.name}=${c.value}`).join('; ');
-
-    const base =
-      process.env.NEXT_PUBLIC_BASE_URL ??
-      `http://localhost:${process.env.PORT ?? 3000}`;
-    const url = new URL('/api/auth/me', base).toString();
-
-    const res = await fetch(url, {
-      cache: 'no-store',
-      headers: { cookie: cookieHeader, Accept: 'application/json' },
-    });
-
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (json?.ok && json.user) return json.user;
-    return null;
-  } catch (err) {
-    console.error('getMe error:', err);
-    return null;
-  }
-}

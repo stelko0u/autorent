@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { log } from 'console';
 
 // Dynamically import the map component to avoid SSR issues
 const MapComponent = dynamic(() => import('./MapComponent'), {
@@ -28,7 +29,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
     });
     if (!res.ok) return;
     const j = await res.json();
-    setOffices(Array.isArray(j) ? j : []);
+    setOffices(Array.isArray(j.offices) ? j.offices : []);
   }
 
   useEffect(() => {
@@ -107,39 +108,41 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
                   No offices yet. Add your first office.
                 </div>
               ) : (
-                offices.map((o) => (
-                  <div
-                    key={o.id}
-                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-base font-semibold text-gray-800">
-                          {o.name ?? `Office #${o.id}`}
+                offices.map((o) => {
+                  return (
+                    <div
+                      key={o.id}
+                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-base font-semibold text-gray-800">
+                            {o.name ?? `Office #${o.id}`}
+                          </div>
+                          <div className="mt-1 text-sm leading-5 text-gray-500">
+                            {o.address}
+                          </div>
                         </div>
-                        <div className="mt-1 text-sm leading-5 text-gray-500">
-                          {o.address}
-                        </div>
+                        <div className="h-3 w-3 rounded-full bg-indigo-500 mt-1 shrink-0" />
                       </div>
-                      <div className="h-3 w-3 rounded-full bg-indigo-500 mt-1 shrink-0" />
-                    </div>
 
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        onClick={() => startEdit(o)}
-                        className="flex-1 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-200"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => del(o.id)}
-                        className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200"
-                      >
-                        Delete
-                      </button>
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          onClick={() => startEdit(o)}
+                          className="flex-1 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-200"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => del(o.id)}
+                          className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

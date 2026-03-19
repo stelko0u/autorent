@@ -1,50 +1,59 @@
+'use client';
+
 import React from 'react';
-import Modal from 'react-modal';
+import ReactModal from 'react-modal';
 
-interface DeleteCarModalProps {
+type DeleteCarModalProps = {
+  isOpen: boolean;
+  onRequestClose: () => void;
   onConfirm: () => void;
-  onCancel: () => void;
-}
-
-if (typeof window !== 'undefined') {
-  Modal.setAppElement('body');
-}
+  carName?: string;
+  onCancel?: () => void;
+};
 
 export default function DeleteCarModal({
+  isOpen,
+  onRequestClose,
   onConfirm,
-  onCancel,
+  carName,
 }: DeleteCarModalProps) {
   return (
-    <Modal
-      isOpen={true}
-      onRequestClose={onCancel}
-      contentLabel="Delete Car Confirmation"
-      className="bg-white rounded-lg py-3 px-6 max-w-lg w-full relative z-50 flex items-center justify-center"
-      overlayClassName="fixed inset-0 bg-black/50 z-40 flex items-center justify-center"
+    <ReactModal
+      isOpen={isOpen}
+      onRequestClose={onRequestClose}
+      ariaHideApp={false}
+      shouldCloseOnOverlayClick={true}
+      className="relative z-50 w-full max-w-lg rounded-3xl bg-white p-0 shadow-2xl outline-none"
+      overlayClassName="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
     >
-      <div>
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">
-          Confirm Delete
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Are you sure you want to delete this car? This action cannot be
-          undone.
-        </p>
-        <div className="flex gap-3 justify-end">
+      <div className="overflow-hidden rounded-3xl">
+        <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
+          <h2 className="text-xl font-semibold text-slate-900">Delete Car</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Are you sure you want to delete{' '}
+            <span className="font-semibold text-slate-900">
+              {carName || 'this car'}
+            </span>
+            ? This action cannot be undone.
+          </p>
+        </div>
+
+        <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
           <button
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition cursor-pointer"
+            onClick={onRequestClose}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
           >
             Cancel
           </button>
+
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition cursor-pointer"
+            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700"
           >
             Delete
           </button>
         </div>
       </div>
-    </Modal>
+    </ReactModal>
   );
 }

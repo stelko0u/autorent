@@ -4,7 +4,8 @@ import jwt, {
   JsonWebTokenError,
   TokenExpiredError,
 } from 'jsonwebtoken';
-import { UserRepository } from '@/lib/repositories/userRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
+import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -124,7 +125,7 @@ export async function DELETE(req: Request) {
         { status: 403 },
       );
     }
-
+    await CompanyRepository.deleteByOwnerId(Number(id));
     await UserRepository.delete(Number(id));
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -1,16 +1,13 @@
 'use client';
 
+import {
+  deleteCompany,
+  fetchCompanies,
+  updateCompany,
+} from '@/lib/api/adminApi';
+import { Company } from '@/types/types';
 import React, { useEffect, useState } from 'react';
-
-type Company = {
-  id: number;
-  name?: string | null;
-  email?: string | null;
-  maintenancePercent?: number;
-  ownerId?: number | null;
-  createdAt?: string;
-  updatedAt?: string;
-};
+import DeleteCompanyModal from '../modals/DeleteCompanyModal';
 
 export default function AdminCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -18,6 +15,12 @@ export default function AdminCompanies() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<any>({});
   const [error, setError] = useState<string | null>(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteCompanyId, setDeleteCompanyId] = useState<number | null>(null);
+  const [deleteCompanyName, setDeleteCompanyName] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     load();
@@ -30,17 +33,8 @@ export default function AdminCompanies() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/companies', {
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || `Failed to load (${res.status})`);
-      }
-
-      const json = await res.json();
-      setCompanies(Array.isArray(json.companies) ? json.companies : []);
+      const companies = await fetchCompanies();
+      setCompanies(companies);
     } catch (err: any) {
       console.error('Load companies error:', err);
       setError(err.message || 'Failed to load companies');
@@ -67,18 +61,7 @@ export default function AdminCompanies() {
         email: form.email,
         maintenancePercent: Number(form.maintenancePercent),
       };
-      const res = await fetch('/api/admin/companies', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || `Save failed (${res.status})`);
-      }
-
+      await updateCompany(payload);
       await load();
       setEditingId(null);
     } catch (err: any) {
@@ -86,31 +69,30 @@ export default function AdminCompanies() {
     }
   }
 
-  async function del(id: number) {
-    if (
-      !confirm(
-        'Are you sure you want to delete this company? This will also delete its owner user and all related data.',
-      )
-    )
-      return;
+  async function confirmDelete() {
+    if (!deleteCompanyId) return;
+
     setError(null);
     try {
-      const res = await fetch('/api/admin/companies', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || `Delete failed (${res.status})`);
-      }
-
+      await deleteCompany(deleteCompanyId);
       await load();
     } catch (err: any) {
       setError(err.message || 'Delete failed');
+    } finally {
+      closeDeleteModal();
     }
+  }
+
+  function openDeleteModal(id: number, name: string) {
+    setDeleteCompanyId(id);
+    setDeleteCompanyName(name);
+    setShowDeleteModal(true);
+  }
+
+  function closeDeleteModal() {
+    setDeleteCompanyId(null);
+    setDeleteCompanyName(null);
+    setShowDeleteModal(false);
   }
 
   return (
@@ -134,7 +116,7 @@ export default function AdminCompanies() {
         )}
 
         {loading ? (
-          <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
+          <div className="flex min-h-55 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
             <div className="text-center">
               <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-600" />
               <p className="text-sm font-medium text-slate-600">
@@ -143,7 +125,7 @@ export default function AdminCompanies() {
             </div>
           </div>
         ) : companies.length === 0 ? (
-          <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
+          <div className="flex min-h-55 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
             <div className="text-center">
               <p className="text-base font-semibold text-slate-700">
                 No companies found
@@ -289,7 +271,7 @@ export default function AdminCompanies() {
                               Edit
                             </button>
                             <button
-                              onClick={() => del(c.id)}
+                              onClick={() => openDeleteModal(c.id, c.name)}
                               className="inline-flex items-center rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
                             >
                               Delete
@@ -305,6 +287,12 @@ export default function AdminCompanies() {
           </div>
         )}
       </div>
+      <DeleteCompanyModal
+        isOpen={showDeleteModal}
+        onRequestClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        companyName={deleteCompanyName || ''}
+      />
     </section>
   );
 }

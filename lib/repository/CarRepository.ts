@@ -68,6 +68,13 @@ export class CarRepository {
     ]);
   }
 
+  static async findManyByCompanyId(companyId: number) {
+    const cars = await query('SELECT * FROM "Car" WHERE "companyId" = $1', [
+      companyId,
+    ]);
+    return cars;
+  }
+
   static async delete(id: number): Promise<boolean> {
     const result = await query('DELETE FROM "Car" WHERE id = $1', [id]);
     return result.length > 0;

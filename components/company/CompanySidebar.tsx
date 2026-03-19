@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   ArrowLeftFromBracket,
   BadgeDollar,
@@ -17,49 +18,63 @@ interface CompanyInfo {
   email: string;
 }
 
-interface Props {
-  company: CompanyInfo | null;
+type Props = {
+  company: any; // Или конкретен тип, ако е дефиниран
   activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+  onTabChange: React.Dispatch<React.SetStateAction<string>>;
+};
 
-export default function CompanySidebar({
-  company,
-  activeTab,
-  onTabChange,
-}: Props) {
+export default function CompanySidebar({ company }: Props) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Get the current tab from the query parameter
+  const currentTab = searchParams.get('tab') || 'dashboard';
+
+  // Menu items
   const menuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: <ChartLine className="w-5 h-5" />,
+      href: '?tab=dashboard',
     },
     {
       id: 'reservations',
       label: 'Reservations',
       icon: <Clipboard className="w-5 h-5" />,
+      href: '?tab=reservations',
     },
     {
       id: 'payments',
       label: 'Payments',
       icon: <BadgeDollar className="w-5 h-5" />,
+      href: '?tab=payments',
     },
     {
       id: 'manage-cars',
       label: 'Manage Cars',
       icon: <Cars className="w-5 h-5" />,
+      href: '?tab=manage-cars',
     },
     {
       id: 'add-car',
       label: 'Add Car',
       icon: <Plus className="w-5 h-5" />,
+      href: '?tab=add-car',
     },
     {
       id: 'offices',
       label: 'Offices',
       icon: <Building className="w-5 h-5" />,
+      href: '?tab=offices',
     },
   ];
+
+  // Handle tab change
+  const handleTabChange = (tab: string) => {
+    router.push(`?tab=${tab}`);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -92,9 +107,9 @@ export default function CompanySidebar({
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onTabChange(item.id)}
+            onClick={() => handleTabChange(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition mb-1 hover:bg-gray-100 hover:transition hover:scale-105 cursor-pointer ${
-              activeTab === item.id
+              currentTab === item.id
                 ? 'bg-indigo-50 text-indigo-600 font-medium'
                 : 'text-gray-700 hover:bg-gray-50'
             }`}

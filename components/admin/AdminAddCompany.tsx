@@ -1,5 +1,6 @@
 'use client';
 
+import { createCompany } from '@/lib/api/adminApi';
 import React, { useState } from 'react';
 
 export default function AdminAddCompany() {
@@ -16,27 +17,17 @@ export default function AdminAddCompany() {
     setError(null);
     setOk(null);
     setBusy(true);
+
     try {
       const payload = {
         name: name.trim(),
         email: email.trim(),
         maintenancePercent:
           maintenancePercent === '' ? 0 : Number(maintenancePercent),
-        password: String(password),
+        // password: String(password),
       };
 
-      const res = await fetch('/api/admin/companies', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || `Failed (${res.status})`);
-      }
+      await createCompany(payload);
 
       setOk('Company and owner user created successfully');
       setName('');
@@ -44,7 +35,7 @@ export default function AdminAddCompany() {
       setMaintenancePercent(0);
       setPassword('');
 
-      // Уведомяване на другите компоненти
+      // Notify other components
       window.dispatchEvent(new CustomEvent('company:created'));
     } catch (err: any) {
       setError(err.message || 'Create failed');
@@ -54,11 +45,9 @@ export default function AdminAddCompany() {
   }
 
   return (
-    <section className="max-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 py-12 px-6">
+    <section className="max-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 py-12 px-6">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-10">
-          
-
           <h2 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
             Add Company
           </h2>
@@ -69,7 +58,7 @@ export default function AdminAddCompany() {
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-8 text-white">
+          <div className="border-b border-slate-100 bg-linear-to-r from-indigo-600 to-violet-600 px-8 py-8 text-white">
             <h3 className="text-xl font-semibold">New Company Details</h3>
             <p className="mt-1 text-indigo-100">
               Fill in the information below to create the company.
@@ -159,7 +148,7 @@ export default function AdminAddCompany() {
               </div>
 
               {/* Password */}
-              <div>
+              {/* <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Password for Owner User
                 </label>
@@ -177,14 +166,14 @@ export default function AdminAddCompany() {
                 <p className="mt-2 text-xs text-slate-500">
                   Minimum 6 characters.
                 </p>
-              </div>
+              </div> */}
 
               {/* Submit */}
               <div className="md:col-span-2 xl:col-span-3 flex justify-end pt-4">
                 <button
                   type="submit"
                   disabled={busy}
-                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-3 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:scale-[1.02] hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 px-8 py-3 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:scale-[1.02] hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {busy ? 'Creating…' : 'Create Company'}
                 </button>

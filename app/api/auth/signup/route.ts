@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { sendVerificationEmail } from '../../../../lib/mail';
-import { UserRepository } from '@/lib/repositories/userRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
 
 export const runtime = 'nodejs';
 

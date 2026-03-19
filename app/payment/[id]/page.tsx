@@ -140,7 +140,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-10 md:py-16">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-100 px-4 py-10 md:py-16">
       <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="order-2 lg:order-1">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/40 md:p-8">

@@ -1,4 +1,4 @@
-import { PasswordResetTokenRepository } from '@/lib/repositories/PasswordResetTokenRepository';
+import { PasswordResetTokenRepository } from '@/lib/repository/PasswordResetTokenRepository';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {

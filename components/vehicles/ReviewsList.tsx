@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { EmptyStar, FullStar } from '@/app/components/icons';
+import { EmptyStar, FullStar } from '@/components/icons';
 
 interface Review {
   id?: number;
@@ -173,7 +173,7 @@ export default function ReviewsList({
               className="border border-gray-200 rounded-lg p-4 bg-white"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
                   {review.user?.name
                     ? review.user.name.trim().charAt(0).toUpperCase()
                     : 'A'}

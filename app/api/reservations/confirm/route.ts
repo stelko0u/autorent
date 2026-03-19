@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { ReservationRepository } from '@/lib/repositories/ReservationRepository';
+import { ReservationRepository } from '@/lib/repository/ReservationRepository';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? process.env.SITE_URL;

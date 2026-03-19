@@ -1,5 +1,10 @@
 'use client';
 
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for missing marker icons in Leaflet
+
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import ImageSlider from '../../../components/vehicles/ImageSlider';
@@ -10,6 +15,9 @@ import Transmission from '../../../components/icons/Transmission';
 import Car from '../../../components/icons/Car';
 import Cube from '../../../components/icons/Cube';
 import ReviewsList from '../../../components/vehicles/ReviewsList';
+import { getLoggedInUser } from '@/lib/api/userApi';
+import { fetchOfficeByCarId } from '@/lib/api/carApi'; // Import the fetch function
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 
 export default function CarDetailPage() {
   const router = useRouter();
@@ -24,6 +32,23 @@ export default function CarDetailPage() {
   const [activeReservationId, setActiveReservationId] = useState<number | null>(
     null,
   );
+  const [user, setUser] = useState<any | null>(null);
+  const [office, setOffice] = useState<any | null>(null); // State for office details
+
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+    iconUrl: require('leaflet/dist/images/marker-icon.png'),
+    shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  });
+
+  useEffect(() => {
+    async function fetchUser() {
+      const loggedInUser = await getLoggedInUser();
+      setUser(loggedInUser);
+    }
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     if (!carId) return;
@@ -58,8 +83,18 @@ export default function CarDetailPage() {
       }
     }
 
+    async function loadOffice() {
+      try {
+        const officeData = await fetchOfficeByCarId(Number(carId)); // Fetch office details
+        setOffice(officeData);
+      } catch (err) {
+        console.error('Failed to load office details:', err);
+      }
+    }
+
     loadCar();
     loadReviews();
+    loadOffice(); // Load office details
   }, [carId]);
 
   useEffect(() => {
@@ -259,6 +294,32 @@ export default function CarDetailPage() {
             </button>
           </div>
         </div>
+
+        {office && (
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-gray-600 mb-4">
+              Office Location
+            </h2>
+            <div className="w-full h-120 bg-gray-200 rounded-lg">
+              {/* Leaflet Map */}
+              <div id="map" className="w-full h-full">
+                <MapContainer
+                  center={[office.latitude, office.longitude]}
+                  zoom={15}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  <Marker position={[office.latitude, office.longitude]}>
+                    <Popup>Office Location: {office.name || 'Unknown'}</Popup>
+                  </Marker>
+                </MapContainer>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-8">
           <ReviewsList

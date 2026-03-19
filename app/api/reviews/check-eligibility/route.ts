@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuthUserFromRequest, AuthError } from '../../../../lib/auth';
-import { ReviewRepository } from '@/lib/repositories/ReviewRepository';
+import { ReviewRepository } from '@/lib/repository/ReviewRepository';
 
 // GET /api/reviews/check-eligibility?carId={id}
 // Проверява дали потребителят може да добави ревю за конкретен автомобил

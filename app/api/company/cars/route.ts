@@ -10,7 +10,7 @@ import type {
 } from '../../../../types/types';
 import { query } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
-import { CarRepository } from '@/lib/repositories/CarRepository';
+import { CarRepository } from '@/lib/repository/CarRepository';
 
 export const runtime = 'nodejs';
 
@@ -302,10 +302,39 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET handler
+// // GET handler
+// export async function GET(req: NextRequest) {
+//   try {
+//     const cars = await CarRepository.findMany();
+
+//     return NextResponse.json({ cars }, { status: 200 });
+//   } catch (err) {
+//     console.error('company/cars GET error:', err);
+//     return NextResponse.json(
+//       { error: 'Internal server error' },
+//       { status: 500 },
+//     );
+//   }
+// }
 export async function GET(req: NextRequest) {
   try {
-    const cars = await CarRepository.findMany();
+    const meRes = await fetchMe(req);
+    if (!meRes.ok) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const me = await meRes.json();
+    const companyId = me?.company?.id ?? me?.user?.companyId ?? null;
+
+    if (!companyId) {
+      return NextResponse.json(
+        { error: 'Missing company ID' },
+        { status: 400 },
+      );
+    }
+
+    // Fetch cars only for the current company
+    const cars = await CarRepository.findManyByCompanyId(companyId);
 
     return NextResponse.json({ cars }, { status: 200 });
   } catch (err) {

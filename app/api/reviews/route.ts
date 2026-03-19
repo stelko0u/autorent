@@ -1,4 +1,4 @@
-import { ReviewRepository } from '@/lib/repositories/ReviewRepository';
+import { ReviewRepository } from '@/lib/repository/ReviewRepository';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {

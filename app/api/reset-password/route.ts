@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { PasswordResetTokenRepository } from '@/lib/repositories/PasswordResetTokenRepository';
-import { UserRepository } from '@/lib/repositories/userRepository';
-
+import { PasswordResetTokenRepository } from '@/lib/repository/PasswordResetTokenRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
 
 export async function POST(req: Request) {
   try {

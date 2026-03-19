@@ -1,17 +1,17 @@
 import { redirect } from 'next/navigation';
 import AdminShell from '../../../components/admin/AdminShell';
 import AdminCompanies from '../../../components/admin/AdminCompanies';
-import { getMe } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 
 export default async function ManageCompaniesPage() {
-  const me = await getMe();
+  const authUser = await getAuthUser();
 
-  if (!me || me.role?.toUpperCase() !== 'ADMIN') {
+  if (!authUser || authUser.role?.toUpperCase() !== 'ADMIN') {
     redirect('/signin');
   }
 
   return (
-    <AdminShell me={{ id: me.id, name: me.name, role: me.role }}>
+    <AdminShell me={{ id: authUser.id, name: authUser.name, role: authUser.role }}>
       <div className="p-6">
         <AdminCompanies />
       </div>

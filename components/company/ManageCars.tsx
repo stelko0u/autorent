@@ -81,7 +81,7 @@ export default function ManageCars({
       </div>
 
       {cars.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-white px-6 py-16 text-center shadow-sm">
+        <div className="rounded-3xl border border-dashed border-gray-300 bg-linear-to-br from-gray-50 to-white px-6 py-16 text-center shadow-sm">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
             <CircleInfo className="h-7 w-7 text-gray-400" />
           </div>
@@ -166,7 +166,7 @@ export default function ManageCars({
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => handleDetails(c.id)}
-                      className="flex-1 min-w-[110px] rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                      className="flex-1 min-w-27.5 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
                       aria-label={`Details ${c.make} ${c.model}`}
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -177,7 +177,7 @@ export default function ManageCars({
 
                     <button
                       onClick={() => handleEdit(c.id)}
-                      className="flex-1 min-w-[110px] rounded-2xl bg-amber-100 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-200"
+                      className="flex-1 min-w-27.5 rounded-2xl bg-amber-100 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-200"
                       aria-label={`Edit ${c.make} ${c.model}`}
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -188,7 +188,7 @@ export default function ManageCars({
 
                     <button
                       onClick={() => handleDelete(c.id)}
-                      className="flex-1 min-w-[110px] rounded-2xl bg-red-100 px-4 py-3 text-sm font-medium text-red-700 transition hover:bg-red-200"
+                      className="flex-1 min-w-27.5 rounded-2xl bg-red-100 px-4 py-3 text-sm font-medium text-red-700 transition hover:bg-red-200"
                       aria-label={`Delete ${c.make} ${c.model}`}
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -214,6 +214,8 @@ export default function ManageCars({
 
       {deleteCarId && (
         <DeleteCarModal
+          isOpen={!!deleteCarId}
+          onRequestClose={() => setDeleteCarId(null)}
           onConfirm={confirmDelete}
           onCancel={() => setDeleteCarId(null)}
         />

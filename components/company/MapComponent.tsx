@@ -40,13 +40,16 @@ interface MapComponentProps {
   companyColors: Record<number, string>;
 }
 
-export default function MapComponent({ 
-  offices, 
-  editing, 
-  pos, 
-  setPos, 
-  companyColors 
+export default function MapComponent({
+  offices,
+  editing,
+  pos,
+  setPos,
+  companyColors,
 }: MapComponentProps) {
+  if (typeof window === 'undefined') {
+    return null; // Не рендерирайте картата на сървъра
+  }
   function coloredMarker(color: string) {
     return L.divIcon({
       className: '',
@@ -68,7 +71,10 @@ export default function MapComponent({
       zoom={12}
       style={{ height: 400, width: '100%' }}
     >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      />
       {offices.map((o) =>
         o.latitude && o.longitude ? (
           <Marker
@@ -79,7 +85,10 @@ export default function MapComponent({
         ) : null,
       )}
       {editing && (
-        <ClickMarker position={pos} onChange={(p: [number, number]) => setPos(p)} />
+        <ClickMarker
+          position={pos}
+          onChange={(p: [number, number]) => setPos(p)}
+        />
       )}
     </MapContainer>
   );

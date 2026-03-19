@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { UserRepository } from '@/lib/repositories/userRepository';
-import { ReviewRepository } from '@/lib/repositories/ReviewRepository';
-import { CarRepository } from '@/lib/repositories/CarRepository';
-
+import { UserRepository } from '@/lib/repository/UserRepository';
+import { ReviewRepository } from '@/lib/repository/ReviewRepository';
+import { CarRepository } from '@/lib/repository/CarRepository';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? 'token';

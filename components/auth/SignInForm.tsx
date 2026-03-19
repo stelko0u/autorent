@@ -9,6 +9,7 @@ export default function SignInForm() {
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const searchParams = useSearchParams();
   const verifyNotice = searchParams.get('verify') === '1';
@@ -48,6 +49,12 @@ export default function SignInForm() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
+        if (data?.mustChangePassword && data.redirectTo) {
+          // Пренасочване към страницата за смяна на парола
+          window.location.href = data.redirectTo;
+          return;
+        }
+
         if (
           res.status === 403 &&
           data &&
@@ -62,7 +69,7 @@ export default function SignInForm() {
         return;
       }
 
-      router.replace('/');
+      router.replace('/'); // Пренасочване към началната страница
     } catch (err) {
       console.error('Sign in error:', err);
       setError('Network error');
@@ -82,7 +89,7 @@ export default function SignInForm() {
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setResendError(
-          (data && data.error) || 'Failed to resend verification email.'
+          (data && data.error) || 'Failed to resend verification email.',
         );
         setResendStatus('error');
         return;
@@ -149,7 +156,7 @@ export default function SignInForm() {
           Password
         </label>
         <input
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
@@ -157,6 +164,13 @@ export default function SignInForm() {
           required
           minLength={6}
         />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="mt-2 text-sm text-indigo-600"
+        >
+          {showPassword ? 'Hide' : 'Show'} password
+        </button>
       </div>
 
       <div className="flex items-center justify-between mt-4">

@@ -1,5 +1,5 @@
-import { CarRepository } from '@/lib/repositories/CarRepository';
-import { CompanyRepository } from '@/lib/repositories/CompanyRepository';
+import { CarRepository } from '@/lib/repository/CarRepository';
+import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -7,7 +7,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await context.params; // ✅ await тук
+    const { id } = await context.params;
     const carId = Number(id);
 
     if (!carId || isNaN(carId)) {
@@ -40,6 +40,7 @@ export async function GET(
               id: company.id,
               name: company.name,
               email: company.email,
+              office: company.office,
             }
           : null,
       },

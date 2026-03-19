@@ -1,12 +1,12 @@
+import { getAuthUser } from '@/lib/auth';
 import CompanyArea from '../../components/company/CompanyArea';
-import { getMe } from '../../lib/auth';
 import { redirect } from 'next/navigation';
 
 export default async function CompanyPage() {
-  const me = await getMe();
+  const authUser = await getAuthUser();
   if (
-    !me ||
-    (typeof me.role === 'string' ? me.role.toUpperCase() !== 'COMPANY' : true)
+    !authUser ||
+    (typeof authUser.role === 'string' ? authUser.role.toUpperCase() !== 'COMPANY' : true)
   ) {
     redirect('/');
   }

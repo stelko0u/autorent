@@ -1,27 +1,19 @@
 'use client';
 
+import { deleteCar, fetchCarsAndCompanies } from '@/lib/api/adminApi';
+import { CarRow, Company } from '@/types/types';
 import React, { useEffect, useMemo, useState } from 'react';
-
-type CarRow = {
-  id: number;
-  make: string;
-  model: string;
-  year?: number;
-  pricePerDay?: number;
-  companyId?: number;
-  images?: Array<string>;
-};
-
-type Company = {
-  id: number;
-  name: string;
-};
+import DeleteCarModal from '../modals/DeleteCarModal';
 
 export default function AdminCars() {
   const [cars, setCars] = useState<CarRow[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteCarId, setDeleteCarId] = useState<number | null>(null);
+  const [deleteCarName, setDeleteCarName] = useState<string | null>(null);
 
   useEffect(() => {
     load();
@@ -32,35 +24,9 @@ export default function AdminCars() {
     setError(null);
 
     try {
-      const [carsRes, companiesRes] = await Promise.all([
-        fetch('/api/admin/cars', {
-          credentials: 'include',
-        }),
-        fetch('/api/admin/companies', {
-          credentials: 'include',
-        }),
-      ]);
-
-      if (!carsRes.ok) {
-        throw new Error(`Load cars failed (${carsRes.status})`);
-      }
-
-      if (!companiesRes.ok) {
-        throw new Error(`Load companies failed (${companiesRes.status})`);
-      }
-
-      const carsJson = await carsRes.json();
-      const companiesJson = await companiesRes.json();
-
-      const carsData = Array.isArray(carsJson.cars) ? carsJson.cars : [];
-      const companiesData = Array.isArray(companiesJson.companies)
-        ? companiesJson.companies
-        : [];
-
-      console.log(carsData); // Проверете какви данни връща API-то за колите
-
-      setCars(carsData);
-      setCompanies(companiesData);
+      const { cars, companies } = await fetchCarsAndCompanies();
+      setCars(cars);
+      setCompanies(companies);
     } catch (err: any) {
       setError(err.message || 'Load failed');
     } finally {
@@ -68,25 +34,29 @@ export default function AdminCars() {
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm('Delete car?')) return;
+  function openDeleteModal(id: number, name: string) {
+    setDeleteCarId(id);
+    setDeleteCarName(name);
+    setShowDeleteModal(true);
+  }
 
+  function closeDeleteModal() {
+    setDeleteCarId(null);
+    setDeleteCarName(null);
+    setShowDeleteModal(false);
+  }
+
+  async function confirmDelete() {
+    if (!deleteCarId) return;
+
+    setError(null);
     try {
-      const res = await fetch('/api/admin/cars', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        throw new Error(`Delete failed (${res.status}) ${txt}`);
-      }
-
-      setCars((prev) => prev.filter((car) => car.id !== id));
+      await deleteCar(deleteCarId);
+      setCars((prev) => prev.filter((car) => car.id !== deleteCarId));
     } catch (err: any) {
       setError(err.message || 'Delete failed');
+    } finally {
+      closeDeleteModal();
     }
   }
 
@@ -202,7 +172,6 @@ export default function AdminCars() {
                           <p className="font-semibold text-slate-900">
                             {car.make} {car.model}
                           </p>
-                          
                         </div>
                       </div>
                     </td>
@@ -232,12 +201,10 @@ export default function AdminCars() {
 
                     <td className="px-6 py-4">
                       <div className="flex justify-end gap-2">
-                        <button className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100">
-                          Edit
-                        </button>
-
                         <button
-                          onClick={() => handleDelete(car.id)}
+                          onClick={() =>
+                            openDeleteModal(car.id, `${car.make} ${car.model}`)
+                          }
                           className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-100"
                         >
                           Delete
@@ -251,6 +218,12 @@ export default function AdminCars() {
           </div>
         )}
       </div>
+      <DeleteCarModal
+        isOpen={showDeleteModal}
+        onRequestClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        carName={deleteCarName || ''}
+      />
     </section>
   );
 }

@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import ReactModal from 'react-modal';
+import UserBanModal from '../modals/UserBanModal';
+import UserDeleteModal from '../modals/UserDeleteModal';
+import { banUser, deleteUser, fetchUsers, unbanUser } from '@/lib/api/adminApi';
 
 type User = {
   id: string | number;
@@ -25,6 +28,12 @@ export default function AdminUsersPage() {
   const [banUserId, setBanUserId] = useState<number | string | null>(null);
   const [banReason, setBanReason] = useState('');
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<number | string | null>(
+    null,
+  );
+  const [deleteUserName, setDeleteUserName] = useState<string | null>(null);
+
   useEffect(() => {
     load();
   }, []);
@@ -33,22 +42,8 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/users', {
-        method: 'GET',
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      });
-
-      if (res.status === 403) {
-        throw new Error('Unauthorized — admin role required');
-      }
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || `Request failed: ${res.status}`);
-      }
-
-      const data = await res.json();
-      setUsers(Array.isArray(data.users) ? data.users : []);
+      const data = await fetchUsers();
+      setUsers(data.users);
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
     } finally {
@@ -68,6 +63,37 @@ export default function AdminUsersPage() {
     setBanReason('');
   }
 
+  function openDeleteModal(id: number | string, userName?: string) {
+    setDeleteUserId(id);
+    setDeleteUserName(userName || null);
+    setShowDeleteModal(true);
+  }
+
+  function closeDeleteModal() {
+    setShowDeleteModal(false);
+    setDeleteUserId(null);
+    setDeleteUserName(null);
+  }
+
+  async function confirmDelete() {
+    if (deleteUserId === null) return;
+
+    setActionLoading(deleteUserId);
+    setError(null);
+    setShowDeleteModal(false);
+
+    try {
+      await deleteUser(deleteUserId);
+      await load();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete user');
+    } finally {
+      setActionLoading(null);
+      setDeleteUserId(null);
+      setDeleteUserName(null);
+    }
+  }
+
   async function confirmBan() {
     if (banReason.length < 0 || banReason.length > 500) {
       setError('Ban reason must be between 0 and 500 characters');
@@ -80,22 +106,7 @@ export default function AdminUsersPage() {
     setError(null);
 
     try {
-      const res = await fetch('/api/admin/users', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: banUserId,
-          action: 'ban',
-          reason: banReason || null,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || 'Failed to ban user');
-      }
-
+      await banUser(banUserId, banReason);
       await load();
     } catch (err: any) {
       setError(err.message || 'Failed to ban user');
@@ -111,18 +122,7 @@ export default function AdminUsersPage() {
     setError(null);
 
     try {
-      const res = await fetch('/api/admin/users', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, action: 'unban' }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || 'Failed to unban user');
-      }
-
+      await unbanUser(id);
       await load();
     } catch (err: any) {
       setError(err.message || 'Failed to unban user');
@@ -131,41 +131,8 @@ export default function AdminUsersPage() {
     }
   }
 
-  async function handleDelete(id: number | string, userName?: string) {
-    if (
-      !confirm(
-        `Are you sure you want to delete user ${userName || id}? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-
-    setActionLoading(id);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/admin/users', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.error || 'Failed to delete user');
-      }
-
-      await load();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete user');
-    } finally {
-      setActionLoading(null);
-    }
-  }
-
   return (
-    <div className="min-h-full bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
+    <div className="min-h-full bg-linear-to-br from-slate-50 via-white to-slate-100 p-6">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -329,7 +296,9 @@ export default function AdminUsersPage() {
                                   </button>
 
                                   <button
-                                    onClick={() => handleDelete(u.id, u.name)}
+                                    onClick={() =>
+                                      openDeleteModal(u.id, u.name)
+                                    }
                                     disabled={actionLoading === u.id}
                                     className="inline-flex items-center rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                                   >
@@ -364,73 +333,24 @@ export default function AdminUsersPage() {
           </>
         )}
 
+        {showDeleteModal && (
+          <UserDeleteModal
+            isOpen={showDeleteModal}
+            onRequestClose={closeDeleteModal}
+            onConfirm={confirmDelete}
+            deleteUserName={deleteUserName}
+            deleteUserId={deleteUserId}
+          />
+        )}
+
         {showBanModal && (
-          <ReactModal
+          <UserBanModal
             isOpen={showBanModal}
             onRequestClose={closeBanModal}
-            ariaHideApp={false}
-            shouldCloseOnOverlayClick={true}
-            className="relative z-50 w-full max-w-lg rounded-3xl bg-white p-0 shadow-2xl outline-none"
-            overlayClassName="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
-          >
-            <div className="overflow-hidden rounded-3xl">
-              <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Ban User
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  This action will restrict the selected user from accessing the
-                  platform.
-                </p>
-              </div>
-
-              <div className="px-6 py-5">
-                <label
-                  htmlFor="banReason"
-                  className="mb-2 block text-sm font-medium text-slate-700"
-                >
-                  Ban Reason
-                </label>
-
-                <textarea
-                  id="banReason"
-                  value={banReason}
-                  onChange={(e) => setBanReason(e.target.value)}
-                  rows={4}
-                  placeholder="Enter reason for banning this user..."
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
-                />
-
-                <div className="mt-2 flex justify-between text-xs">
-                  <span className="text-slate-400">Maximum 500 characters</span>
-                  <span
-                    className={`${
-                      banReason.length > 500 ? 'text-red-500' : 'text-slate-400'
-                    }`}
-                  >
-                    {banReason.length}/500
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
-                <button
-                  onClick={closeBanModal}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  onClick={confirmBan}
-                  disabled={banReason.length <= 0 || banReason.length > 500}
-                  className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-slate-300"
-                >
-                  Ban User
-                </button>
-              </div>
-            </div>
-          </ReactModal>
+            onConfirm={confirmBan}
+            banReason={banReason}
+            setBanReason={setBanReason}
+          />
         )}
       </div>
     </div>

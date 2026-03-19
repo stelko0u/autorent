@@ -4,6 +4,8 @@ import SignInForm from '../../components/auth/SignInForm';
 import authbg from '../../public/authbg.jpg';
 
 export default function SignInPage() {
+
+  
   return (
     <main className="relative w-full min-h-screen flex items-center justify-center">
       <div className="absolute inset-0 -z-10 bg-black overflow-hidden">

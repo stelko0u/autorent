@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from 'react-modal';
-import { Car } from '@/types/database';
+import { Car } from '@/types/types';
+import { updateCar } from '@/lib/api/adminApi';
 
 interface EditCarModalProps {
   car: Car;
@@ -28,6 +29,7 @@ export default function EditCarModal({
     power: car.power,
     displacement: car.displacement,
   });
+  console.log('Editing car:', formData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
@@ -53,21 +55,10 @@ export default function EditCarModal({
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`/api/company/cars?id=${car.id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        return;
-      }
-
+      await updateCar(car.id, formData);
       onSuccess();
-    } catch (error) {
-      console.error('Error updating car:', error);
+    } catch (error: any) {
+      console.error('Error updating car:', error.message || error);
     } finally {
       setIsSubmitting(false);
     }
@@ -123,15 +114,13 @@ export default function EditCarModal({
                 value={formData.year || ''}
                 onChange={handleChange}
                 required
-                min="1900"
-                max={new Date().getFullYear() + 1}
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price per Day (€)
+                Price Per Day
               </label>
               <input
                 type="number"
@@ -139,8 +128,6 @@ export default function EditCarModal({
                 value={formData.pricePerDay || ''}
                 onChange={handleChange}
                 required
-                min="0"
-                step="0.01"
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -156,18 +143,11 @@ export default function EditCarModal({
                 required
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select</option>
+                <option value="">Select Type</option>
+                <option value="SUV">SUV</option>
                 <option value="SEDAN">Sedan</option>
                 <option value="HATCHBACK">Hatchback</option>
-                <option value="SUV">SUV</option>
                 <option value="COUPE">Coupe</option>
-                <option value="CONVERTIBLE">Convertible</option>
-                <option value="CABRIO">Cabrio</option>
-                <option value="WAGON">Wagon</option>
-                <option value="VAN">Van</option>
-                <option value="PICKUP">Pickup</option>
-                <option value="COMBI">Combi</option>
-                <option value="OTHER">Other</option>
               </select>
             </div>
 
@@ -182,11 +162,9 @@ export default function EditCarModal({
                 required
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select</option>
-                <option value="MANUAL">Manual</option>
+                <option value="">Select Transmission</option>
                 <option value="AUTOMATIC">Automatic</option>
-                <option value="SEMI_AUTOMATIC">Semi-Automatic</option>
-                <option value="OTHER">Other</option>
+                <option value="MANUAL">Manual</option>
               </select>
             </div>
 
@@ -201,10 +179,11 @@ export default function EditCarModal({
                 required
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select</option>
+                <option value="">Select Fuel</option>
                 <option value="PETROL">Petrol</option>
                 <option value="DIESEL">Diesel</option>
-                <option value="ELECTRICITY">Electricity</option>
+                <option value="ELECTRIC">Electric</option>
+                <option value="HYBRID">Hybrid</option>
               </select>
             </div>
 
@@ -218,7 +197,6 @@ export default function EditCarModal({
                 value={formData.power || ''}
                 onChange={handleChange}
                 required
-                min="0"
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -233,7 +211,6 @@ export default function EditCarModal({
                 value={formData.displacement || ''}
                 onChange={handleChange}
                 required
-                min="0"
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

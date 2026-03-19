@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sendVerificationEmail } from '../../../../lib/mail';
-import { UserRepository } from '@/lib/repositories/userRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
 
 export async function POST(req: Request) {
   try {

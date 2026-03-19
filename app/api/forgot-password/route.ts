@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
-import { UserRepository } from '@/lib/repositories/userRepository';
-import { PasswordResetTokenRepository } from '@/lib/repositories/PasswordResetTokenRepository';
+import { UserRepository } from '@/lib/repository/UserRepository';
+import { PasswordResetTokenRepository } from '@/lib/repository/PasswordResetTokenRepository';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

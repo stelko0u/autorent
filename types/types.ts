@@ -11,8 +11,8 @@ export interface Car {
   carType?: CarType;
   transmissionType?: TransmissionType;
   fuelType?: FuelType;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
   company?: Company;
   office?: Office;
   power: number;
@@ -50,17 +50,25 @@ export type TransmissionType =
 
 export type FuelType = 'PETROL' | 'DIESEL' | 'ELECTRICITY';
 
-// types/index.ts
+
 export interface Company {
   id: number;
   name: string;
   email: string;
+  maintenancePercent: number;
+  ownerId?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+  office: Office
 }
 
 export interface Office {
   id: number;
   name: string;
   address: string;
+  latitude: number;
+  longitude: number;
+  companyId: number;
 }
 
 export interface Reservation {
@@ -74,3 +82,38 @@ export interface Reservation {
   createdAt: Date;
   updatedAt?: Date;
 }
+
+export interface CompanyStats {
+  id: string;
+  name: string;
+  reservationsCount: number;
+  revenue: string;
+  platformFee: string;
+  monthlyRevenue: string;
+  monthlyPlatformFee: string;
+}
+
+export interface DashboardStats {
+  totalCompanies: number;
+  totalReservations: number;
+  totalRevenue: number;
+  platformRevenue: number;
+  monthlyRevenue: number;
+  monthlyPlatformRevenue: number;
+  companiesStats: CompanyStats[];
+}
+
+export type CarRow = {
+  id: number;
+  make: string;
+  model: string;
+  year?: number;
+  pricePerDay?: number;
+  companyId?: number;
+  images?: Array<string>;
+};
+
+// export type Company = {
+//   id: number;
+//   name: string;
+// };

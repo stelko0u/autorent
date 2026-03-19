@@ -1,3 +1,4 @@
+import { stripe } from '@/lib/stripe';
 export interface User {
   id: number;
   email: string;
@@ -19,6 +20,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   name?: string;
+  mustChangePassword: boolean;
 }
 
 export interface Company {
@@ -29,6 +31,8 @@ export interface Company {
   ownerId: number;
   createdAt: Date;
   updatedAt?: Date;
+  office: Office;
+  stripeAccountId: string;
 }
 
 export interface Car {
@@ -88,22 +92,6 @@ export interface Reservation {
   paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 }
 
-// export interface Payments {
-//   id: number;
-//   reservationId: number;
-//   companyId: number;
-//   amount: number;
-//   totalPrice: number;
-//   platformFee: number;
-//   companyEarnings: number;
-//   paymentMethod: 'CARD' | 'ON_SPOT';
-//   paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
-//   paidAt?: Date;
-//   createdAt: Date;
-//   updatedAt?: Date;
-//   stripePaymentIntentId: string;
-//   stripeChargeId: string;
-// }
 export interface Payments {
   id: number;
   reservationId: number;

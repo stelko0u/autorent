@@ -1,26 +1,8 @@
 'use client';
 
+import { fetchDashboardStats } from '@/lib/api/adminApi';
 import React, { useEffect, useState } from 'react';
-
-interface CompanyStats {
-  id: string;
-  name: string;
-  reservationsCount: number;
-  revenue: string;
-  platformFee: string;
-  monthlyRevenue: string;
-  monthlyPlatformFee: string;
-}
-
-interface DashboardStats {
-  totalCompanies: number;
-  totalReservations: number;
-  totalRevenue: number;
-  platformRevenue: number;
-  monthlyRevenue: number;
-  monthlyPlatformRevenue: number;
-  companiesStats: CompanyStats[];
-}
+import { DashboardStats } from '@/types/types';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -28,16 +10,16 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchStats();
+    loadStats();
   }, []);
 
-  const fetchStats = async () => {
+  const loadStats = async () => {
+    setLoading(true);
+    setError('');
     try {
-      const response = await fetch('/api/admin/dashboard');
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      const data = await response.json();
+      const data = await fetchDashboardStats();
       setStats(data);
-    } catch (err) {
+    } catch (err: any) {
       setError('Error loading statistics');
     } finally {
       setLoading(false);
