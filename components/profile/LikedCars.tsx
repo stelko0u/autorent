@@ -7,7 +7,7 @@ import {
   removeFavoriteCar,
   type FavoriteCar,
 } from '@/lib/api/userApi';
-import { FullHeart } from '../icons';
+import { FullHeart, Heart } from '../icons';
 
 interface Props {
   userId: number;
@@ -95,19 +95,7 @@ export default function LikedCars({ userId }: Props) {
       <div className="p-6">
         {cars.length === 0 ? (
           <div className="py-12 text-center text-gray-500">
-            <svg
-              className="mx-auto mb-4 h-16 w-16 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
+            <Heart className="mx-auto mb-4 h-10 w-10 text-gray-400" />
 
             <p>No liked cars yet</p>
             <p className="mt-2 text-sm">Browse cars and save your favorites!</p>

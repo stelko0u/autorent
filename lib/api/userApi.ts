@@ -1,3 +1,5 @@
+import { User } from '@/types/database';
+
 export interface VerifyResetTokenPayload {
   email: string;
   token: string;
@@ -107,29 +109,25 @@ type GetUserReviewsResponse = {
   reviews?: UserReview[];
 };
 
-export async function getLoggedInUser(): Promise<
-  import('@/types/database').User | null
-> {
-  try {
-    const res = await fetch('/api/auth/me', {
-      method: 'GET',
-      credentials: 'include',
-    });
+export interface LoggedInUser {
+  user: {
+    id: number;
+    email: string;
+    name?: string;
+    role: string;
+  };
+}
 
-    if (!res.ok) {
-      if (res.status === 401) {
-        return null;
-      }
-      const error = await res.json();
-      throw new Error(error?.message || `Failed (${res.status})`);
-    }
+export async function getLoggedInUser(): Promise<LoggedInUser> {
+  const res = await fetch('/api/auth/me', {
+    credentials: 'include',
+  });
 
-    const user = await res.json();
-    return user;
-  } catch (error) {
-    console.error('Error fetching logged-in user:', error);
-    return null;
+  if (!res.ok) {
+    throw new Error('Failed to fetch logged in user');
   }
+
+  return res.json() as Promise<LoggedInUser>;
 }
 
 export async function verifyResetToken(

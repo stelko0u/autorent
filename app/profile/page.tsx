@@ -7,6 +7,7 @@ import RentedCars from '../../components/profile/RentedCars';
 import UserReviews from '../../components/profile/UserReviews';
 import LikedCars from '../../components/profile/LikedCars';
 import ProfileSidebar from '../../components/profile/ProfileSidebar';
+import { getLoggedInUser } from '@/lib/api/userApi';
 
 interface User {
   id: number;
@@ -25,16 +26,7 @@ export default function ProfilePage() {
 
   const loadUser = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me', {
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        router.push('/signin');
-        return;
-      }
-
-      const data = await res.json();
+      const data = await getLoggedInUser();
       setUser(data.user);
     } catch {
       router.push('/signin');
@@ -49,7 +41,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-lg">Loading...</div>
       </div>
     );
@@ -61,15 +53,15 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="mt-1 text-gray-600">
             Manage your account and preferences
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid gap-6 lg:grid-cols-4">
           <div className="lg:col-span-1">
             <ProfileSidebar
               user={user}

@@ -1,6 +1,10 @@
 'use client';
+
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import { createReservation } from '@/lib/api/reservationApi';
+import { Xmark } from '../icons';
+import LoadingCircle from '../icons/LoadingCircle';
 
 interface ReservationModalProps {
   carId: number;
@@ -10,24 +14,47 @@ interface ReservationModalProps {
   onSuccess: () => void;
 }
 
-const ReservationModal: React.FC<ReservationModalProps> = ({ 
-  carId, 
-  carName, 
-  pricePerDay, 
-  onClose, 
-  onSuccess 
-}) => {
-  const [formData, setFormData] = useState({
+interface ReservationFormData {
+  startDate: string;
+  endDate: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  notes: string;
+  paymentMethod: 'CARD' | 'ON_SPOT';
+}
+
+export default function ReservationModal({
+  carId,
+  carName,
+  pricePerDay,
+  onClose,
+  onSuccess,
+}: ReservationModalProps) {
+  const [formData, setFormData] = useState<ReservationFormData>({
     startDate: '',
     endDate: '',
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    notes: ''
+    notes: '',
+    paymentMethod: 'ON_SPOT',
   });
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const updateFormData = <K extends keyof ReservationFormData>(
+    key: K,
+    value: ReservationFormData[K],
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -39,7 +66,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.phone) newErrors.phone = 'Phone is required';
 
-    // Date validation
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate);
       const end = new Date(formData.endDate);
@@ -49,12 +75,12 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       if (start < today) {
         newErrors.startDate = 'Start date cannot be in the past';
       }
+
       if (end <= start) {
         newErrors.endDate = 'End date must be after start date';
       }
     }
 
-    // Email validation
     if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       newErrors.email = 'Please enter a valid email';
     }
@@ -63,9 +89,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -74,7 +100,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     setErrors({});
 
     try {
-      const reservationData = {
+      const result = await createReservation({
         carId,
         startDate: formData.startDate,
         endDate: formData.endDate,
@@ -82,30 +108,18 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        notes: formData.notes
-      };
-
-      const response = await fetch('/api/reservations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reservationData),
-        credentials: 'include',
+        paymentMethod: formData.paymentMethod,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create reservation');
-      }
+      toast.success(
+        result.flow?.nextStep === 'payment'
+          ? 'Reservation created successfully. Continue to payment.'
+          : 'Reservation confirmed successfully.',
+      );
 
-      const result = await response.json();
-      
-      toast.success(`Reservation confirmed! ${result.reference ? `Reference: ${result.reference}` : ''}`);
       onSuccess();
       onClose();
-      
-      // Reset form
+
       setFormData({
         startDate: '',
         endDate: '',
@@ -113,12 +127,14 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         lastName: '',
         email: '',
         phone: '',
-        notes: ''
+        notes: '',
+        paymentMethod: 'ON_SPOT',
       });
-
     } catch (error: unknown) {
       console.error('Reservation error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create reservation');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to create reservation',
+      );
     } finally {
       setLoading(false);
     }
@@ -126,199 +142,225 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
 
   const calculateTotalPrice = () => {
     if (!formData.startDate || !formData.endDate) return 0;
-    
+
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const days = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
     return days * pricePerDay;
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white shadow-xl">
         <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
+          <div className="mb-4 flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
                 Reserve {carName}
               </h2>
-              <p className="text-gray-600 mt-1">
-                {pricePerDay} EUR per day
-              </p>
+              <p className="mt-1 text-gray-600">{pricePerDay} EUR per day</p>
             </div>
+
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition"
+              className="text-gray-400 transition hover:text-gray-600"
+              type="button"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <Xmark className="h-6 w-6" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Start Date *
                 </label>
                 <input
                   type="date"
                   value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  onChange={(e) => updateFormData('startDate', e.target.value)}
+                  className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                     errors.startDate ? 'border-red-500' : 'border-gray-300'
                   }`}
                   min={new Date().toISOString().split('T')[0]}
                 />
-                {errors.startDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
-                )}
+                {errors.startDate ? (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.startDate}
+                  </p>
+                ) : null}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   End Date *
                 </label>
                 <input
                   type="date"
                   value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  onChange={(e) => updateFormData('endDate', e.target.value)}
+                  className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                     errors.endDate ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  min={formData.startDate || new Date().toISOString().split('T')[0]}
+                  min={
+                    formData.startDate || new Date().toISOString().split('T')[0]
+                  }
                 />
-                {errors.endDate && (
+                {errors.endDate ? (
                   <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
-                )}
+                ) : null}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   First Name *
                 </label>
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  onChange={(e) => updateFormData('firstName', e.target.value)}
+                  className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                     errors.firstName ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                )}
+                {errors.firstName ? (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.firstName}
+                  </p>
+                ) : null}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Last Name *
                 </label>
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  onChange={(e) => updateFormData('lastName', e.target.value)}
+                  className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                     errors.lastName ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.lastName && (
+                {errors.lastName ? (
                   <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                )}
+                ) : null}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Email *
                 </label>
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  onChange={(e) => updateFormData('email', e.target.value)}
+                  className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.email && (
+                {errors.email ? (
                   <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
+                ) : null}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Phone *
                 </label>
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  onChange={(e) => updateFormData('phone', e.target.value)}
+                  className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                     errors.phone ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.phone && (
+                {errors.phone ? (
                   <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                )}
+                ) : null}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Payment Method *
+              </label>
+              <select
+                value={formData.paymentMethod}
+                onChange={(e) =>
+                  updateFormData(
+                    'paymentMethod',
+                    e.target.value as 'CARD' | 'ON_SPOT',
+                  )
+                }
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="ON_SPOT">Pay on spot</option>
+                <option value="CARD">Card</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 Additional Notes
               </label>
               <textarea
                 value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                onChange={(e) => updateFormData('notes', e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Any special requests or notes..."
               />
             </div>
 
-            {calculateTotalPrice() > 0 && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center">
+            {calculateTotalPrice() > 0 ? (
+              <div className="rounded-lg bg-gray-50 p-4">
+                <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold">Total Price:</span>
                   <span className="text-2xl font-bold text-indigo-600">
                     {calculateTotalPrice()} EUR
                   </span>
                 </div>
-                <div className="text-sm text-gray-600 mt-2">
+                <div className="mt-2 text-sm text-gray-600">
                   {(() => {
                     const start = new Date(formData.startDate);
                     const end = new Date(formData.endDate);
-                    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                    const days = Math.ceil(
+                      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+                    );
+
                     return `${days} day${days === 1 ? '' : 's'} × ${pricePerDay} EUR/day`;
                   })()}
                 </div>
               </div>
-            )}
+            ) : null}
 
-            <div className="flex gap-3 mt-6">
+            <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? (
                   <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l2-2m-2 4l2-2m-2 4l2-2" />
-                    </svg>
+                    <LoadingCircle className="mr-2 h-5 w-5 animate-spin" />
                     Processing...
                   </div>
                 ) : (
@@ -331,6 +373,4 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
       </div>
     </div>
   );
-};
-
-export default ReservationModal;
+}

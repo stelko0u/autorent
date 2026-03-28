@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { forgotPassword } from '@/lib/api/authApi';
 
 type ForgotPasswordResponse = {
   ok?: boolean;
@@ -42,21 +43,11 @@ export default function ForgotPasswordForm() {
     try {
       setLoading(true);
 
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data: ForgotPasswordResponse = await response
-        .json()
-        .catch(() => ({}));
+      const data = await forgotPassword({ email });
 
       const hasExplicitFailure = data.ok === false || data.success === false;
 
-      if (!response.ok || hasExplicitFailure) {
+      if (!data.ok || hasExplicitFailure) {
         setError(data.error || t('messages.unexpectedError'));
         return;
       }

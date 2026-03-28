@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowLeft, ArrowRight } from '../icons';
 
 interface Reservation {
   startDate: string | Date;
@@ -181,19 +182,7 @@ export default function Calendar({
           onClick={previousMonth}
           className="p-2 bg-gray-400 hover:bg-gray-500 rounded-full transition"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="white"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <h3 className="text-lg font-semibold text-gray-600">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
@@ -202,19 +191,7 @@ export default function Calendar({
           onClick={nextMonth}
           className="p-2 bg-gray-400 hover:bg-gray-500 rounded-full transition"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="white"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ArrowRight className="w-5 h-5 text-white" />
         </button>
       </div>
 

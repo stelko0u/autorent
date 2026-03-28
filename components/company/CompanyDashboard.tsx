@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BadgeDollar, Cars, Check, Clipboard, Clock } from '../icons';
+import { MetricCard } from '../ui/MetricCard';
+import { getCompanyDashboard } from '@/lib/api/companyApi';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -29,11 +31,115 @@ interface RecentReservation {
   customerName: string;
 }
 
+interface StatCardProps {
+  title: string;
+  value: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  variant?: 'accent' | 'success' | 'surface';
+  badge?: string;
+}
+
 function money(value?: number) {
   return new Intl.NumberFormat('bg-BG', {
     style: 'currency',
     currency: 'EUR',
   }).format(Number(value || 0));
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat('bg-BG', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function normalizeStatus(status: string) {
+  return status.replaceAll('_', ' ').toLowerCase();
+}
+
+function getStatusClassName(status: string) {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'border-blue-200 bg-blue-50 text-blue-700';
+    case 'IN_PROGRESS':
+      return 'border-amber-200 bg-amber-50 text-amber-700';
+    case 'COMPLETED':
+    case 'RETURNED':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    case 'CANCELLED':
+      return 'border-red-200 bg-red-50 text-red-700';
+    default:
+      return 'border-gray-200 bg-gray-50 text-gray-700';
+  }
+}
+
+function getPaymentClassName(status: string) {
+  switch (status.toUpperCase()) {
+    case 'PAID':
+    case 'SUCCEEDED':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    case 'PENDING':
+      return 'border-amber-200 bg-amber-50 text-amber-700';
+    case 'FAILED':
+    case 'CANCELED':
+      return 'border-red-200 bg-red-50 text-red-700';
+    default:
+      return 'border-gray-200 bg-gray-50 text-gray-700';
+  }
+}
+
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  variant = 'surface',
+  badge,
+}: StatCardProps) {
+  const variantClassName =
+    variant === 'accent'
+      ? 'border-transparent bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-[0_20px_60px_rgba(99,102,241,0.28)]'
+      : variant === 'success'
+        ? 'border-transparent bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-[0_20px_60px_rgba(34,197,94,0.22)]'
+        : 'border-gray-200 bg-white text-gray-900 shadow-sm';
+
+  const mutedClassName =
+    variant === 'surface' ? 'text-gray-500' : 'text-white/80';
+
+  const iconWrapperClassName =
+    variant === 'surface'
+      ? 'bg-gray-100 text-gray-500'
+      : 'bg-white/15 text-white';
+
+  return (
+    <div className={`rounded-3xl border p-6 ${variantClassName}`}>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <p className={`text-sm font-medium ${mutedClassName}`}>{title}</p>
+          <p className="mt-3 text-4xl font-bold tracking-tight">{value}</p>
+        </div>
+
+        <div className={`rounded-2xl p-3 ${iconWrapperClassName}`}>{icon}</div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <p className={`text-sm ${mutedClassName}`}>{subtitle}</p>
+        {badge ? (
+          <span
+            className={
+              variant === 'surface'
+                ? 'rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600'
+                : 'rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-white'
+            }
+          >
+            {badge}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 export default function CompanyDashboard() {
@@ -45,285 +151,330 @@ export default function CompanyDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDashboardData();
+    async function loadDashboardData() {
+      try {
+        const data = await getCompanyDashboard();
+        setStats(data.stats);
+        setRecentReservations(data.recentReservations);
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load dashboard',
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadDashboardData();
   }, []);
 
-  const loadDashboardData = async () => {
-    try {
-      const res = await fetch('/api/company/dashboard', {
-        credentials: 'include',
-        cache: 'no-store',
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || 'Failed to load dashboard data');
-      }
-
-      setStats(data.stats);
-      setRecentReservations(data.recentReservations || []);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
-    } finally {
-      setLoading(false);
+  const collectionRate = useMemo(() => {
+    if (!stats || stats.totalReservations === 0) {
+      return 0;
     }
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800';
-      case 'IN_PROGRESS':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'COMPLETED':
-      case 'RETURNED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+    return Math.round(
+      (stats.completedReservations / stats.totalReservations) * 100,
+    );
+  }, [stats]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-lg text-gray-500">Loading dashboard...</div>
+      <div className="rounded-3xl border border-gray-200 bg-white p-10 shadow-sm">
+        <div className="space-y-3 animate-pulse">
+          <div className="h-8 w-56 rounded-xl bg-gray-200" />
+          <div className="h-4 w-80 max-w-full rounded-xl bg-gray-100" />
+          <div className="grid gap-4 pt-6 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-44 rounded-3xl border border-gray-100 bg-gray-50"
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className="bg-red-100 text-red-700 p-4 rounded-lg">{error}</div>
+      <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">
+        <h3 className="text-lg font-semibold">Dashboard error</h3>
+        <p className="mt-2 text-sm">{error}</p>
       </div>
     );
   }
 
+  if (!stats) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-          <p className="text-gray-600 mt-1">
-            Stripe-first overview with database fallback
-          </p>
-        </div>
-
-        <div
-          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-            stats?.moneySource === 'stripe'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-amber-100 text-amber-700'
-          }`}
-        >
-          Source: {stats?.moneySource === 'stripe' ? 'Stripe' : 'Database'}
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-6">
-        <div className="bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium opacity-90">Total Revenue</h3>
-            <BadgeDollar className="w-8 h-8 opacity-50" />
+      <section className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-700">
+              Company overview
+            </div>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950">
+              Financial dashboard
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">
+              Clean overview of earnings, reservations and payment health for
+              your company account.
+            </p>
           </div>
-          <p className="text-3xl font-bold">{money(stats?.totalRevenue)}</p>
-          <p className="text-sm mt-2 opacity-80">Successful card payments</p>
-        </div>
 
-        <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Platform Fee</h3>
-            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
-              {Number(stats?.maintenancePercent || 0).toFixed(2)}%
-            </span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900">
-            {money(stats?.platformFee)}
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Fee based on company maintenance percent
-          </p>
-        </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
+                Data source
+              </p>
+              <p className="mt-2 text-lg font-semibold text-gray-900">
+                {stats.moneySource === 'stripe' ? 'Stripe' : 'Database'}
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                {stats.moneySource === 'stripe'
+                  ? 'Live dashboard values synced from Stripe.'
+                  : 'Fallback values generated from local payment records.'}
+              </p>
+            </div>
 
-        <div className="bg-linear-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium opacity-90">Net Earnings</h3>
-            <div className="p-2 bg-green-700 text-white rounded-full">
-              <Check className="w-5 h-5 opacity-80" />
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                Collection rate
+              </p>
+              <p className="mt-2 text-lg font-semibold text-emerald-900">
+                {collectionRate}% completed
+              </p>
+              <p className="mt-1 text-sm text-emerald-700/80">
+                Based on confirmed reservations in your portfolio.
+              </p>
             </div>
           </div>
-          <p className="text-3xl font-bold">{money(stats?.companyEarnings)}</p>
-          <p className="text-sm mt-2 opacity-80">After platform fee</p>
         </div>
+      </section>
 
-        <div className="bg-white rounded-xl shadow p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">
-              Stripe Balance
+      <section className="grid gap-4 xl:grid-cols-4">
+        <StatCard
+          title="Total revenue"
+          value={money(stats.totalRevenue)}
+          subtitle="Processed bookings and successful charges"
+          icon={<BadgeDollar className="h-7 w-7" />}
+          variant="accent"
+        />
+        <StatCard
+          title="Platform fee"
+          value={money(stats.platformFee)}
+          subtitle="Automatically calculated maintenance fee"
+          icon={<Clipboard className="h-7 w-7" />}
+          badge={`${stats.maintenancePercent.toFixed(2)}%`}
+        />
+        <StatCard
+          title="Net earnings"
+          value={money(stats.companyEarnings)}
+          subtitle="Expected earnings after platform deductions"
+          icon={<Check className="h-7 w-7" />}
+          variant="success"
+        />
+        <StatCard
+          title="Withdrawable balance"
+          value={money(stats.companyEarnings)}
+          subtitle="Professional summary for the company panel"
+          icon={<BadgeDollar className="h-7 w-7" />}
+          badge={stats.moneySource === 'stripe' ? 'Synced' : 'Internal'}
+        />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          title="Total reservations"
+          value={stats.totalReservations}
+          icon={<Clipboard className="h-5 w-5 text-blue-600" />}
+          accentClassName="bg-blue-50"
+        />
+        <MetricCard
+          title="Pending reservations"
+          value={stats.pendingReservations}
+          icon={<Clock className="h-5 w-5 text-amber-600" />}
+          accentClassName="bg-amber-50"
+        />
+        <MetricCard
+          title="Completed reservations"
+          value={stats.completedReservations}
+          icon={<Check className="h-5 w-5 text-emerald-600" />}
+          accentClassName="bg-emerald-50"
+        />
+        <MetricCard
+          title="Active cars"
+          value={stats.totalCars}
+          icon={<Cars className="h-5 w-5 text-violet-600" />}
+          accentClassName="bg-violet-50"
+        />
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
+        <div className="rounded-[28px] border border-gray-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-2 border-b border-gray-200 px-6 py-5 sm:px-8">
+            <h3 className="text-xl font-semibold text-gray-950">
+              Recent reservations
             </h3>
-            <BadgeDollar className="w-7 h-7 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              Latest bookings made for your vehicles.
+            </p>
           </div>
-          <p className="text-xl font-bold text-gray-900">
-            Available: {money(stats?.balanceAvailable)}
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Pending: {money(stats?.balancePending)}
-          </p>
-        </div>
-      </div>
 
-      <div className="grid md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Clipboard className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.totalReservations || 0}
-              </p>
-              <p className="text-sm text-gray-600">Total Reservations</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-yellow-100 rounded-lg">
-              <Clock className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.pendingReservations || 0}
-              </p>
-              <p className="text-sm text-gray-600">Pending</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Check className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.completedReservations || 0}
-              </p>
-              <p className="text-sm text-gray-600">Completed</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <Cars className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.totalCars || 0}
-              </p>
-              <p className="text-sm text-gray-600">Total Cars</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Recent Reservations
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Latest bookings for your vehicles
-          </p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-100 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Car
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Dates
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {recentReservations.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    No reservations yet
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
+                    Car
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                    Customer
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                    Rental period
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                    Amount
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
+                    Payment
+                  </th>
                 </tr>
-              ) : (
-                recentReservations.map((reservation) => (
-                  <tr key={reservation.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
-                        {reservation.carMake} {reservation.carModel}
-                      </div>
-                    </td>
+              </thead>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {reservation.customerName}
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      <div>
-                        {new Date(reservation.startDate).toLocaleDateString()}
-                      </div>
-                      <div>
-                        {new Date(reservation.endDate).toLocaleDateString()}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      {money(reservation.totalPrice)}
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                          reservation.status,
-                        )}`}
-                      >
-                        {reservation.status}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {reservation.paymentStatus}
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {recentReservations.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-12 text-center text-sm text-gray-500 sm:px-8"
+                    >
+                      No reservations yet.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  recentReservations.map((reservation) => (
+                    <tr
+                      key={reservation.id}
+                      className="transition-colors hover:bg-gray-50/80"
+                    >
+                      <td className="px-6 py-5 sm:px-8">
+                        <div className="font-semibold text-gray-900">
+                          {reservation.carMake} {reservation.carModel}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5 text-sm text-gray-600">
+                        {reservation.customerName}
+                      </td>
+
+                      <td className="px-6 py-5 text-sm text-gray-600">
+                        <div>{formatShortDate(reservation.startDate)}</div>
+                        <div className="mt-1 text-gray-400">
+                          {formatShortDate(reservation.endDate)}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5 text-sm font-semibold text-gray-900">
+                        {money(reservation.totalPrice)}
+                      </td>
+
+                      <td className="px-6 py-5">
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusClassName(
+                            reservation.status,
+                          )}`}
+                        >
+                          {normalizeStatus(reservation.status)}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-5 sm:px-8">
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getPaymentClassName(
+                            reservation.paymentStatus,
+                          )}`}
+                        >
+                          {normalizeStatus(reservation.paymentStatus)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+
+        <div className="space-y-4">
+          <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-950">
+              Earnings summary
+            </h3>
+            <div className="mt-5 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-gray-500">Gross revenue</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {money(stats.totalRevenue)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-gray-500">Platform fee</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {money(stats.platformFee)}
+                </span>
+              </div>
+              <div className="h-px bg-gray-200" />
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium text-gray-700">
+                  Company earnings
+                </span>
+                <span className="text-base font-bold text-gray-950">
+                  {money(stats.companyEarnings)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-950">
+              Stripe status
+            </h3>
+            <div className="mt-5 grid gap-3">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                  Available in Stripe
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-gray-950">
+                  {money(stats.balanceAvailable)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
+                  Pending in Stripe
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-amber-900">
+                  {money(stats.balancePending)}
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-gray-500">
+              Stripe balances are displayed as a reference only. The primary
+              company dashboard uses your earnings data for a cleaner and more
+              reliable financial overview.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

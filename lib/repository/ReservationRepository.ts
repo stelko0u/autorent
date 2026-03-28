@@ -47,7 +47,8 @@ export class ReservationRepository {
     const setClause = entries
       .map(([key], i) => `"${key}" = $${i + 2}`)
       .join(', ');
-    const values = [id, ...entries.values()];
+
+    const values = [id, ...entries.map(([, value]) => value)];
 
     return queryOne<Reservation>(
       `UPDATE "Reservation" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,

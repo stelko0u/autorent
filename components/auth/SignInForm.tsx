@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { signIn } from '@/lib/api/authApi';
 
 type SignInResponse = {
   ok?: boolean;
@@ -52,17 +53,9 @@ export default function SignInForm() {
     try {
       setLoading(true);
 
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await signIn(email, password);
 
-      const data: SignInResponse = await response.json().catch(() => ({}));
-
-      if (!response.ok || !data.ok) {
+      if (!data.ok) {
         setError(
           data.error === 'invalid_credentials'
             ? t('messages.invalidCredentials')

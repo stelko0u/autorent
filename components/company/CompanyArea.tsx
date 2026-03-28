@@ -12,6 +12,13 @@ import { useSearchParams } from 'next/navigation';
 import { Car } from '@/types/database';
 import CompanyInvoices from './CompanyInvoices';
 import CompanyReports from './CompanyReports';
+import {
+  getCompanyAccessStatus,
+  getCompanyCars,
+  getCompanyMe,
+  getCompanyStripeOnboardingLink,
+  type CompanyAccessState,
+} from '@/lib/api/companyApi';
 
 async function parseJsonSafe(res: Response) {
   const text = await res.text();
@@ -29,31 +36,12 @@ async function parseJsonSafe(res: Response) {
   }
 }
 
-type CompanyAccessState = {
-  allowed: boolean;
-  onboardingRequired: boolean;
-  reason:
-    | 'company_not_found'
-    | 'missing_company'
-    | 'missing_stripe_account'
-    | 'stripe_incomplete'
-    | 'ready';
-  company: import('@/types/database').Company | null;
-  stripe: {
-    accountId: string | null;
-    detailsSubmitted: boolean;
-    chargesEnabled: boolean;
-    payoutsEnabled: boolean;
-    disabledReason: string | null;
-    currentlyDue: string[];
-    pastDue: string[];
-  } | null;
-};
-
 export default function CompanyArea() {
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>('dashboard');
-  const [company, setCompany] = useState<import('@/types/database').Company | null>(null);
+  const [company, setCompany] = useState<
+    import('@/types/database').Company | null
+  >(null);
   const [cars, setCars] = useState<Car[]>([]);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [access, setAccess] = useState<CompanyAccessState | null>(null);
@@ -81,30 +69,15 @@ export default function CompanyArea() {
     setCheckingAccess(true);
 
     try {
-      const [meRes, accessRes] = await Promise.all([
-        fetch('/api/company/me', {
-          credentials: 'include',
-          cache: 'no-store',
-        }),
-        fetch('/api/company/access-status', {
-          credentials: 'include',
-          cache: 'no-store',
-        }),
+      setError(null);
+
+      const [companyData, accessData] = await Promise.all([
+        getCompanyMe(),
+        getCompanyAccessStatus(),
       ]);
 
-      if (!meRes.ok) {
-        throw new Error(`Auth error (${meRes.status})`);
-      }
-
-      const me = await parseJsonSafe(meRes);
-      setCompany(me.company);
-
-      if (!accessRes.ok) {
-        throw new Error(`Access status error (${accessRes.status})`);
-      }
-
-      const accessJson = await parseJsonSafe(accessRes);
-      setAccess(accessJson.access ?? null);
+      setCompany(companyData);
+      setAccess(accessData);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Loading failed');
     } finally {
@@ -114,13 +87,9 @@ export default function CompanyArea() {
 
   async function loadCars() {
     try {
-      const carsRes = await fetch('/api/company/cars', {
-        credentials: 'include',
-        cache: 'no-store',
-      });
-      if (!carsRes.ok) throw new Error(`Cars load error (${carsRes.status})`);
-      const carsJson = await parseJsonSafe(carsRes);
-      setCars(Array.isArray(carsJson.cars) ? carsJson.cars : []);
+      setError(null);
+      const nextCars = await getCompanyCars();
+      setCars(nextCars);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load cars');
     }
@@ -135,21 +104,14 @@ export default function CompanyArea() {
       setCreatingOnboardingLink(true);
       setError(null);
 
-      const res = await fetch('/api/company/stripe/onboarding-link', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store',
-      });
-
-      const data = await parseJsonSafe(res);
-
-      if (!res.ok || !data?.ok || !data?.url) {
-        throw new Error(data?.error || 'Failed to create onboarding link');
-      }
-
-      window.location.href = data.url;
+      const url = await getCompanyStripeOnboardingLink();
+      window.location.href = url;
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to redirect to Stripe onboarding');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to redirect to Stripe onboarding',
+      );
     } finally {
       setCreatingOnboardingLink(false);
     }
@@ -308,17 +270,14 @@ export default function CompanyArea() {
                 {active === 'payments' && <CompanyPayments />}
                 {active === 'invoices' && <CompanyInvoices />}
                 {active === 'reports' && <CompanyReports />}
-
                 {active === 'manage-cars' && (
                   <ManageCars cars={cars} onRefresh={loadCars} />
                 )}
-
                 {active === 'add-car' && (
                   <AddCarForm onCreated={handleCarCreated} />
                 )}
-
                 {active === 'offices' && company && (
-                  <CompanyOffices companyId={company.id} />
+                  <CompanyOffices companyId={company.id ?? 0} />
                 )}
               </>
             )}

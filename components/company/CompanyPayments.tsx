@@ -1,6 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BadgeDollar, Check, Clipboard, Clock } from '../icons';
+import {
+  CompanyPanelBadge,
+  CompanyPanelCard,
+  CompanyPanelEmptyState,
+  CompanyPanelInfoCard,
+  CompanyPanelPageHeader,
+  CompanyPanelPagination,
+  CompanyPanelSearch,
+  CompanyPanelStatCard,
+  CompanyPanelToolbar,
+} from './CompanyPanelUI';
+import { getCompanyPayments } from '@/lib/api/companyApi';
 
 interface Payment {
   source?: 'stripe' | 'database';
@@ -20,6 +33,8 @@ interface Payment {
   carLabel?: string;
 }
 
+const PAGE_SIZE = 8;
+
 function money(value?: number) {
   return new Intl.NumberFormat('bg-BG', {
     style: 'currency',
@@ -27,240 +42,375 @@ function money(value?: number) {
   }).format(Number(value || 0));
 }
 
+function formatDate(value?: string) {
+  if (!value) {
+    return '—';
+  }
+
+  return new Intl.DateTimeFormat('bg-BG', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function getPaymentTone(
+  status: string,
+): 'gray' | 'amber' | 'green' | 'red' | 'indigo' {
+  switch (status) {
+    case 'PAID':
+      return 'green';
+    case 'PENDING':
+      return 'amber';
+    case 'FAILED':
+    case 'REFUNDED':
+      return 'red';
+    default:
+      return 'gray';
+  }
+}
+
+function normalizePaymentMethod(value: string) {
+  if (value === 'CARD') {
+    return 'Online card';
+  }
+
+  return value || '—';
+}
+
+function shortId(value?: string | null) {
+  if (!value) {
+    return '—';
+  }
+
+  if (value.length <= 22) {
+    return value;
+  }
+
+  return `${value.slice(0, 14)}…${value.slice(-6)}`;
+}
+
 export default function CompanyPayments() {
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [totalEarnings, setTotalEarnings] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalPlatformFee, setTotalPlatformFee] = useState(0);
   const [source, setSource] = useState<'stripe' | 'database'>('stripe');
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPayments();
+    async function loadPayments() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getCompanyPayments();
+        setPayments(data.payments);
+        setSource(data.source);
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load payments',
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadPayments();
   }, []);
 
-  async function loadPayments() {
-    try {
-      setLoading(true);
-      setError(null);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
-      const res = await fetch('/api/company/payments', {
-        credentials: 'include',
-        cache: 'no-store',
-      });
+  const filteredPayments = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-      const data = await res.json();
-
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || 'Failed to load payments');
-      }
-
-      setPayments(Array.isArray(data.payments) ? data.payments : []);
-      setTotalEarnings(Number(data.totalEarnings || 0));
-      setTotalRevenue(Number(data.totalRevenue || 0));
-      setTotalPlatformFee(Number(data.totalPlatformFee || 0));
-      setSource(data.source === 'database' ? 'database' : 'stripe');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load payments');
-    } finally {
-      setLoading(false);
+    if (!query) {
+      return payments;
     }
-  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PAID':
-        return 'bg-green-100 text-green-700';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'FAILED':
-        return 'bg-red-100 text-red-700';
-      case 'REFUNDED':
-        return 'bg-gray-100 text-gray-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
+    return payments.filter((payment) =>
+      [
+        payment.paymentIntentId,
+        payment.chargeId,
+        payment.customerName,
+        payment.customerEmail,
+        payment.carLabel,
+        payment.paymentStatus,
+        payment.paymentMethod,
+        payment.reservationId?.toString(),
+        payment.id?.toString(),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+    );
+  }, [payments, search]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPayments.length / PAGE_SIZE),
+  );
+
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredPayments.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredPayments, currentPage]);
+
+  const totals = useMemo(() => {
+    return filteredPayments.reduce(
+      (accumulator, payment) => {
+        accumulator.revenue += Number(payment.amount || 0);
+        accumulator.fee += Number(payment.platformFee || 0);
+        accumulator.net += Number(payment.companyEarnings || 0);
+
+        if (payment.paymentStatus === 'PAID') {
+          accumulator.paid += 1;
+        }
+
+        if (payment.paymentStatus === 'PENDING') {
+          accumulator.pending += 1;
+        }
+
+        return accumulator;
+      },
+      {
+        revenue: 0,
+        fee: 0,
+        net: 0,
+        paid: 0,
+        pending: 0,
+      },
+    );
+  }, [filteredPayments]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-lg text-gray-500">Loading payments...</div>
+      <div className="rounded-[28px] border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="space-y-4 animate-pulse">
+          <div className="h-8 w-48 rounded-xl bg-gray-200" />
+          <div className="h-4 w-72 rounded-xl bg-gray-100" />
+          <div className="grid gap-4 pt-4 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-28 rounded-3xl border border-gray-100 bg-gray-50"
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Payments</h2>
-          <p className="text-gray-600 mt-1">
-            Stripe-first payments list with database fallback
-          </p>
-        </div>
+      <CompanyPanelPageHeader
+        eyebrow="Payments"
+        title="Payments overview"
+        description="Professional payment history with a cleaner responsive layout and no horizontal scrolling."
+        rightSlot={
+          <div className="grid gap-3 sm:grid-cols-2">
+            <CompanyPanelInfoCard
+              label="Data source"
+              value={source === 'stripe' ? 'Stripe' : 'Database'}
+              description="Stripe-first with database fallback."
+            />
+            <CompanyPanelInfoCard
+              label="Net earnings"
+              value={money(totals.net)}
+              description="Calculated for the current results."
+              tone="success"
+            />
+          </div>
+        }
+      />
 
-        <div
-          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-            source === 'stripe'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-amber-100 text-amber-700'
-          }`}
-        >
-          Source: {source === 'stripe' ? 'Stripe' : 'Database'}
-        </div>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
           {error}
         </div>
-      )}
+      ) : null}
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <div className="bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="text-sm opacity-90">Total revenue</div>
-          <div className="text-3xl font-bold mt-2">{money(totalRevenue)}</div>
-        </div>
+      <section className="grid gap-4 xl:grid-cols-4">
+        <CompanyPanelStatCard
+          title="Revenue"
+          value={money(totals.revenue)}
+          subtitle="All listed payment totals"
+          icon={<BadgeDollar className="h-7 w-7" />}
+          variant="accent"
+        />
+        <CompanyPanelStatCard
+          title="Platform fee"
+          value={money(totals.fee)}
+          subtitle="Total platform deduction"
+          icon={<Clipboard className="h-7 w-7" />}
+        />
+        <CompanyPanelStatCard
+          title="Net earnings"
+          value={money(totals.net)}
+          subtitle="What belongs to the company"
+          icon={<Check className="h-7 w-7" />}
+          variant="success"
+        />
+        <CompanyPanelStatCard
+          title="Paid records"
+          value={String(totals.paid)}
+          subtitle="Successful finalized payments"
+          icon={<Clock className="h-7 w-7" />}
+          badge={`${totals.pending} pending`}
+        />
+      </section>
 
-        <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-          <div className="text-sm text-gray-500">Platform fee</div>
-          <div className="text-3xl font-bold mt-2 text-red-600">
-            {money(totalPlatformFee)}
-          </div>
-        </div>
+      <CompanyPanelCard
+        title="Payment list"
+        description="Responsive list layout without horizontal scrollbar."
+      >
+        <CompanyPanelToolbar
+          rightSlot={
+            <CompanyPanelSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by payment ID, customer, reservation or car"
+            />
+          }
+        />
 
-        <div className="bg-linear-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="text-sm opacity-90">Net earnings</div>
-          <div className="text-3xl font-bold mt-2">{money(totalEarnings)}</div>
-        </div>
-      </div>
+        {currentItems.length === 0 ? (
+          <CompanyPanelEmptyState
+            title="No payments found"
+            description="Try a different search query."
+          />
+        ) : (
+          <div className="divide-y divide-gray-200">
+            <div className="hidden gap-4 bg-gray-50 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 lg:grid lg:grid-cols-[1.8fr_0.8fr_1.2fr_1fr_0.9fr_1fr_0.8fr_0.9fr] sm:px-8">
+              <div>Payment</div>
+              <div>Reservation</div>
+              <div>Customer</div>
+              <div>Car</div>
+              <div>Gross</div>
+              <div>Fee / Net</div>
+              <div>Status</div>
+              <div>Date</div>
+            </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px]">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reservation
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Car
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fee
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Net
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Method
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {payments.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={10}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    No payments yet
-                  </td>
-                </tr>
-              ) : (
-                payments.map((payment, index) => (
-                  <tr
-                    key={`${payment.paymentIntentId || payment.id || index}`}
-                    className="hover:bg-gray-50"
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      <div className="font-medium">
-                        {payment.paymentIntentId || `#${payment.id}`}
-                      </div>
-                      {payment.chargeId && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {payment.chargeId}
-                        </div>
+            {currentItems.map((payment, index) => (
+              <article
+                key={`${payment.paymentIntentId || payment.id || index}`}
+                className="px-6 py-5 sm:px-8"
+              >
+                <div className="grid gap-4 lg:grid-cols-[1.8fr_0.8fr_1.2fr_1fr_0.9fr_1fr_0.8fr_0.9fr] lg:items-center">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Payment
+                    </p>
+                    <div
+                      className="truncate text-base font-semibold text-gray-900"
+                      title={payment.paymentIntentId || `#${payment.id || '—'}`}
+                    >
+                      {shortId(
+                        payment.paymentIntentId || `#${payment.id || '—'}`,
                       )}
-                    </td>
+                    </div>
+                    <div
+                      className="mt-1 truncate text-sm text-gray-500"
+                      title={payment.chargeId || 'No charge reference'}
+                    >
+                      {shortId(payment.chargeId || 'No charge reference')}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-400">
+                      {normalizePaymentMethod(payment.paymentMethod)}
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Reservation
+                    </p>
+                    <div className="text-sm font-medium text-gray-700">
                       {payment.reservationId
                         ? `#${payment.reservationId}`
                         : '—'}
-                    </td>
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      <div>{payment.customerName || '—'}</div>
-                      {payment.customerEmail && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {payment.customerEmail}
-                        </div>
-                      )}
-                    </td>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Customer
+                    </p>
+                    <div className="truncate text-sm font-medium text-gray-900">
+                      {payment.customerName || '—'}
+                    </div>
+                    <div className="truncate text-sm text-gray-500">
+                      {payment.customerEmail || 'No email'}
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 text-sm text-gray-700">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Car
+                    </p>
+                    <div className="break-words text-sm text-gray-700">
                       {payment.carLabel || '—'}
-                    </td>
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Gross
+                    </p>
+                    <div className="text-sm font-semibold text-gray-900">
                       {money(payment.amount)}
-                    </td>
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                      {money(payment.platformFee)}
-                    </td>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Fee / Net
+                    </p>
+                    <div className="text-sm font-medium text-red-600">
+                      Fee {money(payment.platformFee)}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-emerald-600">
+                      Net {money(payment.companyEarnings)}
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
-                      {money(payment.companyEarnings)}
-                    </td>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Status
+                    </p>
+                    <CompanyPanelBadge
+                      tone={getPaymentTone(payment.paymentStatus)}
+                    >
+                      {payment.paymentStatus}
+                    </CompanyPanelBadge>
+                  </div>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.paymentMethod === 'CARD'
-                        ? 'Online Card'
-                        : payment.paymentMethod}
-                    </td>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
+                      Date
+                    </p>
+                    <div className="text-sm text-gray-600">
+                      {formatDate(payment.paidAt || payment.createdAt)}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(payment.paymentStatus)}`}
-                      >
-                        {payment.paymentStatus}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.paidAt
-                        ? new Date(payment.paidAt).toLocaleDateString('bg-BG')
-                        : new Date(payment.createdAt).toLocaleDateString(
-                            'bg-BG',
-                          )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <CompanyPanelPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredPayments.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+        />
+      </CompanyPanelCard>
     </div>
   );
 }

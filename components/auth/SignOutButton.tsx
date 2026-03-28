@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { signOut } from '@/lib/api/authApi';
 
 export default function SignOutButton() {
   const router = useRouter();
@@ -13,9 +14,7 @@ export default function SignOutButton() {
     try {
       setLoading(true);
 
-      await fetch('/api/auth/signout', {
-        method: 'POST',
-      });
+      await signOut();
 
       router.push('/');
       router.refresh();

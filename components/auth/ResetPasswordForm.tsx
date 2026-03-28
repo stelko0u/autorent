@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { resetPassword, verifyResetToken } from '@/lib/api/userApi';
+import { resetPassword, verifyResetToken } from '@/lib/api/authApi';
 import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function ResetPasswordForm() {
@@ -31,6 +31,7 @@ export default function ResetPasswordForm() {
     () => password === confirmPassword,
     [password, confirmPassword],
   );
+
   const isPasswordValid = useMemo(
     () => password.trim().length >= 6,
     [password],
@@ -42,7 +43,7 @@ export default function ResetPasswordForm() {
     async function validateToken() {
       if (!email || !token) {
         if (!isMounted) return;
-        setInvalidReason('Invalid link.');
+        setInvalidReason(t('auth.invalidResetLink'));
         setIsTokenValid(false);
         setIsCheckingToken(false);
         return;
@@ -58,12 +59,16 @@ export default function ResetPasswordForm() {
           setInvalidReason('');
         } else {
           setIsTokenValid(false);
-          setInvalidReason(data.reason || 'Invalid token.');
+          setInvalidReason(data.reason || t('auth.invalidResetToken'));
         }
-      } catch {
+      } catch (err: unknown) {
         if (!isMounted) return;
+
+        const message =
+          err instanceof Error ? err.message : t('messages.unexpectedError');
+
         setIsTokenValid(false);
-        setInvalidReason('Error verifying token.');
+        setInvalidReason(message);
       } finally {
         if (isMounted) {
           setIsCheckingToken(false);
@@ -76,7 +81,7 @@ export default function ResetPasswordForm() {
     return () => {
       isMounted = false;
     };
-  }, [email, token]);
+  }, [email, token, t]);
 
   useEffect(() => {
     if (!success) return;
@@ -94,34 +99,44 @@ export default function ResetPasswordForm() {
     setSuccess('');
 
     if (!email || !token) {
-      setError('Invalid reset link.');
+      setError(t('auth.invalidResetLink'));
       return;
     }
 
     if (!isPasswordValid) {
-      setError('Password must be at least 6 characters long.');
+      setError(t('validation.passwordMinLength'));
       return;
     }
 
     if (!passwordsMatch) {
-      setError('Passwords do not match.');
+      setError(t('validation.passwordsDoNotMatch'));
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      await resetPassword({
+      const data = await resetPassword({
         email,
         token,
         password,
       });
 
-      setSuccess('Password has been successfully reset!');
+      const hasExplicitFailure = data.ok === false || data.success === false;
+
+      if (hasExplicitFailure) {
+        setError(data.error || t('messages.unexpectedError'));
+        return;
+      }
+
+      setSuccess(data.message || t('auth.passwordResetSuccess'));
       setPassword('');
       setConfirmPassword('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error resetting password.');
+      const message =
+        err instanceof Error ? err.message : t('messages.unexpectedError');
+
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -129,30 +144,39 @@ export default function ResetPasswordForm() {
 
   if (isCheckingToken) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
         <Image
-          src="/public/authbg.jpg"
+          src="/authbg.jpg"
           alt=""
           fill
           priority
           quality={70}
           sizes="100vw"
-          className="object-cover blur-sm scale-105"
+          className="scale-105 object-cover blur-sm"
         />
         <div className="absolute inset-0 bg-black/25" />
-        <p className="relative z-10 text-white">Verifying token...</p>
+        <p className="relative z-10 text-white">{t('auth.verifyingToken')}</p>
       </div>
     );
   }
 
   if (!isTokenValid) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+        <Image
+          src="/authbg.jpg"
+          alt=""
+          fill
+          priority
+          quality={70}
+          sizes="100vw"
+          className="scale-105 object-cover blur-sm"
+        />
         <div className="absolute inset-0 bg-black/25" />
 
         <div className="relative z-10 max-w-md rounded-xl bg-white p-6 text-center shadow-md">
           <h2 className="mb-2 text-xl font-semibold text-red-600">
-            Invalid link
+            {t('auth.invalidLinkTitle')}
           </h2>
           <p className="text-gray-600">{invalidReason}</p>
 
@@ -160,7 +184,7 @@ export default function ResetPasswordForm() {
             href="/forgot-password"
             className="mt-4 inline-block font-bold text-blue-800 hover:underline"
           >
-            Send a new reset link
+            {t('auth.sendNewResetLink')}
           </Link>
         </div>
       </div>
@@ -173,13 +197,17 @@ export default function ResetPasswordForm() {
       className="w-full max-w-md rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur-sm"
     >
       <h2 className="mb-5 text-center text-3xl font-bold text-gray-700">
-        Reset password
+        {t('auth.resetPasswordTitle')}
       </h2>
-      {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
-      {success && <p className="mb-3 text-sm text-green-600">{success}</p>}
+
+      {error ? <p className="mb-3 text-sm text-red-500">{error}</p> : null}
+      {success ? (
+        <p className="mb-3 text-sm text-green-600">{success}</p>
+      ) : null}
+
       <label className="mb-4 block">
         <span className="mb-1 block text-sm font-medium text-gray-700">
-          New Password
+          {t('auth.newPassword')}
         </span>
         <input
           type="password"
@@ -189,9 +217,10 @@ export default function ResetPasswordForm() {
           className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
         />
       </label>
+
       <label className="mb-3 block">
         <span className="mb-1 block text-sm font-medium text-gray-700">
-          Confirm Password
+          {t('auth.confirmPassword')}
         </span>
         <input
           type="password"
@@ -201,14 +230,19 @@ export default function ResetPasswordForm() {
           className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
         />
       </label>
-      {!!confirmPassword && !passwordsMatch && (
-        <p className="mb-3 text-sm text-red-500">Passwords do not match.</p>
-      )}
-      {!!password && !isPasswordValid && (
+
+      {!!confirmPassword && !passwordsMatch ? (
         <p className="mb-3 text-sm text-red-500">
-          Password must be at least 6 characters long.
+          {t('validation.passwordsDoNotMatch')}
         </p>
-      )}
+      ) : null}
+
+      {!!password && !isPasswordValid ? (
+        <p className="mb-3 text-sm text-red-500">
+          {t('validation.passwordMinLength')}
+        </p>
+      ) : null}
+
       <div className="mt-4 text-sm text-gray-600">
         {t('auth.rememberPassword')}{' '}
         <Link
@@ -218,12 +252,13 @@ export default function ResetPasswordForm() {
           {t('auth.signInHere')}
         </Link>
       </div>
+
       <button
         type="submit"
         disabled={isSubmitting}
         className="mt-2 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
-        {isSubmitting ? 'Submitting...' : 'Save New Password'}
+        {isSubmitting ? t('common.submitting') : t('auth.saveNewPassword')}
       </button>
     </form>
   );

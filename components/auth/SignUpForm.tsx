@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { signUp } from '@/lib/api/authApi';
 
 type SignUpResponse = {
   ok?: boolean;
@@ -53,24 +54,16 @@ export default function SignUpForm() {
     try {
       setLoading(true);
 
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          phone,
-          email,
-          password,
-          role: 'USER',
-        }),
+      const data = await signUp({
+        firstName,
+        lastName,
+        phone,
+        email,
+        password,
+        role: 'USER',
       });
 
-      const data: SignUpResponse = await response.json().catch(() => ({}));
-
-      if (!response.ok || !data.ok) {
+      if (!data.ok) {
         setError(data.error || t('messages.unexpectedError'));
         setLoading(false);
         return;

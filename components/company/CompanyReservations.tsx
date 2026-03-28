@@ -1,6 +1,20 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { Check, Clipboard, Clock, User } from '../icons';
+import {
+  CompanyPanelBadge,
+  CompanyPanelCard,
+  CompanyPanelEmptyState,
+  CompanyPanelInfoCard,
+  CompanyPanelMetricCard,
+  CompanyPanelPageHeader,
+  CompanyPanelPagination,
+  CompanyPanelSearch,
+  CompanyPanelTabs,
+  CompanyPanelToolbar,
+} from './CompanyPanelUI';
+import { getCompanyReservations } from '@/lib/api/companyApi';
 
 interface Reservation {
   id: number;
@@ -19,239 +33,378 @@ interface Reservation {
   createdAt: string;
 }
 
+type ReservationFilter =
+  | 'all'
+  | 'pending'
+  | 'confirmed'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled';
+
+const PAGE_SIZE = 8;
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat('bg-BG', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(value);
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('bg-BG', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value));
+}
+
+function normalizeLabel(value: string) {
+  return value.replaceAll('_', ' ').toLowerCase();
+}
+
+function getStatusTone(
+  status: string,
+): 'gray' | 'blue' | 'amber' | 'green' | 'red' {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'blue';
+    case 'IN_PROGRESS':
+      return 'amber';
+    case 'COMPLETED':
+    case 'RETURNED':
+      return 'green';
+    case 'CANCELLED':
+      return 'red';
+    default:
+      return 'gray';
+  }
+}
+
+function getPaymentTone(
+  status: string,
+): 'gray' | 'blue' | 'amber' | 'green' | 'red' {
+  switch (status) {
+    case 'PAID':
+    case 'SUCCEEDED':
+      return 'green';
+    case 'PENDING':
+      return 'amber';
+    case 'FAILED':
+    case 'REFUNDED':
+      return 'red';
+    default:
+      return 'gray';
+  }
+}
+
 export default function CompanyReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [filter, setFilter] = useState<ReservationFilter>('all');
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const itemsPerPage = 10;
 
   useEffect(() => {
-    loadReservations();
+    async function loadReservations() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const nextReservations = await getCompanyReservations();
+        setReservations(nextReservations);
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load reservations',
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadReservations();
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
-
-  const loadReservations = async () => {
-    try {
-      const res = await fetch('/api/company/reservations', {
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to load reservations');
-      }
-
-      const data = await res.json();
-      setReservations(data.reservations || []);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load reservations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return 'bg-blue-100 text-blue-800';
-      case 'IN_PROGRESS':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'COMPLETED':
-      case 'RETURNED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      case 'PENDING':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  }, [filter, search]);
 
   const filteredReservations = useMemo(() => {
-    return reservations.filter((r) => {
-      if (filter === 'all') return true;
-      return r.status === filter.toUpperCase();
+    const query = search.trim().toLowerCase();
+
+    return reservations.filter((reservation) => {
+      const matchesFilter =
+        filter === 'all' ? true : reservation.status === filter.toUpperCase();
+
+      if (!matchesFilter) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const haystack = [
+        reservation.id.toString(),
+        reservation.carMake,
+        reservation.carModel,
+        reservation.customerName,
+        reservation.customerEmail,
+        reservation.customerPhone,
+        reservation.status,
+        reservation.paymentStatus,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(query);
     });
-  }, [reservations, filter]);
+  }, [reservations, filter, search]);
 
-  const totalPages = Math.ceil(filteredReservations.length / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredReservations.length / PAGE_SIZE),
+  );
 
-  const paginatedReservations = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredReservations.slice(startIndex, startIndex + itemsPerPage);
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredReservations.slice(startIndex, startIndex + PAGE_SIZE);
   }, [filteredReservations, currentPage]);
 
-  const changePage = (page: number) => {
-    setCurrentPage(page);
+  const totalRevenue = useMemo(
+    () =>
+      filteredReservations.reduce(
+        (sum, reservation) => sum + Number(reservation.totalPrice || 0),
+        0,
+      ),
+    [filteredReservations],
+  );
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  };
+  const confirmedCount = useMemo(
+    () =>
+      reservations.filter((reservation) => reservation.status === 'CONFIRMED')
+        .length,
+    [reservations],
+  );
 
-  const handleFilterChange = (tab: string) => {
-    setFilter(tab);
-    setCurrentPage(1);
+  const completedCount = useMemo(
+    () =>
+      reservations.filter((reservation) =>
+        ['COMPLETED', 'RETURNED'].includes(reservation.status),
+      ).length,
+    [reservations],
+  );
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  };
+  const pendingCount = useMemo(
+    () =>
+      reservations.filter((reservation) =>
+        ['PENDING', 'IN_PROGRESS'].includes(reservation.status),
+      ).length,
+    [reservations],
+  );
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-8">
-        <div className="text-center text-gray-500">Loading reservations...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow p-8">
-        <div className="text-red-600">{error}</div>
+      <div className="rounded-[28px] border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="space-y-4 animate-pulse">
+          <div className="h-8 w-56 rounded-xl bg-gray-200" />
+          <div className="h-4 w-80 rounded-xl bg-gray-100" />
+          <div className="grid gap-4 pt-4 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-28 rounded-3xl border border-gray-100 bg-gray-50 cursor-pointer"
+              />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Reservations</h2>
-        <p className="text-gray-600 mt-1">
-          Manage all your vehicle reservations
-        </p>
-      </div>
+      <CompanyPanelPageHeader
+        eyebrow="Reservations"
+        title="Reservation management"
+        description="Track bookings, payment state and customer details in one clean workspace."
+        rightSlot={
+          <div className="grid gap-3 sm:grid-cols-2">
+            <CompanyPanelInfoCard
+              label="Live records"
+              value={reservations.length.toString()}
+              description="All reservations for your company fleet."
+            />
+            <CompanyPanelInfoCard
+              label="Filtered value"
+              value={formatMoney(totalRevenue)}
+              description="Revenue shown for the active filter."
+              tone="success"
+            />
+          </div>
+        }
+      />
 
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-wrap gap-2">
-          {[
-            'all',
-            'pending',
-            'confirmed',
-            'in_progress',
-            'completed',
-            'cancelled',
-          ].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => handleFilterChange(tab)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all hover:-top-0.75 relative  ${
-                filter === tab
-                  ? 'bg-indigo-600 text-white -top-1 relative hover:-top-1'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 '
-              }`}
-            >
-              {tab.replace('_', ' ').charAt(0).toUpperCase() +
-                tab.slice(1).replace('_', ' ')}
-            </button>
-          ))}
+      {error ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          {error}
         </div>
-      </div>
+      ) : null}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <CompanyPanelMetricCard
+          title="Total reservations"
+          value={reservations.length}
+          icon={<Clipboard className="h-5 w-5 text-blue-600" />}
+          accentClassName="bg-blue-50"
+        />
+        <CompanyPanelMetricCard
+          title="Pending / active"
+          value={pendingCount}
+          icon={<Clock className="h-5 w-5 text-amber-600" />}
+          accentClassName="bg-amber-50"
+        />
+        <CompanyPanelMetricCard
+          title="Confirmed"
+          value={confirmedCount}
+          icon={<Check className="h-5 w-5 text-indigo-600" />}
+          accentClassName="bg-indigo-50"
+        />
+        <CompanyPanelMetricCard
+          title="Completed"
+          value={completedCount}
+          icon={<User className="h-5 w-5 text-emerald-600" />}
+          accentClassName="bg-emerald-50"
+        />
+      </section>
+
+      <CompanyPanelCard
+        title="Reservation list"
+        description="Consistent table layout with search, filters and pagination."
+      >
+        <CompanyPanelToolbar
+          leftSlot={
+            <CompanyPanelTabs<ReservationFilter>
+              value={filter}
+              onChange={setFilter}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'confirmed', label: 'Confirmed' },
+                { value: 'in_progress', label: 'In progress' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'cancelled', label: 'Cancelled' },
+              ]}
+            />
+          }
+          rightSlot={
+            <CompanyPanelSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by customer, car, email or reservation ID"
+            />
+          }
+        />
+
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
+                  Reservation
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Car
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rental Period
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                  Period
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
                   Payment
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedReservations.length === 0 ? (
+
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {currentItems.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-12 text-center text-gray-500"
-                  >
-                    No reservations found
+                  <td colSpan={6}>
+                    <CompanyPanelEmptyState
+                      title="No reservations found"
+                      description="Try changing the current filter or search query."
+                    />
                   </td>
                 </tr>
               ) : (
-                paginatedReservations.map((reservation) => (
-                  <tr key={reservation.id} className="hover:bg-gray-100 transition">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      #{reservation.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
+                currentItems.map((reservation) => (
+                  <tr
+                    key={reservation.id}
+                    className="transition-colors hover:bg-gray-50/80"
+                  >
+                    <td className="px-6 py-5 sm:px-8">
+                      <div className="font-semibold text-gray-900">
+                        #{reservation.id}
+                      </div>
+                      <div className="mt-1 text-sm text-gray-600">
                         {reservation.carMake} {reservation.carModel}
                       </div>
+                      <div className="mt-1 text-xs text-gray-400">
+                        Created {formatDate(reservation.createdAt)}
+                      </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+
+                    <td className="px-6 py-5">
+                      <div className="text-sm font-medium text-gray-900">
                         {reservation.customerName}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="mt-1 text-sm text-gray-500">
                         {reservation.customerEmail}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {reservation.customerPhone}
+                      <div className="mt-1 text-xs text-gray-400">
+                        {reservation.customerPhone || 'No phone'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+
+                    <td className="px-6 py-5 text-sm text-gray-600">
+                      <div>{formatDate(reservation.startDate)}</div>
+                      <div className="mt-1 text-gray-400">
+                        to {formatDate(reservation.endDate)}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-5 text-sm font-semibold text-gray-900">
+                      {formatMoney(reservation.totalPrice)}
+                    </td>
+
+                    <td className="px-6 py-5">
                       <div>
-                        {new Date(reservation.startDate).toLocaleDateString()}
+                        <CompanyPanelBadge
+                          tone={getPaymentTone(reservation.paymentStatus)}
+                        >
+                          {normalizeLabel(reservation.paymentStatus)}
+                        </CompanyPanelBadge>
                       </div>
-                      <div className="text-xs text-gray-400">
-                        to {new Date(reservation.endDate).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      €{reservation.totalPrice}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div
-                        className={`font-medium ${
-                          reservation.paymentStatus === 'PAID'
-                            ? 'text-green-600'
-                            : reservation.paymentStatus === 'PENDING'
-                              ? 'text-yellow-600'
-                              : 'text-gray-600'
-                        }`}
-                      >
-                        {reservation.paymentStatus}
-                      </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="mt-2 text-xs text-gray-500">
                         {reservation.paymentMethod === 'CARD'
-                          ? 'Online'
-                          : 'On-Site'}
+                          ? 'Online card'
+                          : reservation.paymentMethod === 'ON_SPOT'
+                            ? 'On spot'
+                            : reservation.paymentMethod}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(reservation.status)}`}
+
+                    <td className="px-6 py-5 sm:px-8">
+                      <CompanyPanelBadge
+                        tone={getStatusTone(reservation.status)}
                       >
-                        {reservation.status}
-                      </span>
+                        {normalizeLabel(reservation.status)}
+                      </CompanyPanelBadge>
                     </td>
                   </tr>
                 ))
@@ -260,58 +413,14 @@ export default function CompanyReservations() {
           </table>
         </div>
 
-        {filteredReservations.length > 0 && (
-          <div className="flex items-center justify-between border-t px-6 py-4 bg-white">
-            <div className="text-sm text-gray-600">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(
-                currentPage * itemsPerPage,
-                filteredReservations.length,
-              )}{' '}
-              of {filteredReservations.length} reservations
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => changePage(Math.max(currentPage - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 rounded-md border text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 cursor-pointer  relative disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-
-              <div className="flex items-center gap-1">
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1,
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => changePage(page)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      currentPage === page
-                        ? 'bg-indigo-600 text-white'
-                        : 'border text-gray-700 bg-white hover:bg-gray-100 cursor-pointer hover:-top-0.5 relative'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() =>
-                  changePage(Math.min(currentPage + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 rounded-md border text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 cursor-pointer  relative disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        <CompanyPanelPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredReservations.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setCurrentPage}
+        />
+      </CompanyPanelCard>
     </div>
   );
 }

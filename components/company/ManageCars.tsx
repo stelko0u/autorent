@@ -1,213 +1,471 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import { Car } from '@/types/database';
 import EditCarModal from '../modals/EditCarModal';
 import DeleteCarModal from '../modals/DeleteCarModal';
-import { toast } from 'react-hot-toast';
-import { CircleInfo, CircleTrash, PenCircle } from '../icons';
+import {
+  BadgeDollar,
+  Car as CarIcon,
+  Cars,
+  CircleInfo,
+  PenCircle,
+  CircleTrash,
+  Plus,
+  Transmission,
+  GasPump,
+} from '../icons';
+import {
+  CompanyPanelBadge,
+  CompanyPanelCard,
+  CompanyPanelEmptyState,
+  CompanyPanelInfoCard,
+  CompanyPanelMetricCard,
+  CompanyPanelPageHeader,
+  CompanyPanelSearch,
+  CompanyPanelTabs,
+  CompanyPanelToolbar,
+} from './CompanyPanelUI';
+import { deleteCompanyCar } from '@/lib/api/companyApi';
 
-export default function ManageCars({
-  cars,
-  onRefresh,
-}: {
+type CarsViewMode = 'grid' | 'list';
+
+interface ManageCarsProps {
   cars: Car[];
   onRefresh?: () => void;
-}) {
+}
+
+function formatPrice(value: number) {
+  return new Intl.NumberFormat('bg-BG', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(value);
+}
+
+function buildCarTitle(car: Car) {
+  return `${car.make} ${car.model}`.trim();
+}
+
+function buildCarSubtitle(car: Car) {
+  return [car.carType, car.fuelType, car.transmissionType]
+    .filter(Boolean)
+    .join(' • ');
+}
+
+export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
   const router = useRouter();
+  const [viewMode, setViewMode] = useState<CarsViewMode>('grid');
+  const [search, setSearch] = useState('');
   const [editCarId, setEditCarId] = useState<number | null>(null);
   const [deleteCarId, setDeleteCarId] = useState<number | null>(null);
 
-  const handleEdit = (id: number) => {
-    setEditCarId(id);
-  };
+  const filteredCars = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-  const handleDelete = (id: number) => {
-    setDeleteCarId(id);
-  };
+    if (!query) {
+      return cars;
+    }
 
-  const handleDetails = (id: number) => {
-    router.push(`/car/${id}`);
-  };
+    return cars.filter((car) =>
+      [
+        car.make,
+        car.model,
+        car.year.toString(),
+        car.carType,
+        car.fuelType,
+        car.transmissionType,
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(query),
+    );
+  }, [cars, search]);
 
-  const confirmDelete = async () => {
-    if (!deleteCarId) return;
+  const selectedCar = cars.find((car) => car.id === editCarId) ?? null;
+
+  async function confirmDelete() {
+    if (!deleteCarId) {
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/company/cars?id=${deleteCarId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        toast.error(error.error || 'Failed to delete car');
-        setDeleteCarId(null);
-        return;
-      }
-
+      await deleteCompanyCar(deleteCarId);
       toast.success('Car deleted successfully');
       setDeleteCarId(null);
       onRefresh?.();
-    } catch (error) {
-      console.error('Error deleting car:', error);
-      toast.error('Failed to delete car');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete car');
       setDeleteCarId(null);
     }
-  };
+  }
 
-  const handleEditSuccess = () => {
+  function handleEditSuccess() {
     toast.success('Car updated successfully');
     setEditCarId(null);
     onRefresh?.();
-  };
+  }
 
-  const selectedCar = cars.find((c) => c.id === editCarId);
+  function handleAddCar() {
+    router.push('?tab=add-car');
+  }
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Manage cars</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Keep your vehicle listings updated and organized.
-          </p>
-        </div>
-
-        {cars.length > 0 && (
-          <div className="rounded-xl border border-gray-200 bg-white px-4 py-2 shadow-sm">
-            <span className="text-sm font-medium text-gray-600">
-              Total: <span className="text-gray-900">{cars.length}</span>
-            </span>
+    <div className="space-y-6">
+      <CompanyPanelPageHeader
+        eyebrow="Manage cars"
+        title="Fleet inventory"
+        description="Manage all vehicle listings from a cleaner inventory layout with shared company panel components."
+        rightSlot={
+          <div className="grid gap-3 sm:grid-cols-2">
+            <CompanyPanelInfoCard
+              label="Visible cars"
+              value={String(filteredCars.length)}
+              description="Results after the active search filter."
+            />
+            <CompanyPanelInfoCard
+              label="Layout"
+              value={viewMode === 'grid' ? 'Compact grid' : 'Detailed list'}
+              description="Switch the inventory presentation instantly."
+              tone="success"
+            />
           </div>
-        )}
-      </div>
+        }
+      />
 
-      {cars.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-gray-300 bg-linear-to-br from-gray-50 to-white px-6 py-16 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
-            <CircleInfo className="h-7 w-7 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-800">
-            No cars available
-          </h3>
-          <p className="mt-2 text-sm text-gray-500">
-            Your added vehicles will appear here once you create a listing.
-          </p>
-        </div>
-      ) : (
-        <ul className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          {cars.map((c) => (
-            <li
-              key={c.id}
-              className="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative">
-                <div className="h-56 w-full overflow-hidden bg-gray-100">
-                  {c.images && c.images.length ? (
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <CompanyPanelMetricCard
+          title="Total vehicles"
+          value={cars.length}
+          icon={<Cars className="h-5 w-5 text-indigo-600" />}
+          accentClassName="bg-indigo-50"
+        />
+        <CompanyPanelMetricCard
+          title="SUV listings"
+          value={cars.filter((car) => car.carType === 'SUV').length}
+          icon={<CarIcon className="h-5 w-5 text-blue-600" />}
+          accentClassName="bg-blue-50"
+        />
+        <CompanyPanelMetricCard
+          title="Automatic"
+          value={
+            cars.filter((car) => car.transmissionType === 'AUTOMATIC').length
+          }
+          icon={<Transmission className="h-5 w-5 text-amber-600" />}
+          accentClassName="bg-amber-50"
+        />
+        <CompanyPanelMetricCard
+          title="Avg daily price"
+          value={
+            cars.length > 0
+              ? formatPrice(
+                  cars.reduce(
+                    (sum, car) => sum + Number(car.pricePerDay || 0),
+                    0,
+                  ) / cars.length,
+                )
+              : formatPrice(0)
+          }
+          icon={<BadgeDollar className="h-5 w-5 text-emerald-600" />}
+          accentClassName="bg-emerald-50"
+        />
+      </section>
+
+      <CompanyPanelCard
+        title="Car inventory"
+        description="Use the compact grid for browsing or the detailed list for richer management controls."
+        rightSlot={
+          <button
+            type="button"
+            onClick={handleAddCar}
+            className="inline-flex h-11 items-center rounded-2xl bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add car
+          </button>
+        }
+      >
+        <CompanyPanelToolbar
+          leftSlot={
+            <CompanyPanelTabs<CarsViewMode>
+              value={viewMode}
+              onChange={setViewMode}
+              options={[
+                { value: 'grid', label: 'Compact grid' },
+                { value: 'list', label: 'Detailed list' },
+              ]}
+            />
+          }
+          rightSlot={
+            <CompanyPanelSearch
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by make, model, year, fuel or transmission"
+            />
+          }
+        />
+
+        {filteredCars.length === 0 ? (
+          <CompanyPanelEmptyState
+            title="No cars found"
+            description="Try another search query or add your first vehicle."
+          />
+        ) : viewMode === 'grid' ? (
+          <div className="grid gap-6 px-6 pb-6 sm:px-8 xl:grid-cols-3">
+            {filteredCars.map((car) => (
+              <article
+                key={car.id}
+                className="group overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="relative h-56 w-full overflow-hidden bg-gray-100">
+                  {car.images.length > 0 ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={c.images[0]}
-                      alt={`${c.make} ${c.model}`}
+                      src={car.images[0]}
+                      alt={buildCarTitle(car)}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
-                      No image
+                    <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                      No image available
                     </div>
                   )}
-                </div>
 
-                <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur">
-                  {c.year}
-                </div>
-
-                <div className="absolute right-4 top-4 rounded-full bg-gray-900 px-3 py-1 text-sm font-semibold text-white shadow-sm">
-                  {c.pricePerDay}€ / day
-                </div>
-              </div>
-
-              <div className="p-5">
-                <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {c.make} {c.model}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Professional listing overview
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl bg-gray-50 p-3 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Type
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">
-                      {c.carType}
-                    </p>
+                  <div className="absolute left-4 top-4">
+                    <CompanyPanelBadge tone="indigo">
+                      {car.year}
+                    </CompanyPanelBadge>
                   </div>
 
-                  <div className="rounded-2xl bg-gray-50 p-3 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Gearbox
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">
-                      {c.transmissionType}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl bg-gray-50 p-3 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Fuel
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-gray-800">
-                      {c.fuelType}
-                    </p>
+                  <div className="absolute right-4 top-4 rounded-full bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white shadow-sm">
+                    {formatPrice(car.pricePerDay)}
+                    <span className="ml-1 text-white/70">/ day</span>
                   </div>
                 </div>
 
-                <div className="mt-5 border-t border-gray-100 pt-4">
-                  <div className="flex flex-wrap gap-3">
+                <div className="p-5">
+                  <div className="mb-4">
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {buildCarTitle(car)}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {buildCarSubtitle(car) || 'Professional listing overview'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-2xl bg-gray-50 p-3 text-center">
+                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
+                        <CarIcon className="h-4 w-4" />
+                      </div>
+                      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+                        Type
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {car.carType}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-gray-50 p-3 text-center">
+                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white text-amber-600 shadow-sm">
+                        <Transmission className="h-4 w-4" />
+                      </div>
+                      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+                        Gearbox
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {car.transmissionType}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl bg-gray-50 p-3 text-center">
+                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
+                        <GasPump className="h-4 w-4" />
+                      </div>
+                      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+                        Fuel
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-800">
+                        {car.fuelType}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap gap-2">
                     <button
-                      onClick={() => handleDetails(c.id)}
-                      className="flex-1 min-w-27.5 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
-                      aria-label={`Details ${c.make} ${c.model}`}
+                      type="button"
+                      onClick={() => router.push(`/car/${car.id}`)}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        <CircleInfo className="h-5 w-5" />
-                        Details
-                      </span>
+                      {/* <Eye className="h-4 w-4" /> */}
+                      View
                     </button>
 
                     <button
-                      onClick={() => handleEdit(c.id)}
-                      className="flex-1 min-w-27.5 rounded-2xl bg-amber-100 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-200"
-                      aria-label={`Edit ${c.make} ${c.model}`}
+                      type="button"
+                      onClick={() => setEditCarId(car.id)}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-amber-600"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        <PenCircle className="h-5 w-5" />
-                        Edit
-                      </span>
+                      <PenCircle className="h-4 w-4" />
+                      Edit
                     </button>
 
                     <button
-                      onClick={() => handleDelete(c.id)}
-                      className="flex-1 min-w-27.5 rounded-2xl bg-red-100 px-4 py-3 text-sm font-medium text-red-700 transition hover:bg-red-200"
-                      aria-label={`Delete ${c.make} ${c.model}`}
+                      type="button"
+                      onClick={() => setDeleteCarId(car.id)}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-700"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        <CircleTrash className="h-5 w-5" />
+                      <CircleTrash className="h-4 w-4" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4 px-6 pb-6 sm:px-8">
+            {filteredCars.map((car) => (
+              <article
+                key={car.id}
+                className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
+              >
+                <div className="grid gap-0 lg:grid-cols-[320px_1fr]">
+                  <div className="relative h-64 bg-gray-100 lg:h-full">
+                    {car.images.length > 0 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={car.images[0]}
+                        alt={buildCarTitle(car)}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                        No image available
+                      </div>
+                    )}
+
+                    <div className="absolute left-4 top-4">
+                      <CompanyPanelBadge tone="indigo">
+                        {car.year}
+                      </CompanyPanelBadge>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-2xl font-semibold text-gray-900">
+                            {buildCarTitle(car)}
+                          </h3>
+                          <CompanyPanelBadge tone="blue">
+                            {car.carType}
+                          </CompanyPanelBadge>
+                        </div>
+
+                        <p className="mt-2 text-sm text-gray-500">
+                          {buildCarSubtitle(car) ||
+                            'Professional listing overview'}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl bg-gray-900 px-4 py-3 text-white shadow-sm">
+                        <p className="text-xs uppercase tracking-[0.14em] text-white/70">
+                          Daily price
+                        </p>
+                        <p className="mt-1 text-xl font-semibold">
+                          {formatPrice(car.pricePerDay)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          {/* <Calendar className="h-4 w-4" /> */}
+                          <span className="text-xs font-semibold uppercase tracking-wide">
+                            Year
+                          </span>
+                        </div>
+                        <p className="mt-2 text-base font-semibold text-gray-900">
+                          {car.year}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <Transmission className="h-4 w-4" />
+                          <span className="text-xs font-semibold uppercase tracking-wide">
+                            Transmission
+                          </span>
+                        </div>
+                        <p className="mt-2 text-base font-semibold text-gray-900">
+                          {car.transmissionType}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <GasPump className="h-4 w-4" />
+                          <span className="text-xs font-semibold uppercase tracking-wide">
+                            Fuel
+                          </span>
+                        </div>
+                        <p className="mt-2 text-base font-semibold text-gray-900">
+                          {car.fuelType}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <BadgeDollar className="h-4 w-4" />
+                          <span className="text-xs font-semibold uppercase tracking-wide">
+                            Price / day
+                          </span>
+                        </div>
+                        <p className="mt-2 text-base font-semibold text-gray-900">
+                          {formatPrice(car.pricePerDay)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/car/${car.id}`)}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                      >
+                        {/* <Eye className="h-4 w-4" /> */}
+                        View details
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditCarId(car.id)}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-amber-600"
+                      >
+                        <PenCircle className="h-4 w-4" />
+                        Edit listing
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDeleteCarId(car.id)}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-700"
+                      >
+                        <CircleTrash className="h-4 w-4" />
                         Delete
-                      </span>
-                    </button>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              </article>
+            ))}
+          </div>
+        )}
+      </CompanyPanelCard>
 
       {editCarId && selectedCar && (
         <EditCarModal
@@ -225,6 +483,6 @@ export default function ManageCars({
           onCancel={() => setDeleteCarId(null)}
         />
       )}
-    </section>
+    </div>
   );
 }

@@ -1,49 +1,89 @@
 'use client';
-import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import React from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+
 import 'leaflet/dist/leaflet.css';
-import { LatLngExpression, LeafletMouseEvent } from 'leaflet';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMapEvents,
+} from 'react-leaflet';
+import L from 'leaflet';
 
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
-function ClickMarker({
-  position,
-  onChange,
-}: {
-  position: LatLngExpression | null;
-  onChange: (p: [number, number]) => void;
-}) {
-  useMapEvents({
-    click(e: LeafletMouseEvent) {
-      onChange([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-  return position ? <Marker position={position} /> : null;
-}
-
-type OfficeLocation = {
-  id: number;
-  latitude?: number | null;
-  longitude?: number | null;
-  companyId?: number;
+type OfficeItem = {
+  id?: number;
+  name?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 interface MapComponentProps {
-  offices: OfficeLocation[];
-  editing: Record<string, unknown> | null;
+  offices: Array<OfficeItem & { id: number }>;
+  editing: OfficeItem | null;
   pos: [number, number] | null;
-  setPos: (pos: [number, number] | null) => void;
+  setPos: React.Dispatch<React.SetStateAction<[number, number] | null>>;
   companyColors: Record<number, string>;
+}
+
+interface LocationPickerProps {
+  editing: OfficeItem | null;
+  setPos: React.Dispatch<React.SetStateAction<[number, number] | null>>;
+}
+
+function LocationPicker({ editing, setPos }: LocationPickerProps) {
+  useMapEvents({
+    click(event) {
+      if (!editing) {
+        return;
+      }
+
+      setPos([event.latlng.lat, event.latlng.lng]);
+    },
+  });
+
+  return null;
+}
+
+function createOfficeIcon(color: string) {
+  return L.divIcon({
+    className: 'bg-transparent border-0',
+    html: `
+      <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;">
+        <div style="
+          width:18px;
+          height:18px;
+          border-radius:9999px;
+          background:${color};
+          border:3px solid white;
+          box-shadow:0 6px 18px rgba(0,0,0,0.18);
+        "></div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+}
+
+function createEditingIcon() {
+  return L.divIcon({
+    className: 'bg-transparent border-0',
+    html: `
+      <div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;">
+        <div style="
+          width:20px;
+          height:20px;
+          border-radius:9999px;
+          background:#4f46e5;
+          border:4px solid white;
+          box-shadow:0 8px 20px rgba(79,70,229,0.35);
+        "></div>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  });
 }
 
 export default function MapComponent({
@@ -53,49 +93,88 @@ export default function MapComponent({
   setPos,
   companyColors,
 }: MapComponentProps) {
-  if (typeof window === 'undefined') {
-    return null; // Не рендерирайте картата на сървъра
-  }
-  function coloredMarker(color: string) {
-    return L.divIcon({
-      className: '',
-      html: `
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="${color}"
-          xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-          <circle cx="12" cy="9" r="2.5" fill="white"/>
-        </svg>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-    });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const center = useMemo<[number, number]>(() => {
+    if (pos) {
+      return pos;
+    }
+
+    const firstOffice = offices.find(
+      (office) => office.latitude != null && office.longitude != null,
+    );
+
+    if (firstOffice?.latitude != null && firstOffice.longitude != null) {
+      return [firstOffice.latitude, firstOffice.longitude];
+    }
+
+    return [42.6977, 23.3219];
+  }, [offices, pos]);
+
+  if (!mounted) {
+    return (
+      <div className="flex h-[420px] items-center justify-center bg-gray-50 text-sm text-gray-500">
+        Loading map…
+      </div>
+    );
   }
 
   return (
-    <MapContainer
-      center={pos ?? [42.7, 23.3]}
-      zoom={12}
-      style={{ height: 400, width: '100%' }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {offices.map((o) =>
-        o.latitude && o.longitude ? (
-          <Marker
-            key={o.id}
-            position={[o.latitude, o.longitude]}
-            icon={coloredMarker(o.companyId != null ? (companyColors[o.companyId] ?? '#6b7280') : '#6b7280')}
-          />
-        ) : null,
-      )}
-      {editing && (
-        <ClickMarker
-          position={pos}
-          onChange={(p: [number, number]) => setPos(p)}
+    <div className="h-[420px] w-full">
+      <MapContainer
+        center={center}
+        zoom={12}
+        scrollWheelZoom
+        className="h-full w-full"
+      >
+        <TileLayer
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-      )}
-    </MapContainer>
+
+        <LocationPicker editing={editing} setPos={setPos} />
+
+        {offices.map((office) => {
+          if (office.latitude == null || office.longitude == null) {
+            return null;
+          }
+
+          const color = companyColors[office.id] ?? '#6366f1';
+
+          return (
+            <Marker
+              key={office.id}
+              position={[office.latitude, office.longitude]}
+              icon={createOfficeIcon(color)}
+            >
+              <Popup>
+                <div className="min-w-[160px]">
+                  <div className="font-semibold text-gray-900">
+                    {office.name || `Office #${office.id}`}
+                  </div>
+                  <div className="mt-1 text-sm text-gray-600">
+                    {office.address || 'No address'}
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
+        {editing && pos ? (
+          <Marker position={pos} icon={createEditingIcon()}>
+            <Popup>
+              <div className="text-sm font-medium text-gray-900">
+                Selected office location
+              </div>
+            </Popup>
+          </Marker>
+        ) : null}
+      </MapContainer>
+    </div>
   );
 }

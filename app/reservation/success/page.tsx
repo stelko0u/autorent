@@ -3,7 +3,8 @@
 import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import Successfully from '../../../components/icons/Successfully';
+import Successfully from '../../../components/icons/Check';
+import { TriangleExclamation } from '@/components/icons';
 
 function ReservationSuccessContent() {
   const router = useRouter();
@@ -19,8 +20,8 @@ function ReservationSuccessContent() {
   return (
     <div className="min-h-screen bg-linear-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
       <div className="max-w-lg w-full bg-white rounded-2xl shadow-2xl p-8 text-center">
-        <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 animate-bounce">
-          <Successfully />
+        <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-300 mb-6 animate-bounce">
+          <Successfully className="w-8 h-8 text-white" />
         </div>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
@@ -78,17 +79,10 @@ function ReservationSuccessContent() {
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
             <div className="flex">
               <div className="shrink-0">
-                <svg
+                <TriangleExclamation
                   className="h-5 w-5 text-yellow-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                  aria-hidden="true"
+                />
               </div>
 
               <div className="ml-3">

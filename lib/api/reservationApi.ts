@@ -69,6 +69,30 @@ export type CreateSimpleReservationResponse = {
   id: number;
 };
 
+export interface UserReservation {
+  id: number;
+  carId: number;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  status: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  car?: {
+    id: number;
+    make: string;
+    model: string;
+    year: number;
+    images: string[];
+  } | null;
+}
+
+type GetUserReservationsResponse = {
+  ok?: boolean;
+  error?: string;
+  reservations?: UserReservation[];
+};
+
 export async function fetchReservationById(
   reservationId: number | string,
 ): Promise<ReservationData> {
@@ -172,3 +196,27 @@ export async function createSimpleReservation(
 
   return data;
 }
+
+
+
+export async function getUserReservations(): Promise<UserReservation[]> {
+  const res = await fetch('/api/user/reservations', {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+    },
+    cache: 'no-store',
+  });
+
+  const data = (await res
+    .json()
+    .catch(() => null)) as GetUserReservationsResponse | null;
+
+  if (!res.ok) {
+    throw new Error(data?.error || 'Failed to load reservations');
+  }
+
+  return data?.reservations ?? [];
+}
+

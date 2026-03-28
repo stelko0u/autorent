@@ -2,58 +2,60 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-interface Reservation {
-  id: number;
-  carId: number;
-  startDate: string;
-  endDate: string;
-  totalPrice: number;
-  status: string;
-  paymentStatus?: string;
-  paymentMethod?: string;
-  car?: {
-    id: number;
-    make: string;
-    model: string;
-    year: number;
-    images: string[];
-  };
-}
+import {
+  getUserReservations,
+  type UserReservation,
+} from '@/lib/api/reservationApi';
+import { Clipboard } from '../icons';
 
-interface Props {
+interface RentedCarsProps {
   userId: number;
 }
 
-export default function RentedCars({ userId }: Props) {
+export default function RentedCars({ userId }: RentedCarsProps) {
   const router = useRouter();
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [reservations, setReservations] = useState<UserReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    async function loadReservations() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getUserReservations();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setReservations(data);
+      } catch (err: unknown) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(
+          err instanceof Error ? err.message : 'Failed to load reservations',
+        );
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
     loadReservations();
+
+    return () => {
+      isMounted = false;
+    };
   }, [userId]);
 
-  const loadReservations = async () => {
-    try {
-      const res = await fetch('/api/user/reservations', {
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to load reservations');
-      }
-
-      const data = await res.json();
-      setReservations(data.reservations || []);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load reservations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
+  function getStatusColor(status: string) {
     switch (status) {
       case 'CONFIRMED':
         return 'bg-blue-100 text-blue-800';
@@ -66,11 +68,11 @@ export default function RentedCars({ userId }: Props) {
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
+  }
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-8">
+      <div className="rounded-lg bg-white p-8 shadow">
         <div className="text-center text-gray-500">Loading rentals...</div>
       </div>
     );
@@ -78,17 +80,17 @@ export default function RentedCars({ userId }: Props) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-8">
+      <div className="rounded-lg bg-white p-8 shadow">
         <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b">
+    <div className="rounded-lg bg-white shadow">
+      <div className="border-b p-6">
         <h2 className="text-xl font-semibold text-gray-800">My Rentals</h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="mt-1 text-sm text-gray-600">
           View and manage your car reservations
         </p>
       </div>
@@ -96,23 +98,11 @@ export default function RentedCars({ userId }: Props) {
       <div className="divide-y">
         {reservations.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
+            <Clipboard className="mx-auto mb-4 h-12 w-12 text-gray-400" />
             <p>No rentals yet</p>
             <button
               onClick={() => router.push('/')}
-              className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="mt-4 rounded-lg bg-indigo-600 px-6 py-2 text-white hover:bg-indigo-700"
             >
               Browse Cars
             </button>
@@ -121,37 +111,48 @@ export default function RentedCars({ userId }: Props) {
           reservations.map((reservation) => (
             <div
               key={reservation.id}
-              className="p-6 hover:bg-gray-50 transition cursor-pointer"
+              className="cursor-pointer p-6 transition hover:bg-gray-50"
               onClick={() => router.push(`/reservation/${reservation.id}`)}
             >
               <div className="flex gap-4">
-                {reservation.car?.images?.[0] && (
+                {reservation.car?.images?.[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={reservation.car.images[0]}
                     alt={`${reservation.car.make} ${reservation.car.model}`}
-                    className="w-32 h-24 object-cover rounded-lg"
+                    className="h-24 w-32 rounded-lg object-cover"
                   />
+                ) : (
+                  <div className="flex h-24 w-32 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400">
+                    No image
+                  </div>
                 )}
 
                 <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="mb-2 flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">
-                        {reservation.car?.make} {reservation.car?.model}
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {reservation.car
+                          ? `${reservation.car.make} ${reservation.car.model}`
+                          : `Car #${reservation.carId}`}
                       </h3>
-                      <p className="text-sm text-gray-600">
-                        {reservation.car?.year}
-                      </p>
+                      {reservation.car?.year ? (
+                        <p className="text-sm text-gray-600">
+                          {reservation.car.year}
+                        </p>
+                      ) : null}
                     </div>
+
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(reservation.status)}`}
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(
+                        reservation.status,
+                      )}`}
                     >
                       {reservation.status}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-2">
+                  <div className="mb-2 grid grid-cols-2 gap-4 text-sm text-gray-600">
                     <div>
                       <span className="font-medium">Pick-up:</span>{' '}
                       {new Date(reservation.startDate).toLocaleDateString()}
@@ -166,13 +167,14 @@ export default function RentedCars({ userId }: Props) {
                     <div className="text-lg font-semibold text-indigo-600">
                       ${reservation.totalPrice}
                     </div>
-                    {reservation.paymentStatus && (
+
+                    {reservation.paymentStatus ? (
                       <span className="text-sm text-gray-500">
                         Payment: {reservation.paymentStatus}
                         <br />
-                        Payment Method: {reservation.paymentMethod}
+                        Payment Method: {reservation.paymentMethod ?? '-'}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>

@@ -8,29 +8,22 @@ import { differenceInCalendarDays } from 'date-fns';
 import Calendar from '../../../components/reservations/Calendar';
 import { useCurrentUser } from '../../../hooks/useCurrentUser';
 import type { User } from '@/types/database';
-
-interface Car {
-  id: number;
-  make: string;
-  model: string;
-  year: number;
-  pricePerDay: number;
-  images: string[];
-}
-
-interface Reservation {
-  startDate: string | Date;
-  endDate: string | Date;
-  status: string;
-}
+import {
+  createReservation,
+  getReservationPageData,
+  type ReservationCar,
+  type ReservationPeriod,
+} from '@/lib/api/reservationApi';
+import { ArrowLeft } from '@/app/components/icons';
+import { Calendars, CreditCard, MoneyBill1 } from '@/components/icons';
 
 export default function ReservationPage() {
   const router = useRouter();
   const params = useParams();
   const carId = params?.id as string;
 
-  const [car, setCar] = useState<Car | null>(null);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [car, setCar] = useState<ReservationCar | null>(null);
+  const [reservations, setReservations] = useState<ReservationPeriod[]>([]);
 
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
@@ -52,29 +45,34 @@ export default function ReservationPage() {
   useEffect(() => {
     if (!carId) return;
 
+    let isMounted = true;
+
     async function loadData() {
       try {
-        const [carRes, reservationsRes] = await Promise.all([
-          fetch(`/api/cars/${carId}`),
-          fetch(`/api/cars/${carId}/reservation`),
-        ]);
+        setLoading(true);
+        setError(null);
 
-        if (!carRes.ok) throw new Error('Failed to load car');
-        if (!reservationsRes.ok) throw new Error('Failed to load reservations');
+        const data = await getReservationPageData(carId);
 
-        const carData = await carRes.json();
-        const reservationsData = await reservationsRes.json();
+        if (!isMounted) return;
 
-        setCar(carData.car);
-        setReservations(reservationsData.reservations || []);
+        setCar(data.car);
+        setReservations(data.reservations);
       } catch (err: unknown) {
+        if (!isMounted) return;
         setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [carId]);
 
   useEffect(() => {
@@ -96,12 +94,12 @@ export default function ReservationPage() {
     }
   }, [userData, firstName, lastName, email, phone]);
 
-  const calculateDays = () => {
+  const calculateDays = (): number => {
     if (!selectedStartDate || !selectedEndDate) return 0;
     return differenceInCalendarDays(selectedEndDate, selectedStartDate) + 1;
   };
 
-  const calculateTotal = () => {
+  const calculateTotal = (): number => {
     if (!car) return 0;
     return calculateDays() * car.pricePerDay;
   };
@@ -127,30 +125,23 @@ export default function ReservationPage() {
     setError(null);
 
     try {
-      const res = await fetch('/api/reservations', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          carId: car.id,
-          startDate: selectedStartDate.toISOString(),
-          endDate: selectedEndDate.toISOString(),
-          firstName,
-          lastName,
-          email,
-          phone,
-          paymentMethod,
-        }),
+      const data = await createReservation({
+        carId: car.id,
+        startDate: selectedStartDate.toISOString(),
+        endDate: selectedEndDate.toISOString(),
+        firstName,
+        lastName,
+        email,
+        phone,
+        paymentMethod,
       });
 
-      const data = await res.json();
+      const reservationId = data.reservation?.id;
+      const nextStep = data.flow?.nextStep;
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create reservation');
+      if (!reservationId) {
+        throw new Error('Missing reservation id');
       }
-
-      const reservationId = data?.reservation?.id;
-      const nextStep = data?.flow?.nextStep;
 
       if (paymentMethod === 'CARD') {
         if (nextStep === 'PAYMENT_PAGE') {
@@ -166,7 +157,9 @@ export default function ReservationPage() {
 
       router.push(`/reservation/success?id=${reservationId}&step=created`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create reservation');
+      setError(
+        err instanceof Error ? err.message : 'Failed to create reservation',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -195,19 +188,7 @@ export default function ReservationPage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
+          <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Back</span>
         </button>
 
@@ -343,19 +324,7 @@ export default function ReservationPage() {
                       From the email you continue to payment.
                     </div>
                   </div>
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  </svg>
+                  <CreditCard className="w-8 h-8 text-gray-400" />
                 </label>
 
                 <label
@@ -381,19 +350,7 @@ export default function ReservationPage() {
                       Pay when you pick up the car at the office
                     </div>
                   </div>
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
+                  <MoneyBill1 className="w-8 h-8 text-gray-400" />
                 </label>
               </div>
 

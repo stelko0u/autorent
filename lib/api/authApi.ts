@@ -8,6 +8,65 @@ export type MeResponse = {
   } | null;
 };
 
+export interface VerifyResetTokenPayload {
+  email: string;
+  token: string;
+}
+
+export interface VerifyResetTokenResponse {
+  valid: boolean;
+  reason?: string;
+}
+
+export interface ResetPasswordPayload {
+  email: string;
+  token: string;
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  ok?: boolean;
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
+export type CompleteOnboardingPayload = {
+  userId: string;
+  password: string;
+};
+
+export type CompleteOnboardingResponse = {
+  ok?: boolean;
+  error?: string;
+  message?: string;
+};
+
+export interface SignUpPayload {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  password: string;
+  role: 'USER' | 'ADMIN';
+}
+
+export interface AuthResponse {
+  ok: boolean;
+  error?: string;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  ok?: boolean;
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
 export async function getCurrentUser(): Promise<MeResponse> {
   const res = await fetch('/api/auth/me', {
     credentials: 'include',
@@ -32,17 +91,6 @@ export async function signOutUser(): Promise<void> {
   }
 }
 
-export type CompleteOnboardingPayload = {
-  userId: string;
-  password: string;
-};
-
-export type CompleteOnboardingResponse = {
-  ok?: boolean;
-  error?: string;
-  message?: string;
-};
-
 export async function completeOnboarding(
   payload: CompleteOnboardingPayload,
 ): Promise<CompleteOnboardingResponse> {
@@ -59,6 +107,102 @@ export async function completeOnboarding(
 
   if (!res.ok) {
     throw new Error(data?.error || 'Error changing password.');
+  }
+
+  return data;
+}
+
+export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
+  const res = await fetch('/api/auth/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  return res.json();
+}
+
+export async function signIn(
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
+  const res = await fetch('/api/auth/signin', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  return res.json();
+}
+
+export async function signOut(): Promise<void> {
+  await fetch('/api/auth/signout', {
+    method: 'POST',
+  });
+}
+
+export async function forgotPassword(
+  payload: ForgotPasswordPayload,
+): Promise<ForgotPasswordResponse> {
+  const response = await fetch('/api/auth/forgot-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data: ForgotPasswordResponse = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Request failed');
+  }
+
+  return data;
+}
+
+export async function verifyResetToken(
+  payload: VerifyResetTokenPayload,
+): Promise<VerifyResetTokenResponse> {
+  const response = await fetch('/api/auth/verify-reset-token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data: VerifyResetTokenResponse = await response.json().catch(() => ({
+    valid: false,
+    reason: 'Request failed',
+  }));
+
+  if (!response.ok) {
+    throw new Error(data.reason || 'Failed to verify reset token');
+  }
+
+  return data;
+}
+
+export async function resetPassword(
+  payload: ResetPasswordPayload,
+): Promise<ResetPasswordResponse> {
+  const response = await fetch('/api/auth/reset-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data: ResetPasswordResponse = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to reset password');
   }
 
   return data;

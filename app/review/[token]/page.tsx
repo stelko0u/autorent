@@ -8,6 +8,7 @@ import {
   submitReviewFromLink,
   type ReviewPageData,
 } from '@/lib/api/reviewApi';
+import { FullStar } from '@/components/icons';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('bg-BG', {
@@ -50,12 +51,7 @@ function Star({ active, onClick, onMouseEnter, onMouseLeave }: StarProps) {
       onMouseLeave={onMouseLeave}
       className="transition-transform hover:scale-110"
     >
-      <svg
-        viewBox="0 0 24 24"
-        className={`h-10 w-10 ${active ? 'fill-yellow-400' : 'fill-gray-200'}`}
-      >
-        <path d="M12 2.5l2.93 5.94 6.56.95-4.74 4.62 1.12 6.53L12 17.77l-5.87 3.08 1.12-6.53L2.51 9.39l6.56-.95L12 2.5z" />
-      </svg>
+      <FullStar className={`h-10 w-10 ${active ? 'fill-yellow-400' : 'fill-gray-200'}`} />
     </button>
   );
 }
