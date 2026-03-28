@@ -1,18 +1,22 @@
+import type { Car } from './types';
+
 export type Role = 'user' | 'company' | 'admin' | null;
 
-export type HomeCar = {
-  id: number;
+export type HomeCar = Pick<
+  Car,
+  | 'id'
+  | 'make'
+  | 'model'
+  | 'year'
+  | 'pricePerDay'
+  | 'power'
+  | 'carType'
+  | 'transmissionType'
+  | 'fuelType'
+  | 'images'
+> & {
   name: string;
-  make: string;
-  model: string;
-  bodyType: string;
-  year: number;
-  horsepower: number;
-  transmission: string;
-  fuelType: string;
   location: string;
-  pricePerDay: number;
-  img: string;
   companyName?: string | null;
 };
 

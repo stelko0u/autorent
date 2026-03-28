@@ -8,7 +8,6 @@ import { UserRepository } from '../repository/UserRepository';
 import { getTokenFromRequest } from './getTokenFromRequest';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? 'token';
 
 export async function requireAdmin(req: Request) {
   if (!JWT_SECRET)
@@ -26,10 +25,8 @@ export async function requireAdmin(req: Request) {
       resp: NextResponse.json({ error: 'no_token' }, { status: 401 }),
     };
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as
-      | JwtPayload
-      | Record<string, any>;
-    const userId = Number((payload as any).userId ?? payload.sub ?? null);
+    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const userId = Number(payload.userId ?? payload.sub ?? null);
     if (!userId || Number.isNaN(userId))
       return {
         ok: false,

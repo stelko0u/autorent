@@ -36,9 +36,9 @@ export class UserRepository {
     if (entries.length === 0) return this.findById(id);
 
     const setClause = entries
-      .map(([key, _], i) => `"${key}" = $${i + 2}`)
+      .map(([key], i) => `"${key}" = $${i + 2}`)
       .join(', ');
-    const values = [id, ...entries.map(([_, value]) => value)];
+    const values = [id, ...entries.values()];
 
     return queryOne<User>(
       `UPDATE "User" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
@@ -59,11 +59,11 @@ export class UserRepository {
 
     const entries = Object.entries(where);
     const whereClause = entries
-      .map(([key, _], i) => `${key} = $${i + 1}`)
+      .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = entries.map(([_, value]) => value);
+    const values = entries.values();
 
-    return query<User>(`SELECT * FROM "User" WHERE ${whereClause}`, values);
+    return query<User>(`SELECT * FROM "User" WHERE ${whereClause}`, Array.from(values));
   }
 
   static async ban(id: number, reason?: string): Promise<User | null> {

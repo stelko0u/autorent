@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 type ReportItem = {
   reservationId: number | null;
@@ -45,7 +45,7 @@ export default function CompanyReports() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadReport() {
+  const loadReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -66,16 +66,16 @@ export default function CompanyReports() {
 
       setSummary(data.summary || null);
       setItems(Array.isArray(data.items) ? data.items : []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load report');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load report');
     } finally {
       setLoading(false);
     }
-  }
+  }, [startDate, endDate]);
 
   useEffect(() => {
     loadReport();
-  }, []);
+  }, [loadReport]);
 
   function downloadPdf() {
     const url = `/api/company/reports?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&format=pdf`;

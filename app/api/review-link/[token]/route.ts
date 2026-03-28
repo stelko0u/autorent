@@ -16,7 +16,7 @@ export async function GET(_: NextRequest, { params }: Params) {
     const { token } = await params;
     const result = await getReviewLinkData(token);
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleReviewLinkError(error, 'GET');
   }
 }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     });
 
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleReviewLinkError(error, 'POST');
   }
 }

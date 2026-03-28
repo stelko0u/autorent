@@ -31,10 +31,10 @@ export async function getUserReservationDetails(
     throw new Error('RESERVATION_NOT_FOUND');
   }
 
-  const reservation = reservations[0];
+  const reservation = reservations[0] as Record<string, unknown>;
 
-  const start = new Date(reservation.startDate);
-  const end = new Date(reservation.endDate);
+  const start = new Date(reservation.startDate as string);
+  const end = new Date(reservation.endDate as string);
 
   const days = Math.ceil(
     (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
@@ -48,7 +48,7 @@ export async function getUserReservationDetails(
       id: reservation.id,
       carMake: reservation.carMake,
       carModel: reservation.carModel,
-      carImage: reservation.carImages?.[0] || null,
+      carImage: (reservation.carImages as string[] | null)?.[0] || null,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
       days,

@@ -77,13 +77,13 @@ export function CarSearchProvider({
           car.name,
           car.make,
           car.model,
-          car.bodyType,
-          car.transmission,
+          car.carType,
+          car.transmissionType,
           car.fuelType,
           car.location,
           car.companyName ?? '',
           car.year,
-          car.horsepower,
+          car.power,
           car.pricePerDay,
         ]
           .join(' ')
@@ -94,8 +94,8 @@ export function CarSearchProvider({
 
       if (filters.make && car.make !== filters.make) return false;
       if (filters.location && car.location !== filters.location) return false;
-      if (filters.bodyType && car.bodyType !== filters.bodyType) return false;
-      if (filters.transmission && car.transmission !== filters.transmission)
+      if (filters.bodyType && car.carType !== filters.bodyType) return false;
+      if (filters.transmission && car.transmissionType !== filters.transmission)
         return false;
       if (filters.fuelType && car.fuelType !== filters.fuelType) return false;
 
@@ -104,17 +104,11 @@ export function CarSearchProvider({
       if (filters.maxPrice && car.pricePerDay > Number(filters.maxPrice))
         return false;
 
-      if (
-        filters.minHorsepower &&
-        car.horsepower < Number(filters.minHorsepower)
-      ) {
+      if (filters.minHorsepower && car.power < Number(filters.minHorsepower)) {
         return false;
       }
 
-      if (
-        filters.maxHorsepower &&
-        car.horsepower > Number(filters.maxHorsepower)
-      ) {
+      if (filters.maxHorsepower && car.power > Number(filters.maxHorsepower)) {
         return false;
       }
 
@@ -134,15 +128,15 @@ export function CarSearchProvider({
     [cars],
   );
   const uniqueBodyTypes = useMemo(
-    () => uniqueSorted(cars.map((c) => c.bodyType)),
+    () => uniqueSorted(cars.map((c) => c.carType ?? '')),
     [cars],
   );
   const uniqueTransmissions = useMemo(
-    () => uniqueSorted(cars.map((c) => c.transmission)),
+    () => uniqueSorted(cars.map((c) => c.transmissionType ?? '')),
     [cars],
   );
   const uniqueFuelTypes = useMemo(
-    () => uniqueSorted(cars.map((c) => c.fuelType)),
+    () => uniqueSorted(cars.map((c) => c.fuelType ?? '')),
     [cars],
   );
 

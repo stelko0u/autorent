@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import ReactModal from 'react-modal';
 import UserBanModal from '../modals/UserBanModal';
 import UserDeleteModal from '../modals/UserDeleteModal';
 import { banUser, deleteUser, fetchUsers, unbanUser } from '@/lib/api/adminApi';
@@ -12,7 +11,7 @@ type User = {
   email?: string;
   role?: string;
   banned?: boolean;
-  bannedAt?: string;
+  bannedAt?: Date;
   banReason?: string;
   emailVerified?: boolean;
 };
@@ -44,8 +43,8 @@ export default function AdminUsersPage() {
     try {
       const data = await fetchUsers();
       setUsers(data.users);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load users');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -85,8 +84,8 @@ export default function AdminUsersPage() {
     try {
       await deleteUser(deleteUserId);
       await load();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete user');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete user');
     } finally {
       setActionLoading(null);
       setDeleteUserId(null);
@@ -108,8 +107,8 @@ export default function AdminUsersPage() {
     try {
       await banUser(banUserId, banReason);
       await load();
-    } catch (err: any) {
-      setError(err.message || 'Failed to ban user');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to ban user');
     } finally {
       setActionLoading(null);
       setBanUserId(null);
@@ -124,8 +123,8 @@ export default function AdminUsersPage() {
     try {
       await unbanUser(id);
       await load();
-    } catch (err: any) {
-      setError(err.message || 'Failed to unban user');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to unban user');
     } finally {
       setActionLoading(null);
     }

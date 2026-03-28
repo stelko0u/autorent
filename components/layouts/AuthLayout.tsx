@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowLeftFromBracket } from '../icons';
 import { useTranslation } from '@/providers/LanguageProvider';

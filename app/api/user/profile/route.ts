@@ -10,7 +10,7 @@ export async function PUT(req: Request) {
     const { name, phone, address, city, country, postalCode, dateOfBirth } =
       body;
 
-    const updateData: any = {};
+    const updateData: Partial<{ name: string; phone: string; address: string; city: string; country: string; postalCode: string; dateOfBirth: Date | undefined }> = {};
 
     if (name !== undefined) updateData.name = name;
     if (phone !== undefined) updateData.phone = phone;
@@ -20,7 +20,7 @@ export async function PUT(req: Request) {
     if (postalCode !== undefined) updateData.postalCode = postalCode;
 
     if (dateOfBirth !== undefined) {
-      updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+      updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : undefined;
     }
 
     const updated = await UserRepository.update(user.id, updateData);

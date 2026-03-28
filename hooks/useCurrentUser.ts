@@ -8,7 +8,7 @@ type AuthResponse<TUser> = {
   error?: string;
 };
 
-export function useCurrentUser<TUser = any>() {
+export function useCurrentUser<TUser = Record<string, unknown>>() {
   const [userData, setUserData] = useState<TUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

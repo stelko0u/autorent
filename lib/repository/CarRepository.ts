@@ -36,9 +36,9 @@ export class CarRepository {
     if (entries.length === 0) return this.findById(id);
 
     const setClause = entries
-      .map(([key, _], i) => `"${key}" = $${i + 2}`)
+      .map(([key], i) => `"${key}" = $${i + 2}`)
       .join(', ');
-    const values = [id, ...entries.map(([_, value]) => value)];
+    const values = [id, ...entries.values()];
 
     return queryOne<Car>(
       `UPDATE "Car" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
@@ -51,11 +51,11 @@ export class CarRepository {
 
     const entries = Object.entries(where);
     const whereClause = entries
-      .map(([key, _], i) => `${key} = $${i + 1}`)
+      .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = entries.map(([_, value]) => value);
+    const values = entries.values();
 
-    return query<Car>(`SELECT * FROM "Car" WHERE ${whereClause}`, values);
+    return query<Car>(`SELECT * FROM "Car" WHERE ${whereClause}`, Array.from(values));
   }
 
   static async findByOwner(ownerId: number): Promise<Car[]> {

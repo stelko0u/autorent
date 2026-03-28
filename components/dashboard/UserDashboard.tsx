@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAuth } from '../../../hooks/useAuth';
 import ReservationList from '../reservations/ReservationList';
+import { useAuth } from '@/hooks/useAuth';
 
 const UserDashboard: React.FC = () => {
   const { user } = useAuth();

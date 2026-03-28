@@ -56,9 +56,9 @@ export default function ReviewsList({
         setRating(0);
         setComment('');
         setShowReviewForm(false);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error submitting review:', error);
-        alert(error.message || 'Error submitting review');
+        alert(error instanceof Error ? error.message : 'Error submitting review');
       } finally {
         setSubmitting(false);
       }

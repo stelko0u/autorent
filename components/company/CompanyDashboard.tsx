@@ -63,8 +63,8 @@ export default function CompanyDashboard() {
 
       setStats(data.stats);
       setRecentReservations(data.recentReservations || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
     } finally {
       setLoading(false);
     }

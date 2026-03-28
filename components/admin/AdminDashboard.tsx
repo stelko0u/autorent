@@ -19,7 +19,7 @@ export default function AdminDashboard() {
     try {
       const data = await fetchDashboardStats();
       setStats(data);
-    } catch (err: any) {
+    } catch {
       setError('Error loading statistics');
     } finally {
       setLoading(false);

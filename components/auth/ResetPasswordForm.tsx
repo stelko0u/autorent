@@ -120,8 +120,8 @@ export default function ResetPasswordForm() {
       setSuccess('Password has been successfully reset!');
       setPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      setError(err?.message || 'Error resetting password.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error resetting password.');
     } finally {
       setIsSubmitting(false);
     }

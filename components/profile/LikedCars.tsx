@@ -87,7 +87,7 @@ export default function LikedCars({ userId }: Props) {
       <div className="border-b p-6">
         <h2 className="text-xl font-semibold text-gray-800">Liked Cars</h2>
         <p className="mt-1 text-sm text-gray-600">
-          Cars you've saved for later
+          Cars you&apos;ve saved for later
         </p>
       </div>
 
@@ -127,6 +127,7 @@ export default function LikedCars({ userId }: Props) {
               >
                 <div className="relative">
                   {car.images?.[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={car.images[0]}
                       alt={`${car.make} ${car.model}`}

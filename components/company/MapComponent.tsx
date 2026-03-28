@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { LatLngExpression, LeafletMouseEvent } from 'leaflet';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -31,9 +31,16 @@ function ClickMarker({
   return position ? <Marker position={position} /> : null;
 }
 
+type OfficeLocation = {
+  id: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  companyId?: number;
+};
+
 interface MapComponentProps {
-  offices: any[];
-  editing: any;
+  offices: OfficeLocation[];
+  editing: Record<string, unknown> | null;
   pos: [number, number] | null;
   setPos: (pos: [number, number] | null) => void;
   companyColors: Record<number, string>;
@@ -79,7 +86,7 @@ export default function MapComponent({
           <Marker
             key={o.id}
             position={[o.latitude, o.longitude]}
-            icon={coloredMarker(companyColors[o.companyId] ?? '#6b7280')}
+            icon={coloredMarker(o.companyId != null ? (companyColors[o.companyId] ?? '#6b7280') : '#6b7280')}
           />
         ) : null,
       )}

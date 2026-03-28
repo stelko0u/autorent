@@ -7,7 +7,6 @@ export default function AdminAddCompany() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [maintenancePercent, setMaintenancePercent] = useState<number | ''>(0);
-  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -33,11 +32,10 @@ export default function AdminAddCompany() {
       setName('');
       setEmail('');
       setMaintenancePercent(0);
-      setPassword('');
 
       window.dispatchEvent(new CustomEvent('company:created'));
-    } catch (err: any) {
-      setError(err.message || 'Create failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Create failed');
     } finally {
       setBusy(false);
     }

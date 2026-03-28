@@ -16,7 +16,7 @@ export async function POST() {
       secure: process.env.NODE_ENV === "production",
       maxAge: 0,
     });
-  } catch (err) {
+  } catch {
     const cookieStr = `${COOKIE_NAME}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${
       process.env.NODE_ENV === "production" ? "; Secure" : ""
     }`;

@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { UserRepository } from '@/lib/repository/UserRepository';
+import { Company } from '@/types/database';
 import { generateTemporaryPassword } from '@/lib/utils/password';
 import {
   createCompanyStripeAccount,
@@ -25,9 +26,9 @@ export async function onboardCompany(input: OnboardCompanyInput) {
     role: 'COMPANY',
     emailVerified: true,
     mustChangePassword: true,
-  } as any);
+  });
 
-  let company: any = null;
+  let company: Company | null = null;
   let stripeAccountId: string | null = null;
 
   try {
@@ -41,14 +42,14 @@ export async function onboardCompany(input: OnboardCompanyInput) {
       name: input.name,
       email: input.email,
       maintenancePercent: input.maintenancePercent,
-      stripeAccountId,
-    } as any);
+      stripeAccountId: stripeAccountId ?? undefined,
+    });
 
-    if ((user as any).companyId !== company.id) {
+    if (user.companyId !== company.id) {
       await UserRepository.update(user.id, {
         companyId: company.id,
         mustChangePassword: true,
-      } as any);
+      });
     }
 
     const mailInfo = await sendCompanyCredentialsEmail({

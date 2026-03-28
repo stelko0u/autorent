@@ -185,9 +185,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const stripeAccountId = (company as any).stripeAccountId as
-      | string
-      | undefined;
+    const stripeAccountId = company.stripeAccountId;
 
     await deleteCompanyDeep(Number(id));
 

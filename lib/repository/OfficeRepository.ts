@@ -32,9 +32,9 @@ export class OfficeRepository {
     if (entries.length === 0) return this.findById(id);
 
     const setClause = entries
-      .map(([key, _], i) => `"${key}" = $${i + 2}`)
+      .map(([key], i) => `"${key}" = $${i + 2}`)
       .join(', ');
-    const values = [id, ...entries.map(([_, value]) => value)];
+    const values = [id, ...entries.values()];
 
     return queryOne<Office>(
       `UPDATE "Office" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
@@ -53,9 +53,9 @@ export class OfficeRepository {
 
     const entries = Object.entries(where);
     const whereClause = entries
-      .map(([key, _], i) => `${key} = $${i + 1}`)
+      .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = entries.map(([_, value]) => value);
+    const values = entries.map(([value]) => value);
 
     return query<Office>(`SELECT * FROM "Office" WHERE ${whereClause}`, values);
   }

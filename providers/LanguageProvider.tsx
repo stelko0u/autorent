@@ -52,11 +52,10 @@ function getInitialLocale(): Locale {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+  const [locale, setLocaleState] = useState<Locale>(getInitialLocale());
 
   useEffect(() => {
     const initial = getInitialLocale();
-    setLocaleState(initial);
     document.documentElement.lang = initial;
   }, []);
 
@@ -69,7 +68,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const t = useCallback(
     (key: string, params?: TranslateParams) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const selected = translations[locale] as unknown as Record<string, any>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fallback = translations.bg as unknown as Record<string, any>;
 
       const value =

@@ -29,7 +29,7 @@ async function getUserFromToken(req: Request) {
 
     const user = await UserRepository.findById(userId);
     return user;
-  } catch (err) {
+  } catch {
     return null;
   }
 }

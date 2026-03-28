@@ -110,7 +110,7 @@ export class PaymentsRepository {
     companyId: number,
     periodStart: Date,
     periodEndExclusive: Date,
-  ): Promise<any[]> {
+  ): Promise<Array<Payments & { startDate?: Date; endDate?: Date; make?: string; model?: string; year?: number; userName?: string; userEmail?: string }>> {
     return query(
       `
     SELECT
@@ -188,7 +188,7 @@ export class PaymentsRepository {
     );
   }
 
-  static async findByCompany(companyId: number): Promise<any[]> {
+  static async findByCompany(companyId: number): Promise<Array<Payments & { startDate?: Date; endDate?: Date; reservationTotalPrice?: number; make?: string; model?: string; year?: number; userName?: string; userEmail?: string }>> {
     return query(
       `SELECT 
         p.*,

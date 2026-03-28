@@ -21,12 +21,12 @@ export async function GET(req: NextRequest) {
       ok: true,
       ...result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Cron review-reminders error:', error);
     return NextResponse.json(
       {
         ok: false,
-        error: error?.message || 'Failed to process review reminders',
+        error: error instanceof Error ? error.message : 'Failed to process review reminders',
       },
       { status: 500 },
     );

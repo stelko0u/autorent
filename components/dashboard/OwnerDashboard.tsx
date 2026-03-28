@@ -4,9 +4,10 @@ const getOwnerVehicles = async () => [];
 const getOwnerStatistics = async () => ({ totalVehicles: 0, totalReservations: 0 });
 import VehicleCard from "../vehicles/CarCard";
 import Button from "../ui/Button";
+import type { HomeCar } from "@/types/home";
 
 const OwnerDashboard = () => {
-  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<HomeCar[]>([]);
   const [statistics, setStatistics] = useState({ totalVehicles: 0, totalReservations: 0 });
   const [loading, setLoading] = useState(true);
 

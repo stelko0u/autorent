@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const companies = await CompanyRepository.findMany();
     const invoiceMonth = getPreviousMonthKey();
 
-    const results: any[] = [];
+    const results: Array<{ companyId: number; companyName: string; ok: boolean; created?: boolean; invoiceId?: string; error?: string }> = [];
 
     for (const company of companies) {
       try {
@@ -41,12 +41,12 @@ export async function POST(req: Request) {
           created: result.created,
           invoiceId: result.invoice.id,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         results.push({
           companyId: company.id,
           companyName: company.name || company.email,
           ok: false,
-          error: err?.message || 'Unknown error',
+          error: err instanceof Error ? err.message : 'Unknown error',
         });
       }
     }

@@ -38,7 +38,7 @@ type CompanyAccessState = {
     | 'missing_stripe_account'
     | 'stripe_incomplete'
     | 'ready';
-  company: any | null;
+  company: import('@/types/database').Company | null;
   stripe: {
     accountId: string | null;
     detailsSubmitted: boolean;
@@ -53,9 +53,8 @@ type CompanyAccessState = {
 export default function CompanyArea() {
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>('dashboard');
-  const [company, setCompany] = useState<any>(null);
+  const [company, setCompany] = useState<import('@/types/database').Company | null>(null);
   const [cars, setCars] = useState<Car[]>([]);
-  const [loading, setLoading] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [access, setAccess] = useState<CompanyAccessState | null>(null);
   const [creatingOnboardingLink, setCreatingOnboardingLink] = useState(false);
@@ -79,7 +78,6 @@ export default function CompanyArea() {
   }, [searchParams]);
 
   async function loadCompanyData() {
-    setLoading(true);
     setCheckingAccess(true);
 
     try {
@@ -107,10 +105,9 @@ export default function CompanyArea() {
 
       const accessJson = await parseJsonSafe(accessRes);
       setAccess(accessJson.access ?? null);
-    } catch (err: any) {
-      setError(err.message || 'Loading failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Loading failed');
     } finally {
-      setLoading(false);
       setCheckingAccess(false);
     }
   }
@@ -124,8 +121,8 @@ export default function CompanyArea() {
       if (!carsRes.ok) throw new Error(`Cars load error (${carsRes.status})`);
       const carsJson = await parseJsonSafe(carsRes);
       setCars(Array.isArray(carsJson.cars) ? carsJson.cars : []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load cars');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load cars');
     }
   }
 
@@ -151,8 +148,8 @@ export default function CompanyArea() {
       }
 
       window.location.href = data.url;
-    } catch (err: any) {
-      setError(err.message || 'Failed to redirect to Stripe onboarding');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to redirect to Stripe onboarding');
     } finally {
       setCreatingOnboardingLink(false);
     }

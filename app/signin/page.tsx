@@ -1,17 +1,16 @@
 'use client';
 
 import Image from 'next/image';
+import { Suspense } from 'react';
 import SignInForm from '../../components/auth/SignInForm';
 import authbg from '../../public/authbg.jpg';
 import AuthLayout from '@/components/layouts/AuthLayout';
 
 export default function SignInPage() {
-
-  
   return (
     <main className="relative w-full min-h-screen flex items-center justify-center">
             <AuthLayout />
-      
+
       <div className="absolute inset-0 -z-10 bg-black overflow-hidden">
         <Image
           src={authbg}
@@ -24,7 +23,9 @@ export default function SignInPage() {
       </div>
 
       <div className="z-10 w-full max-w-lg p-6">
-        <SignInForm />
+        <Suspense>
+          <SignInForm />
+        </Suspense>
       </div>
     </main>
   );

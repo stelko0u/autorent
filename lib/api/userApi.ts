@@ -107,7 +107,7 @@ type GetUserReviewsResponse = {
   reviews?: UserReview[];
 };
 
-export async function getLoggedInUser(): Promise<any | null> {
+export async function getLoggedInUser(): Promise<import('@/types/database').User | null> {
   try {
     const res = await fetch('/api/auth/me', {
       method: 'GET',

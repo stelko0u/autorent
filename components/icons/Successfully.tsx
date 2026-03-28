@@ -1,6 +1,5 @@
 import * as React from 'react';
-import type { SVGProps } from 'react';
-const SvgPlus = (props: SVGProps<SVGSVGElement>) => (
+const SvgPlus = () => (
   <svg
     className="h-12 w-12 text-green-600"
     fill="none"

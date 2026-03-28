@@ -5,7 +5,6 @@ import CarCard from '../vehicles/CarCard';
 
 export default function FilteredCarsList() {
   const { filteredCars } = useCarSearch();
-  const normalize = (value?: string) => value?.toLowerCase() || '';
 
   if (!filteredCars.length) {
     return (

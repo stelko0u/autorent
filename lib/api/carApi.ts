@@ -1,3 +1,5 @@
+import { Office } from "@/types/database";
+
 export async function fetchOfficeByCarId(carId: number) {
   try {
     // Adjusted endpoint to fetch office details for a specific car
@@ -17,7 +19,7 @@ export async function fetchOfficeByCarId(carId: number) {
       latitude: Number(office.latitude),
       longitude: Number(office.longitude),
       address: office.address,
-    };
+    } as Office;
   } catch (error) {
     console.error('Error fetching office details by car ID:', error);
     throw error;

@@ -7,6 +7,22 @@ import {
   summarizePayments,
 } from '@/lib/services/stripe/companyFinance';
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
+import type { Company } from '@/types/database';
+
+type DashboardReservation = {
+  id: number;
+  status: string;
+  paymentStatus?: string;
+  totalPrice?: number | string;
+  carMake?: string;
+  carModel?: string;
+  startDate?: Date | string;
+  endDate?: Date | string;
+  userName?: string;
+  firstName?: string;
+  lastName?: string;
+  userEmail?: string;
+};
 
 type DashboardUser = {
   role: 'COMPANY' | 'ADMIN' | 'USER';
@@ -35,12 +51,12 @@ export async function getCompanyDashboardData(user: DashboardUser) {
 
   const totalReservations = allReservations.length;
 
-  const pendingReservations = allReservations.filter(
-    (r: any) => r.status === 'PENDING' || r.status === 'CONFIRMED',
+  const pendingReservations = (allReservations as DashboardReservation[]).filter(
+    (r) => r.status === 'PENDING' || r.status === 'CONFIRMED',
   ).length;
 
-  const completedReservations = allReservations.filter(
-    (r: any) => r.status === 'COMPLETED' || r.status === 'RETURNED',
+  const completedReservations = (allReservations as DashboardReservation[]).filter(
+    (r) => r.status === 'COMPLETED' || r.status === 'RETURNED',
   ).length;
 
   const totalCars = cars.length;
@@ -48,17 +64,17 @@ export async function getCompanyDashboardData(user: DashboardUser) {
 
   const money = await getCompanyMoneyStats(
     company,
-    allReservations,
+    allReservations as DashboardReservation[],
     maintenancePercent,
   );
 
-  const recentReservations = allReservations.slice(0, 10).map((r: any) => ({
+  const recentReservations = (allReservations as DashboardReservation[]).slice(0, 10).map((r) => ({
     id: r.id,
     carMake: r.carMake,
     carModel: r.carModel,
     startDate: r.startDate,
     endDate: r.endDate,
-    totalPrice: parseFloat(r.totalPrice || 0),
+    totalPrice: parseFloat(String(r.totalPrice ?? 0)),
     status: r.status,
     paymentStatus: r.paymentStatus || 'PENDING',
     customerName:
@@ -87,8 +103,8 @@ export async function getCompanyDashboardData(user: DashboardUser) {
 }
 
 async function getCompanyMoneyStats(
-  company: any,
-  allReservations: any[],
+  company: Company,
+  allReservations: DashboardReservation[],
   maintenancePercent: number,
 ) {
   let moneySource: 'stripe' | 'database' = 'stripe';
@@ -114,11 +130,11 @@ async function getCompanyMoneyStats(
     moneySource = 'database';
 
     const paidReservations = allReservations.filter(
-      (r: any) => r.paymentStatus === 'PAID',
+      (r) => r.paymentStatus === 'PAID',
     );
 
     totalRevenue = paidReservations.reduce(
-      (sum: number, r: any) => sum + parseFloat(r.totalPrice || 0),
+      (sum, r) => sum + parseFloat(String(r.totalPrice || 0)),
       0,
     );
 

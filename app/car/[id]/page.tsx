@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 
 import ImageSlider from '../../../components/vehicles/ImageSlider';
@@ -21,6 +21,7 @@ import {
   checkReviewEligibility,
   submitReview,
 } from '@/lib/api/reviewApi';
+import { Office, User } from '@/types/database';
 
 function LocationPinIcon({ className = 'w-6 h-6 text-gray-500' }) {
   return (
@@ -46,7 +47,7 @@ function LocationPinIcon({ className = 'w-6 h-6 text-gray-500' }) {
   );
 }
 
-export default function CarDetailPage() {
+function CarDetailPageInner() {
   const CarLocationMap = dynamic(
     () => import('@/components/vehicles/CarLocationMap'),
     { ssr: false },
@@ -60,7 +61,7 @@ export default function CarDetailPage() {
   const shouldOpenReviewForm = searchParams.get('review') === '1';
 
   const [car, setCar] = useState<CarType | null>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Array<{ id?: number; rating: number; comment: string; createdAt?: string; user?: { name?: string; email?: string } }>>([]);
   const [loading, setLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +69,8 @@ export default function CarDetailPage() {
   const [activeReservationId, setActiveReservationId] = useState<number | null>(
     null,
   );
-  const [user, setUser] = useState<any | null>(null);
-  const [office, setOffice] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [office, setOffice] = useState<Office | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -181,9 +182,6 @@ export default function CarDetailPage() {
   };
 
   const locationLabel =
-    office?.city ||
-    office?.town ||
-    office?.municipality ||
     office?.address ||
     (office?.latitude && office?.longitude
       ? `${office.latitude}, ${office.longitude}`
@@ -348,5 +346,13 @@ export default function CarDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CarDetailPage() {
+  return (
+    <Suspense>
+      <CarDetailPageInner />
+    </Suspense>
   );
 }

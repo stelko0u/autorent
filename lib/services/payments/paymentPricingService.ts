@@ -15,6 +15,8 @@ export function getReservationDateRangeOrThrow(
   return { startDate, endDate };
 }
 
+import { InvalidTotalPriceError } from '@/lib/errors/paymentErrors';
+
 export function calculateReservationPricingOrThrow(input: {
   startDate: Date;
   endDate: Date;
@@ -28,13 +30,11 @@ export function calculateReservationPricingOrThrow(input: {
   const totalPrice = Number((days * pricePerDay).toFixed(2));
 
   if (totalPrice <= 0) {
-    const error = new Error('INVALID_TOTAL_PRICE');
-    (error as any).pricingDebug = {
+    throw new InvalidTotalPriceError({
       days,
       pricePerDay: input.pricePerDay,
       totalPrice,
-    };
-    throw error;
+    });
   }
 
   const maintenancePercent = Number(input.maintenancePercent || 0);

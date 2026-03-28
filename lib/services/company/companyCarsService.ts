@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import type {
   Car,
-  CarFormValues,
   CarType,
   FuelType,
   TransmissionType,
@@ -80,10 +79,25 @@ async function parseCreateCompanyCarRequest(
     const fileEntries = form.getAll('images') as File[];
     images = await saveCompanyCarImages(fileEntries, companyId);
   } else {
-    let body: CarFormValues | null = null;
+    type CarRequestBody = {
+      make?: unknown;
+      model?: unknown;
+      year?: unknown;
+      pricePerDay?: unknown;
+      power?: unknown;
+      displacement?: unknown;
+      carType?: unknown;
+      transmission?: unknown;
+      transmissionType?: unknown;
+      fuelType?: unknown;
+      officeId?: unknown;
+      images?: unknown;
+    };
+
+    let body: CarRequestBody | null = null;
 
     try {
-      body = (await req.json()) as CarFormValues;
+      body = (await req.json()) as CarRequestBody;
     } catch {
       throw new Error('INVALID_JSON_BODY');
     }
@@ -92,24 +106,20 @@ async function parseCreateCompanyCarRequest(
     model = String(body?.model ?? '').trim();
     year = body?.year ? Number(body.year) : new Date().getFullYear();
     pricePerDay = body?.pricePerDay ? Number(body.pricePerDay) : 0;
-    power = (body as any)?.power ? Number((body as any).power) : 0;
-    displacement = (body as any)?.displacement
-      ? Number((body as any).displacement)
-      : 0;
+    power = body?.power ? Number(body.power) : 0;
+    displacement = body?.displacement ? Number(body.displacement) : 0;
 
-    carType = mapCarType((body as any)?.carType ?? null);
+    carType = mapCarType(body?.carType != null ? String(body.carType) : null);
     transmissionType =
-      mapTransmissionType((body as any)?.transmission ?? null) ||
-      mapTransmissionType((body as any)?.transmissionType ?? null);
-    fuelType = mapFuelType((body as any)?.fuelType ?? null);
+      mapTransmissionType(body?.transmission != null ? String(body.transmission) : null) ||
+      mapTransmissionType(body?.transmissionType != null ? String(body.transmissionType) : null);
+    fuelType = mapFuelType(body?.fuelType != null ? String(body.fuelType) : null);
 
     officeId =
-      body?.officeId && body.officeId !== null ? Number(body.officeId) : null;
+      body?.officeId != null && body.officeId !== '' ? Number(body.officeId) : null;
 
-    if (Array.isArray((body as any).images)) {
-      images = (body as any).images.filter(
-        (it: unknown) => typeof it === 'string',
-      );
+    if (Array.isArray(body?.images)) {
+      images = body.images.filter((it: unknown) => typeof it === 'string') as string[];
     }
   }
 
@@ -210,10 +220,10 @@ export async function updateCompanyCar(
     throw new Error('UNAUTHORIZED_CAR_ACCESS');
   }
 
-  let body: any;
+  let body: Record<string, unknown>;
 
   try {
-    body = await req.json();
+    body = await req.json() as Record<string, unknown>;
   } catch {
     throw new Error('INVALID_JSON_BODY');
   }
@@ -232,16 +242,16 @@ export async function updateCompanyCar(
   }
 
   if (body.carType !== undefined) {
-    updateData.carType = mapCarType(body.carType) ?? undefined;
+    updateData.carType = mapCarType(body.carType != null ? String(body.carType) : null) ?? undefined;
   }
 
   if (body.transmissionType !== undefined) {
     updateData.transmissionType =
-      mapTransmissionType(body.transmissionType) ?? undefined;
+      mapTransmissionType(body.transmissionType != null ? String(body.transmissionType) : null) ?? undefined;
   }
 
   if (body.fuelType !== undefined) {
-    updateData.fuelType = mapFuelType(body.fuelType) ?? undefined;
+    updateData.fuelType = mapFuelType(body.fuelType != null ? String(body.fuelType) : null) ?? undefined;
   }
 
   if (body.officeId !== undefined) {

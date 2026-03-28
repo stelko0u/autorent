@@ -5,6 +5,8 @@ import { normalizeRole } from '@/lib/auth/normalizeRole';
 import { mapCarToHomeCar } from '@/lib/mappers/homeCarMapper';
 import type { HomeCar, Role } from '@/types/home';
 
+export const dynamic = 'force-dynamic';
+
 type HomePageData = {
   isLoggedIn: boolean;
   role: Role;

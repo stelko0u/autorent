@@ -48,8 +48,8 @@ export default function CompanyReservations() {
 
       const data = await res.json();
       setReservations(data.reservations || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load reservations');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load reservations');
     } finally {
       setLoading(false);
     }

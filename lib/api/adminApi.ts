@@ -1,6 +1,6 @@
 import { Car } from '@/types/types';
 
-export async function fetchUsers(): Promise<any> {
+export async function fetchUsers(): Promise<{ users: import('@/types/database').User[] }> {
   const res = await fetch('/api/admin/users', {
     method: 'GET',
     credentials: 'include',
@@ -67,7 +67,7 @@ export async function unbanUser(userId: number | string): Promise<void> {
   }
 }
 
-export async function fetchDashboardStats(): Promise<any> {
+export async function fetchDashboardStats(): Promise<import('@/types/types').DashboardStats> {
   const response = await fetch('/api/admin/dashboard');
 
   if (!response.ok) {
@@ -78,8 +78,8 @@ export async function fetchDashboardStats(): Promise<any> {
 }
 
 export async function fetchCarsAndCompanies(): Promise<{
-  cars: any[];
-  companies: any[];
+  cars: import('@/types/types').CarRow[];
+  companies: import('@/types/types').Company[];
 }> {
   const [carsRes, companiesRes] = await Promise.all([
     fetch('/api/admin/cars', {
@@ -123,7 +123,7 @@ export async function deleteCar(id: number): Promise<void> {
   }
 }
 
-export async function fetchCompanies(): Promise<any[]> {
+export async function fetchCompanies(): Promise<import('@/types/types').Company[]> {
   const res = await fetch('/api/admin/companies', {
     credentials: 'include',
   });

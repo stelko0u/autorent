@@ -73,8 +73,8 @@ export default function CompanyInvoices() {
       }
 
       setInvoices(Array.isArray(data.invoices) ? data.invoices : []);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load invoices');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load invoices');
     } finally {
       setLoading(false);
     }

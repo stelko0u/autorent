@@ -1,7 +1,7 @@
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 import authbg from '../../public/authbg.jpg';
 import Image from 'next/image';
-import AuthLayout from '@/components/layouts/AuthLayout';
+import { Suspense } from 'react';
 
 export default function ResetPasswordPage() {
   return (
@@ -17,7 +17,9 @@ export default function ResetPasswordPage() {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <ResetPasswordForm />
+        <Suspense>
+          <ResetPasswordForm />
+        </Suspense>
       </div>
     </main>
   );

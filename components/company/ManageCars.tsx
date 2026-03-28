@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Car } from '@/types/database';
 import EditCarModal from '../modals/EditCarModal';
 import DeleteCarModal from '../modals/DeleteCarModal';
@@ -12,6 +15,7 @@ export default function ManageCars({
   cars: Car[];
   onRefresh?: () => void;
 }) {
+  const router = useRouter();
   const [editCarId, setEditCarId] = useState<number | null>(null);
   const [deleteCarId, setDeleteCarId] = useState<number | null>(null);
 
@@ -24,7 +28,7 @@ export default function ManageCars({
   };
 
   const handleDetails = (id: number) => {
-    window.location.href = `/car/${id}`;
+    router.push(`/car/${id}`);
   };
 
   const confirmDelete = async () => {
@@ -102,6 +106,7 @@ export default function ManageCars({
               <div className="relative">
                 <div className="h-56 w-full overflow-hidden bg-gray-100">
                   {c.images && c.images.length ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={c.images[0]}
                       alt={`${c.make} ${c.model}`}

@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in complete-onboarding:', err);
     return NextResponse.json(
       { error: 'Failed to change password.' },

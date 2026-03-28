@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, ReactNode } from 'react';
+import React, { useEffect, useState, ReactNode, startTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AdminSidebar from './AdminSidebar';
 import AdminDashboard from './AdminDashboard';
@@ -10,18 +10,18 @@ import AdminCars from './AdminCars';
 import AdminUsersPage from './AdminManageUsers';
 
 type AdminShellProps = {
-  me: any;
+  me: { name?: string; email?: string; role?: string; id?: number } | null;
   children?: ReactNode;
 };
 
-export default function AdminShell({ me, children }: AdminShellProps) {
+export default function AdminShell({ children }: AdminShellProps) {
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>('dashboard');
 
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab) {
-      setActive(tab);
+      startTransition(() => setActive(tab));
     }
   }, [searchParams]);
 

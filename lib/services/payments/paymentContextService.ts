@@ -1,6 +1,7 @@
 import { CarRepository } from '@/lib/repository/CarRepository';
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
+import { CompanyNoStripeAccountError } from '@/lib/errors/paymentErrors';
 
 export async function getReservationCarCompanyForPaymentOrThrow(
   reservationId: number,
@@ -28,12 +29,7 @@ export async function getReservationCarCompanyForPaymentOrThrow(
   }
 
   if (!company.stripeAccountId) {
-    const error = new Error('COMPANY_HAS_NO_STRIPE_ACCOUNT');
-    (error as any).company = {
-      id: company.id,
-      name: company.name,
-    };
-    throw error;
+    throw new CompanyNoStripeAccountError({ id: company.id, name: company.name });
   }
 
   return {

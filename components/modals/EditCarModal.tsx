@@ -57,8 +57,8 @@ export default function EditCarModal({
     try {
       await updateCar(car.id, formData);
       onSuccess();
-    } catch (error: any) {
-      console.error('Error updating car:', error.message || error);
+    } catch (error: unknown) {
+      console.error('Error updating car:', error);
     } finally {
       setIsSubmitting(false);
     }

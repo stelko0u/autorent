@@ -31,7 +31,7 @@ useEffect(() => {
                     }
                 ];
                 setReservations(mockData);
-            } catch (err) {
+            } catch {
                 setError('Failed to load reservations');
             } finally {
                 setLoading(false);

@@ -46,8 +46,8 @@ export default function RentedCars({ userId }: Props) {
 
       const data = await res.json();
       setReservations(data.reservations || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load reservations');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load reservations');
     } finally {
       setLoading(false);
     }
@@ -126,6 +126,7 @@ export default function RentedCars({ userId }: Props) {
             >
               <div className="flex gap-4">
                 {reservation.car?.images?.[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={reservation.car.images[0]}
                     alt={`${reservation.car.make} ${reservation.car.model}`}

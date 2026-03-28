@@ -1,4 +1,5 @@
 import { queryOne } from '@/lib/db';
+import type { ReviewEmailTokenPayload } from '@/lib/services/reviews/reviewEmailToken';
 import { ReviewRepository } from '@/lib/repository/ReviewRepository';
 import { verifyReviewEmailToken } from '@/lib/services/reviews/reviewEmailToken';
 
@@ -31,8 +32,33 @@ function normalizeImageUrl(value?: string | null) {
   return `/${normalized}`;
 }
 
+type ReservationForReviewLink = {
+  id: number;
+  userId: number;
+  carId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+  startDate: Date;
+  endDate: Date;
+  make: string;
+  model: string;
+  year: number;
+  carImages: string[] | null;
+};
+
+type ReservationForReviewSubmit = {
+  id: number;
+  userId: number;
+  carId: number;
+  email: string;
+  status: string;
+  endDate: Date;
+};
+
 async function getReservationForReviewLink(reservationId: number) {
-  return queryOne<any>(
+  return queryOne<ReservationForReviewLink>(
     `
     SELECT
       r.id,
@@ -57,7 +83,7 @@ async function getReservationForReviewLink(reservationId: number) {
 }
 
 async function getReservationForReviewSubmit(reservationId: number) {
-  return queryOne<any>(
+  return queryOne<ReservationForReviewSubmit>(
     `
     SELECT
       r.id,
@@ -73,7 +99,10 @@ async function getReservationForReviewSubmit(reservationId: number) {
   );
 }
 
-function validateReviewLinkReservation(reservation: any, payload: any) {
+function validateReviewLinkReservation(
+  reservation: ReservationForReviewLink | ReservationForReviewSubmit | null,
+  payload: ReviewEmailTokenPayload,
+) {
   if (!reservation) {
     throw new Error('RESERVATION_NOT_FOUND');
   }
@@ -93,6 +122,7 @@ export async function getReviewLinkData(token: string) {
   const reservation = await getReservationForReviewLink(payload.reservationId);
 
   validateReviewLinkReservation(reservation, payload);
+  if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
 
   const alreadyReviewed = await ReviewRepository.hasUserReviewedCar(
     reservation.userId,
@@ -156,6 +186,7 @@ export async function submitReviewFromLink(
   );
 
   validateReviewLinkReservation(reservation, payload);
+  if (!reservation) throw new Error('RESERVATION_NOT_FOUND');
 
   const reservationEnd = new Date(reservation.endDate);
   const now = new Date();

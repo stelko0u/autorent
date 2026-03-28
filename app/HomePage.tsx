@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/layouts/Sidebar';
 import MobileTopBar from '../components/layouts/MobileTopBar';
-import Hero from '../components/Hero/Hero';
-import FeaturedGrid from '../components/Featured/Featured';
 import { CarSearchProvider, useCarSearch } from '@/providers/CarSearchProvider';
 import type { HomeCar, Role } from '@/types/home';
 import CarSearchBar from '@/components/home/CarSearchBar';
@@ -25,7 +23,7 @@ function HomeContent({
 }) {
   const [active, setActive] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { filteredCars, filters, setFilter } = useCarSearch();
+  const { filteredCars, } = useCarSearch();
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f8fafc_40%,_#eef2f7_100%)] text-gray-800">
@@ -86,7 +84,7 @@ function HomeContent({
                   <CarSearchBar />
 
                   <section className="space-y-5">
-                    <div className="flex flex-col gap-4 rounded-[24px] border border-gray-200/70 bg-white/90 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 rounded-3xl border border-gray-200/70 bg-white/90 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
                           Available vehicles
@@ -110,7 +108,7 @@ function HomeContent({
                       </div>
                     </div>
 
-                    <div className="rounded-[24px] border border-gray-200/70 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+                    <div className="rounded-3xl border border-gray-200/70 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
                       <FilteredCarsList />
                     </div>
                   </section>

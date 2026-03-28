@@ -28,11 +28,9 @@ export async function GET(req: Request) {
       );
     }
 
-    const payload = jwt.verify(token, JWT_SECRET) as
-      | JwtPayload
-      | Record<string, any>;
+    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
-    const userId = Number((payload as any).userId ?? payload.sub ?? null);
+    const userId = Number(payload.userId ?? payload.sub ?? null);
     if (!userId || Number.isNaN(userId)) {
       return NextResponse.json(
         { ok: false, error: 'invalid_token' },

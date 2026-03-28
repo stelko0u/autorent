@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation'; // Импортиране на useRouter
+import Link from 'next/link';
 import { Building, Cars, ChartLine, Plus, UsersGear } from '../icons';
 
 export default function AdminSidebar({
@@ -73,12 +74,12 @@ export default function AdminSidebar({
       </nav>
 
       <div className="mt-auto">
-        <a
+        <Link
           href="/"
           className="block px-3 py-2 text-sm text-gray-600 hover:text-gray-800"
         >
           Back to site
-        </a>
+        </Link>
       </div>
     </aside>
   );

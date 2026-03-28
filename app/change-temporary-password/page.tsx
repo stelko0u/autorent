@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { completeOnboarding } from '@/lib/api/authApi';
 
-export default function ChangeTemporaryPasswordPage() {
+function ChangeTemporaryPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -125,5 +125,13 @@ export default function ChangeTemporaryPasswordPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function ChangeTemporaryPasswordPage() {
+  return (
+    <Suspense>
+      <ChangeTemporaryPasswordForm />
+    </Suspense>
   );
 }

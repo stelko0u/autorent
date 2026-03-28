@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
-export function handleReviewLinkError(error: any, method: 'GET' | 'POST') {
+export function handleReviewLinkError(error: unknown, method: 'GET' | 'POST') {
   console.error(`${method} review-link error:`, error);
 
-  if (error?.name === 'TokenExpiredError') {
+  if ((error as { name?: string })?.name === 'TokenExpiredError') {
     return NextResponse.json(
       { ok: false, error: 'Review link expired' },
       { status: 400 },

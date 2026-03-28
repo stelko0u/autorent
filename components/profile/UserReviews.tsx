@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -87,7 +88,7 @@ export default function UserReviews({ userId }: Props) {
       <div className="border-b p-6">
         <h2 className="text-xl font-semibold text-gray-800">My Reviews</h2>
         <p className="mt-1 text-sm text-gray-600">
-          Reviews you've written for rented cars
+          Reviews you&apos;ve written for rented cars
         </p>
       </div>
 

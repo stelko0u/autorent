@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
+import { Reservation } from '@/lib/database';
 
 
-const sendReservationEmail = async (to: string, reservationDetails: any) => {
+const sendReservationEmail = async (to: string, reservationDetails: Reservation) => {
   console.log('Sending reservation email to:', to);
   console.log('Reservation details:', reservationDetails);
   return Promise.resolve();
@@ -23,9 +24,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const reservation = (await ReservationRepository.findById(
+    const reservation = await ReservationRepository.findById(
       Number(body.reservationId),
-    )) as any;
+    );
 
     if (!reservation) {
       return NextResponse.json(
@@ -46,14 +47,7 @@ export async function POST(req: Request) {
       'CONFIRMED',
     );
 
-    await sendReservationEmail(reservation.user_email, {
-      ...reservation,
-      carDetails: {
-        make: reservation.car_make,
-        model: reservation.car_model,
-        pricePerDay: reservation.car_price,
-      },
-    });
+    await sendReservationEmail(reservation.email, reservation);
 
     return NextResponse.json({
       ok: true,
@@ -83,9 +77,9 @@ export async function GET(req: Request) {
       );
     }
 
-    const reservation = (await ReservationRepository.findById(
+    const reservation = await ReservationRepository.findById(
       Number(reservationId),
-    )) as any;
+    );
 
     if (!reservation) {
       return NextResponse.json(

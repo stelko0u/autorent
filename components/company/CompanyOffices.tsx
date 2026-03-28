@@ -12,9 +12,18 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
   ),
 });
 
+type OfficeItem = {
+  id?: number;
+  name?: string | null;
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  companyId?: number;
+};
+
 export default function CompanyOffices({ companyId }: { companyId: number }) {
-  const [offices, setOffices] = useState<any[]>([]);
-  const [editing, setEditing] = useState<any | null>(null);
+  const [offices, setOffices] = useState<OfficeItem[]>([]);
+  const [editing, setEditing] = useState<OfficeItem | null>(null);
   const [pos, setPos] = useState<[number, number] | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,7 +46,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
       });
 
       const text = await res.text();
-      let data: any = null;
+      let data: { offices?: OfficeItem[]; error?: string } | null = null;
 
       try {
         data = text ? JSON.parse(text) : null;
@@ -50,9 +59,9 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
       }
 
       setOffices(Array.isArray(data?.offices) ? data.offices : []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load offices:', err);
-      setError(err?.message || 'Failed to load offices');
+      setError(err instanceof Error ? err.message : 'Failed to load offices');
       setOffices([]);
     } finally {
       setLoading(false);
@@ -68,7 +77,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
     setPos(null);
   }
 
-  function startEdit(o: any) {
+  function startEdit(o: OfficeItem) {
     setEditing(o);
     setPos(
       o?.latitude != null && o?.longitude != null
@@ -84,7 +93,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
       setSaving(true);
       setError(null);
 
-      const payload: any = {
+      const payload: OfficeItem & { companyId: number } = {
         name: editing.name,
         address: editing.address,
         latitude: pos?.[0],
@@ -104,7 +113,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
       });
 
       const text = await res.text();
-      let data: any = null;
+      let data: { offices?: OfficeItem[]; error?: string } | null = null;
 
       try {
         data = text ? JSON.parse(text) : null;
@@ -118,9 +127,9 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
 
       setEditing(null);
       await load();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Save office error:', err);
-      setError(err?.message || 'Failed to save office');
+      setError(err instanceof Error ? err.message : 'Failed to save office');
     } finally {
       setSaving(false);
     }
@@ -140,7 +149,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
       });
 
       const text = await res.text();
-      let data: any = null;
+      let data: { offices?: OfficeItem[]; error?: string } | null = null;
 
       try {
         data = text ? JSON.parse(text) : null;
@@ -153,9 +162,9 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
       }
 
       await load();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Delete office error:', err);
-      setError(err?.message || 'Failed to delete office');
+      setError(err instanceof Error ? err.message : 'Failed to delete office');
     }
   }
 
@@ -219,7 +228,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
                         Edit
                       </button>
                       <button
-                        onClick={() => del(o.id)}
+                        onClick={() => o.id != null && del(o.id)}
                         className="flex-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200"
                       >
                         Delete
@@ -243,7 +252,7 @@ export default function CompanyOffices({ companyId }: { companyId: number }) {
             <div className="p-3">
               <div className="overflow-hidden rounded-xl border border-gray-100">
                 <MapComponent
-                  offices={offices}
+                  offices={offices.filter((o): o is OfficeItem & { id: number } => o.id != null)}
                   editing={editing}
                   pos={pos}
                   setPos={setPos}

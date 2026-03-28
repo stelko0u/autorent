@@ -21,7 +21,7 @@ export async function closeConnection(): Promise<void> {
   }
 }
 
-export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
+export async function query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]> {
   const client = await getConnection();
   try {
     const result = await client.query(text, params);
@@ -33,7 +33,7 @@ export async function query<T = any>(text: string, params?: any[]): Promise<T[]>
   }
 }
 
-export async function queryOne<T = any>(text: string, params?: any[]): Promise<T | null> {
+export async function queryOne<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T | null> {
   const rows = await query<T>(text, params);
   return rows.length > 0 ? rows[0] : null;
 }

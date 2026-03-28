@@ -29,13 +29,14 @@ export function parseCoordinate(value: unknown): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-export function parseOfficePayload(body: any): OfficePayload {
+export function parseOfficePayload(body: unknown): OfficePayload {
+  const b = body as Record<string, unknown>;
   return {
-    id: body?.id != null ? Number(body.id) : undefined,
-    name: String(body?.name || '').trim(),
-    address: String(body?.address || '').trim(),
-    latitude: parseCoordinate(body?.latitude),
-    longitude: parseCoordinate(body?.longitude),
+    id: b?.id != null ? Number(b.id) : undefined,
+    name: String(b?.name || '').trim(),
+    address: String(b?.address || '').trim(),
+    latitude: parseCoordinate(b?.latitude),
+    longitude: parseCoordinate(b?.longitude),
   };
 }
 
@@ -54,7 +55,7 @@ export async function getCompanyOffices() {
   };
 }
 
-export async function createCompanyOffice(body: any) {
+export async function createCompanyOffice(body: unknown) {
   const companyId = await getVerifiedCompanyId();
 
   if (!companyId) {
@@ -84,7 +85,7 @@ export async function createCompanyOffice(body: any) {
   };
 }
 
-export async function updateCompanyOffice(body: any) {
+export async function updateCompanyOffice(body: unknown) {
   const companyId = await getVerifiedCompanyId();
 
   if (!companyId) {
@@ -124,7 +125,7 @@ export async function updateCompanyOffice(body: any) {
   };
 }
 
-export async function deleteCompanyOffice(body: any) {
+export async function deleteCompanyOffice(body: unknown) {
   const companyId = await getVerifiedCompanyId();
 
   if (!companyId) {

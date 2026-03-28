@@ -1,5 +1,6 @@
 import type { HomeCar } from '@/types/home';
 import type { CarRow } from '@/lib/repository/car/carBrowseRepository';
+import type { CarType, FuelType, TransmissionType } from '@/types/types';
 
 function toSafeNumber(value: unknown, fallback = 0): number {
   const parsed = Number(value);
@@ -8,14 +9,6 @@ function toSafeNumber(value: unknown, fallback = 0): number {
 
 function toSafeString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
-}
-
-function extractImage(images: unknown): string {
-  if (!Array.isArray(images) || images.length === 0) {
-    return '';
-  }
-
-  return toSafeString(images[0]);
 }
 
 function extractLocation(car: CarRow): string {
@@ -31,14 +24,14 @@ export function mapCarToHomeCar(car: CarRow): HomeCar {
     name: `${make} ${model}`.trim(),
     make,
     model,
-    bodyType: toSafeString(car.carType),
+    carType: car.carType as CarType | undefined,
     year: toSafeNumber(car.year),
-    horsepower: toSafeNumber(car.power),
-    transmission: toSafeString(car.transmissionType),
-    fuelType: toSafeString(car.fuelType),
+    power: toSafeNumber(car.power),
+    transmissionType: car.transmissionType as TransmissionType | undefined,
+    fuelType: car.fuelType as FuelType | undefined,
     location: extractLocation(car),
     pricePerDay: toSafeNumber(car.pricePerDay),
-    img: extractImage(car.images),
+    images: car.images ?? [],
     companyName: car.companyName ?? null,
   };
 }

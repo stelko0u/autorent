@@ -3,20 +3,28 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L, { LatLngExpression, LeafletMouseEvent } from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 
 // Fix default icon paths for Next.js / Webpack
-const DefaultIcon = L.Icon.Default as any;
-delete DefaultIcon.prototype._getIconUrl;
-DefaultIcon.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
+type OfficeLocation = {
+  id: number;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
 interface LeafletMapProps {
-  offices: any[];
-  editing: any | null;
+  offices: OfficeLocation[];
+  editing: Record<string, unknown> | null;
   pos: [number, number] | null;
   setPos: React.Dispatch<React.SetStateAction<[number, number] | null>>;
 }

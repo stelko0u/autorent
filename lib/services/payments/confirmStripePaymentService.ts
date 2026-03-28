@@ -1,4 +1,5 @@
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
+import { PaymentNotSuccessfulError } from '@/lib/errors/paymentErrors';
 import {
   getChargeIdForPaymentIntent,
   getPaymentIntentOrThrow,
@@ -6,6 +7,7 @@ import {
 import { getReservationCarCompanyForPaymentOrThrow } from '@/lib/services/payments/paymentContextService';
 import { saveConfirmedPayment } from '@/lib/services/payments/saveConfirmedPayment';
 import { tryCreateAndSendCustomerInvoice } from '@/lib/services/payments/customerInvoiceService';
+import type Stripe from 'stripe';
 
 export async function confirmStripePayment(paymentIntentId: string) {
   if (!paymentIntentId || !paymentIntentId.trim()) {
@@ -15,9 +17,7 @@ export async function confirmStripePayment(paymentIntentId: string) {
   const paymentIntent = await getPaymentIntentOrThrow(paymentIntentId);
 
   if (paymentIntent.status !== 'succeeded') {
-    const error = new Error('PAYMENT_NOT_SUCCESSFUL');
-    (error as any).paymentStatus = paymentIntent.status;
-    throw error;
+    throw new PaymentNotSuccessfulError(paymentIntent.status);
   }
 
   const reservationId = Number(paymentIntent.metadata.reservationId);
@@ -59,7 +59,7 @@ export async function confirmStripePayment(paymentIntentId: string) {
     paymentMethod: 'CARD',
   });
 
-  let stripeInvoice: any = null;
+  let stripeInvoice: Stripe.Invoice | null = null;
   let invoiceEmailSent = false;
   let invoiceWarning: string | null = null;
 

@@ -2,6 +2,7 @@
 
 import { deleteCar, fetchCarsAndCompanies } from '@/lib/api/adminApi';
 import { CarRow, Company } from '@/types/types';
+import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 import DeleteCarModal from '../modals/DeleteCarModal';
 
@@ -27,8 +28,8 @@ export default function AdminCars() {
       const { cars, companies } = await fetchCarsAndCompanies();
       setCars(cars);
       setCompanies(companies);
-    } catch (err: any) {
-      setError(err.message || 'Load failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Load failed');
     } finally {
       setLoading(false);
     }
@@ -53,8 +54,8 @@ export default function AdminCars() {
     try {
       await deleteCar(deleteCarId);
       setCars((prev) => prev.filter((car) => car.id !== deleteCarId));
-    } catch (err: any) {
-      setError(err.message || 'Delete failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       closeDeleteModal();
     }
@@ -154,12 +155,13 @@ export default function AdminCars() {
 
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-16 w-24 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
+                        <div className="relative h-16 w-24 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
                           {car.images?.length ? (
-                            <img
+                            <Image
                               src={car.images[0]}
                               alt={`${car.make} ${car.model}`}
-                              className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                              fill
+                              className="object-cover transition duration-300 hover:scale-105"
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-400">

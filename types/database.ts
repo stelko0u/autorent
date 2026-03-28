@@ -1,4 +1,3 @@
-import { stripe } from '@/lib/services/stripe/stripe';
 export interface User {
   id: number;
   email: string;

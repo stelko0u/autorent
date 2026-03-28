@@ -87,7 +87,24 @@ export async function listCompanyStripeInvoices(company: Company) {
       invoice.status !== 'void',
   );
 
-  const latestByMonth = new Map<string, any>();
+  type InvoiceRow = {
+    id: string;
+    number: string | null;
+    status: Stripe.Invoice.Status | null;
+    currency: string;
+    total: number;
+    fee: number;
+    totalAfterFee: number;
+    amount_due: number;
+    amount_paid: number;
+    hosted_invoice_url: string | null;
+    invoice_pdf: string | null;
+    created: number;
+    due_date: number | null;
+    invoiceMonth: string | null;
+    paymentsCount: number;
+  };
+  const latestByMonth = new Map<string, InvoiceRow>();
 
   for (const invoice of filtered) {
     const row = {
@@ -100,8 +117,8 @@ export async function listCompanyStripeInvoices(company: Company) {
       totalAfterFee: Number(invoice.metadata?.netAmount ?? 0),
       amount_due: invoice.amount_due / 100,
       amount_paid: invoice.amount_paid / 100,
-      hosted_invoice_url: invoice.hosted_invoice_url,
-      invoice_pdf: invoice.invoice_pdf,
+      hosted_invoice_url: invoice.hosted_invoice_url ?? null,
+      invoice_pdf: invoice.invoice_pdf ?? null,
       created: invoice.created,
       due_date: invoice.due_date,
       invoiceMonth: invoice.metadata?.invoiceMonth || null,

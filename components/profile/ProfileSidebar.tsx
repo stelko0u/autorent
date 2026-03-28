@@ -5,7 +5,6 @@ import {
   Clipboard,
   EmptyStar,
   Heart,
-  House,
   User,
 } from '../icons';
 import { useRouter } from 'next/dist/client/components/navigation';
@@ -18,10 +17,18 @@ interface User {
   avatar?: string;
 }
 
+type MenuItemId = 'profile' | 'rentals' | 'reviews' | 'favorites'
+
 interface Props {
   user: User;
   activeTab: string;
-  onTabChange: (tab: 'profile' | 'rentals' | 'reviews' | 'favorites') => void;
+  onTabChange: (tab: MenuItemId) => void;
+}
+
+interface MenuItem {
+  id: MenuItemId
+  label: string;
+  icon: React.ReactElement
 }
 
 export default function ProfileSidebar({
@@ -34,7 +41,8 @@ export default function ProfileSidebar({
   const handleExitToHome = () => {
     router.push('/');
   };
-  const menuItems = [
+
+  const menuItems: MenuItem[] = [
     {
       id: 'profile',
       label: 'Profile Settings',
@@ -62,6 +70,7 @@ export default function ProfileSidebar({
       <div className="p-6 border-b bg-linear-to-br from-indigo-500 to-purple-600 text-white">
         <div className="flex items-center gap-4">
           {user.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.avatar}
               alt={user.name || 'User'}
@@ -90,7 +99,7 @@ export default function ProfileSidebar({
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onTabChange(item.id as any)}
+            onClick={() => onTabChange(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition mb-1 ${
               activeTab === item.id
                 ? 'bg-indigo-50 text-indigo-600 font-medium'

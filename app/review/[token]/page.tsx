@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import {
   getReviewPageData,
@@ -132,10 +133,11 @@ function ReviewCompletedState({
       <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
         {data.car.imageUrl ? (
           <div className="relative h-72 w-full overflow-hidden bg-slate-200">
-            <img
+            <Image
               src={data.car.imageUrl}
               alt={vehicleTitle}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/15 to-transparent" />
             <div className="absolute bottom-6 left-6 right-6 text-white">
@@ -231,8 +233,8 @@ export default function ReviewPage() {
 
       const payload = await getReviewPageData(token);
       setData(payload);
-    } catch (err: any) {
-      setPageError(err?.message || 'Failed to load review page');
+    } catch (err: unknown) {
+      setPageError(err instanceof Error ? err.message : 'Failed to load review page');
     } finally {
       setLoading(false);
     }
@@ -266,8 +268,8 @@ export default function ReviewPage() {
         });
 
         setSubmitted(true);
-      } catch (err: any) {
-        setSubmitError(err?.message || 'Failed to submit review');
+      } catch (err: unknown) {
+        setSubmitError(err instanceof Error ? err.message : 'Failed to submit review');
       } finally {
         setSubmitting(false);
       }
@@ -308,10 +310,11 @@ export default function ReviewPage() {
         <div className="grid lg:grid-cols-2">
           <div className="relative min-h-80 bg-slate-200">
             {data.car.imageUrl ? (
-              <img
+              <Image
                 src={data.car.imageUrl}
                 alt={vehicleTitle}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
               />
             ) : (
               <div className="flex h-full min-h-80 items-center justify-center bg-linear-to-br from-slate-200 to-slate-300">

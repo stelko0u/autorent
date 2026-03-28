@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server';
 import { authErrorResponse } from '@/lib/api';
 
 export function handleCompanyOfficesError(
-  err: any,
+  err: unknown,
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
 ) {
-  if (err?.message === 'company_activation_required' || err?.status === 403) {
+  const e = err as { message?: string; status?: number; details?: unknown };
+  if (e?.message === 'company_activation_required' || e?.status === 403) {
     return NextResponse.json(
       {
         ok: false,
-        error: err?.message || 'Forbidden',
-        access: err?.details ?? null,
+        error: e?.message || 'Forbidden',
+        access: e?.details ?? null,
       },
-      { status: err?.status || 403 },
+      { status: e?.status || 403 },
     );
   }
 
@@ -46,7 +47,7 @@ export function handleCompanyOfficesError(
     }
   }
 
-  const authResponse = authErrorResponse(err);
+  const authResponse = authErrorResponse(err as Error);
   if (authResponse.status !== 401) {
     return authResponse;
   }

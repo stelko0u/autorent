@@ -79,15 +79,7 @@ export class ReviewRepository {
     );
   }
 
-  static async hasUserReviewedReservation(
-    userId: number,
-    carId: number,
-    _reservationId?: number,
-  ): Promise<boolean> {
-    return this.hasUserReviewedCar(userId, carId);
-  }
-
-  static async findByCarId(carId: number): Promise<any[]> {
+  static async findByCarId(carId: number): Promise<Array<Review & { userName?: string; userEmail?: string }>> {
     return query(
       `
     SELECT

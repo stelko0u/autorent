@@ -47,7 +47,7 @@ export async function getFilteredCars({
   endDate,
   hasRange,
 }: GetFilteredCarsParams): Promise<CarRow[]> {
-  const values: any[] = [];
+  const values: unknown[] = [];
   const whereParts: string[] = [];
 
   if (officeId) {

@@ -1,10 +1,12 @@
 import { createCustomerPaymentStripeInvoice } from '@/lib/services/stripe/customerInvoices';
 import { sendCustomerPaymentInvoiceEmail } from '@/lib/mail/sendCustomerPaymentInvoiceEmail';
+import type Stripe from 'stripe';
+import type { Company, Reservation, Car } from '@/types/database';
 
 type Input = {
-  company: any;
-  reservation: any;
-  car: any;
+  company: Company;
+  reservation: Reservation;
+  car: Car;
   paymentIntentId: string;
   chargeId: string;
   totalAmount: number;
@@ -14,7 +16,7 @@ type Input = {
 };
 
 export async function tryCreateAndSendCustomerInvoice(input: Input) {
-  let stripeInvoice: any = null;
+  let stripeInvoice: Stripe.Invoice | null = null;
   let invoiceEmailSent = false;
   let invoiceWarning: string | null = null;
 
@@ -70,10 +72,10 @@ export async function tryCreateAndSendCustomerInvoice(input: Input) {
     });
 
     invoiceEmailSent = true;
-  } catch (invoiceErr: any) {
+  } catch (invoiceErr: unknown) {
     console.error('Failed to create/send customer invoice:', invoiceErr);
     invoiceWarning =
-      invoiceErr?.message || 'Invoice/email could not be generated';
+      invoiceErr instanceof Error ? invoiceErr.message : 'Invoice/email could not be generated';
   }
 
   return {

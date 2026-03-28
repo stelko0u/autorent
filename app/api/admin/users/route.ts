@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const users = await UserRepository.findMany();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const sanitizedUsers = users.map(({ password, ...user }) => user);
     return NextResponse.json({ ok: true, users: sanitizedUsers });
   } catch (err) {

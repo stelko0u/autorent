@@ -17,7 +17,7 @@ export async function processCompletedReservationsForReviewEmails(
     `r."paymentStatus" = 'PAID'`,
   ];
 
-  const params: any[] = [now];
+  const params: unknown[] = [now];
   let paramIndex = 2;
 
   if (options.userId) {
@@ -69,7 +69,7 @@ export async function processCompletedReservationsForReviewEmails(
     params,
   );
 
-  const selectParams: any[] = [now];
+  const selectParams: unknown[] = [now];
   let selectParamIndex = 2;
 
   let userFilter = '';

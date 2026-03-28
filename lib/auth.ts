@@ -43,10 +43,10 @@ async function getUserFromToken(token: string) {
     throw new AuthError('server_misconfigured', 500);
   }
 
-  let payload: JwtPayload | Record<string, any>;
+  let payload: JwtPayload;
 
   try {
-    payload = jwt.verify(token, JWT_SECRET) as JwtPayload | Record<string, any>;
+    payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
   } catch (err) {
     if (err instanceof TokenExpiredError) {
       throw new AuthError('token_expired', 401);
@@ -57,7 +57,7 @@ async function getUserFromToken(token: string) {
     throw err;
   }
 
-  const userId = Number((payload as any).userId ?? payload.sub ?? null);
+  const userId = Number(payload.userId ?? payload.sub ?? null);
 
   if (!userId || Number.isNaN(userId)) {
     throw new AuthError('invalid_token', 401);

@@ -2,7 +2,7 @@ import { transaction } from '@/lib/db';
 
 async function deleteCarsDeep(
   client: {
-    query: (sql: string, params?: unknown[]) => Promise<{ rows: any[] }>;
+    query: (sql: string, params?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
   },
   carIds: number[],
 ) {
@@ -43,7 +43,7 @@ async function deleteCarsDeep(
 
 async function getCarIdsForCompanyOrOwner(
   client: {
-    query: (sql: string, params?: unknown[]) => Promise<{ rows: any[] }>;
+    query: (sql: string, params?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
   },
   companyId?: number | null,
   ownerId?: number | null,

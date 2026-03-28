@@ -59,4 +59,16 @@ export function createTransporter() {
   return getMailerTransporter();
 }
 
+export async function sendMail(payload: MailPayload): Promise<void> {
+  const transport = getMailerTransporter();
+  await transport.sendMail({
+    from: payload.from ?? process.env.SMTP_FROM ?? process.env.SMTP_USER,
+    to: payload.to,
+    subject: payload.subject,
+    text: payload.text,
+    html: payload.html,
+    attachments: payload.attachments,
+  });
+}
+
 

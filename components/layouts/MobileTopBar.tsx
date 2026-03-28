@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 type Props = {
   active: string;
   setActive: (value: string) => void;
@@ -13,7 +11,6 @@ type Props = {
 export default function MobileTopBar({
   active,
   setActive,
-  isLoggedIn,
   mobileMenuOpen,
   setMobileMenuOpen,
 }: Props) {

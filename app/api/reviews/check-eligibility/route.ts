@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuthUserFromRequest, AuthError } from '../../../../lib/auth';
 import { ReviewRepository } from '@/lib/repository/ReviewRepository';
+import { isReservation } from '@/lib/database';
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,11 +50,14 @@ export async function GET(req: NextRequest) {
     const now = new Date();
 
     for (const reservation of reservations) {
+      if (!isReservation(reservation)) {
+        continue;
+      }
+      
       if (new Date(reservation.startDate) <= now) {
-        const hasReviewed = await ReviewRepository.hasUserReviewedReservation(
+        const hasReviewed = await ReviewRepository.hasUserReviewedCar(
           user.id,
           parsedCarId,
-          reservation.id,
         );
 
         if (!hasReviewed) {

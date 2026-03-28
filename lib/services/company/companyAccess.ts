@@ -1,6 +1,18 @@
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { getStripeAccountStatus } from '@/lib/services/stripe/companyStripe';
 
+export class CompanyAccessError extends Error {
+  readonly status: number;
+  readonly details: CompanyAccessStatus;
+
+  constructor(message: string, status: number, details: CompanyAccessStatus) {
+    super(message);
+    this.name = 'CompanyAccessError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
 export type CompanyAccessStatus = {
   allowed: boolean;
   onboardingRequired: boolean;
@@ -10,7 +22,7 @@ export type CompanyAccessStatus = {
     | 'missing_stripe_account'
     | 'stripe_incomplete'
     | 'ready';
-  company: any | null;
+  company: import('@/types/database').Company | null;
   stripe: {
     accountId: string | null;
     detailsSubmitted: boolean;
@@ -113,10 +125,7 @@ export async function assertCompanyPanelAccess(user: {
   const status = await getCompanyAccessStatus(user);
 
   if (!status.allowed) {
-    const err = new Error('company_activation_required');
-    (err as any).status = 403;
-    (err as any).details = status;
-    throw err;
+    throw new CompanyAccessError('company_activation_required', 403, status);
   }
 
   return status;

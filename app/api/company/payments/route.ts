@@ -41,14 +41,14 @@ export async function GET() {
 
       const totalRevenue = Number(
         payments
-          .reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0)
+          .reduce((sum, item) => sum + Number(item.amount || 0), 0)
           .toFixed(2),
       );
 
       const totalPlatformFee = Number(
         payments
           .reduce(
-            (sum: number, item: any) => sum + Number(item.platformFee || 0),
+            (sum, item) => sum + Number(item.platformFee || 0),
             0,
           )
           .toFixed(2),
@@ -57,7 +57,7 @@ export async function GET() {
       return NextResponse.json({
         ok: true,
         source: 'database',
-        payments: payments.map((item: any) => ({
+        payments: payments.map((item) => ({
           ...item,
           source: 'database',
           customerName: item.userName || '',

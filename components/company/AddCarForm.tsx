@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import CarImageCropper from './CarImageCropper';
 import { Images } from '../icons';
+
+type FileWithPreview = File & { __preview: string };
 
 export default function AddCarForm({
   onCreated,
 }: {
-  onCreated?: (car: any) => void;
+  onCreated?: (car: unknown) => void;
 }) {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
@@ -17,10 +19,10 @@ export default function AddCarForm({
   const [carType, setCarType] = useState<string | ''>('');
   const [transmission, setTransmission] = useState<string | ''>('');
   const [fuelType, setFuelType] = useState<string | ''>('');
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offices, setOffices] = useState<any[]>([]);
+  const [offices, setOffices] = useState<{ id: number; name?: string; address?: string }[]>([]);
   const [officeId, setOfficeId] = useState<number | ''>('');
   const [currentImageToCrop, setCurrentImageToCrop] = useState<string | null>(
     null,
@@ -35,7 +37,7 @@ export default function AddCarForm({
     return () => {
       files.forEach((f) => {
         try {
-          URL.revokeObjectURL((f as any).__preview);
+          URL.revokeObjectURL(f.__preview);
         } catch {}
       });
       if (currentImageToCrop) {
@@ -46,7 +48,7 @@ export default function AddCarForm({
     };
   }, [files, currentImageToCrop]);
 
-  const onDrop = (accepted: File[], rejected: any[]) => {
+  const onDrop = (accepted: File[], rejected: FileRejection[]) => {
     setError(null);
     if (rejected && rejected.length) {
       setError('Some files were rejected (allowed: .png, .jpeg).');
@@ -80,10 +82,12 @@ export default function AddCarForm({
     );
 
     // Create preview URL
-    (croppedFile as any).__preview = URL.createObjectURL(croppedFile);
+    const fileWithPreview = Object.assign(croppedFile, {
+      __preview: URL.createObjectURL(croppedFile),
+    });
 
     // Add to files array
-    setFiles((s) => [...s, croppedFile]);
+    setFiles((s) => [...s, fileWithPreview]);
 
     // Cleanup and close cropper
     if (currentImageToCrop) {
@@ -129,7 +133,7 @@ export default function AddCarForm({
   function removeFile(idx: number) {
     const f = files[idx];
     try {
-      URL.revokeObjectURL((f as any).__preview);
+      URL.revokeObjectURL(f.__preview);
     } catch {}
     setFiles((s) => s.filter((_, i) => i !== idx));
   }
@@ -185,7 +189,7 @@ export default function AddCarForm({
       });
 
       const text = await res.text();
-      let json: any = null;
+      let json: { error?: string; car?: unknown } | null = null;
       try {
         json = text ? JSON.parse(text) : null;
       } catch {}
@@ -199,7 +203,7 @@ export default function AddCarForm({
       const created = json?.car ?? json;
       files.forEach((f) => {
         try {
-          URL.revokeObjectURL((f as any).__preview);
+          URL.revokeObjectURL(f.__preview);
         } catch {}
       });
       setFiles([]);
@@ -214,8 +218,8 @@ export default function AddCarForm({
       setFuelType('');
       setOfficeId('');
       onCreated?.(created);
-    } catch (err: any) {
-      setError(err?.message ?? 'Upload failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setBusy(false);
     }
@@ -500,8 +504,9 @@ export default function AddCarForm({
                         key={i}
                         className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                       >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={(f as any).__preview}
+                          src={f.__preview}
                           alt={f.name}
                           className="h-32 w-full object-cover transition duration-300 group-hover:scale-105"
                         />

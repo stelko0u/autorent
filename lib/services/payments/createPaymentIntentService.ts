@@ -1,5 +1,6 @@
 import { stripe } from '@/lib/services/stripe/stripe';
 import { getStripeAccountOrThrow } from '@/lib/services/stripe/stripeAccounts';
+import { StripeAccountNotReadyError } from '@/lib/errors/paymentErrors';
 import { getReservationCarCompanyForPaymentOrThrow } from '@/lib/services/payments/paymentContextService';
 import {
   calculateReservationPricingOrThrow,
@@ -27,8 +28,7 @@ export async function createPaymentIntentForReservation(reservationId: number) {
   const pastDue = connectedAccount.requirements?.past_due ?? [];
 
   if (!chargesEnabled || !payoutsEnabled) {
-    const error = new Error('STRIPE_ACCOUNT_NOT_READY');
-    (error as any).stripeDetails = {
+    throw new StripeAccountNotReadyError({
       accountId: connectedAccount.id,
       chargesEnabled,
       payoutsEnabled,
@@ -37,8 +37,7 @@ export async function createPaymentIntentForReservation(reservationId: number) {
       currentlyDue,
       pastDue,
       capabilities: connectedAccount.capabilities,
-    };
-    throw error;
+    });
   }
 
   const { startDate, endDate } = getReservationDateRangeOrThrow(

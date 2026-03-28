@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { differenceInCalendarDays } from 'date-fns';
 
 import Calendar from '../../../components/reservations/Calendar';
 import { useCurrentUser } from '../../../hooks/useCurrentUser';
+import type { User } from '@/types/database';
 
 interface Car {
   id: number;
@@ -45,7 +47,7 @@ export default function ReservationPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { userData } = useCurrentUser();
+  const { userData } = useCurrentUser<User>();
 
   useEffect(() => {
     if (!carId) return;
@@ -65,8 +67,8 @@ export default function ReservationPage() {
 
         setCar(carData.car);
         setReservations(reservationsData.reservations || []);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -89,8 +91,8 @@ export default function ReservationPage() {
       setEmail(userData.email);
     }
 
-    if ((userData as any).phone && !phone) {
-      setPhone((userData as any).phone);
+    if (userData.phone && !phone) {
+      setPhone(userData.phone);
     }
   }, [userData, firstName, lastName, email, phone]);
 
@@ -163,8 +165,8 @@ export default function ReservationPage() {
       }
 
       router.push(`/reservation/success?id=${reservationId}&step=created`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create reservation');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create reservation');
     } finally {
       setSubmitting(false);
     }
@@ -217,11 +219,14 @@ export default function ReservationPage() {
               </h2>
 
               {car.images?.[0] && (
-                <img
-                  src={car.images[0]}
-                  className="w-full h-64 object-cover rounded-xl mb-4"
-                  alt="Car"
-                />
+                <div className="relative w-full h-64 rounded-xl mb-4 overflow-hidden">
+                  <Image
+                    src={car.images[0]}
+                    className="object-cover"
+                    alt="Car"
+                    fill
+                  />
+                </div>
               )}
 
               <p className="text-gray-600 text-lg">

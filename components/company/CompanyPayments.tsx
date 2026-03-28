@@ -61,8 +61,8 @@ export default function CompanyPayments() {
       setTotalRevenue(Number(data.totalRevenue || 0));
       setTotalPlatformFee(Number(data.totalPlatformFee || 0));
       setSource(data.source === 'database' ? 'database' : 'stripe');
-    } catch (err: any) {
-      setError(err.message || 'Failed to load payments');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load payments');
     } finally {
       setLoading(false);
     }

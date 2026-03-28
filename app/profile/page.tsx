@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileSettings from '../../components/profile/ProfileSettings';
 import RentedCars from '../../components/profile/RentedCars';
@@ -23,11 +23,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('profile');
 
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     try {
       const res = await fetch('/api/auth/me', {
         credentials: 'include',
@@ -40,12 +36,16 @@ export default function ProfilePage() {
 
       const data = await res.json();
       setUser(data.user);
-    } catch (err) {
+    } catch {
       router.push('/signin');
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
 
   if (loading) {
     return (

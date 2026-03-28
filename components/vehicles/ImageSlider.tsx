@@ -1,10 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AngleLeft from '../icons/AngleLeft';
 import AngleRight from '../icons/AngleRight';
 import ReactModal from 'react-modal';
-import { Xmark } from '../icons';
 
 interface ImageSliderProps {
   images: string[];

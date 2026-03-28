@@ -64,7 +64,16 @@ export async function listStripePaymentsForCompany(
     [company.id],
   );
 
-  const reservationMap = new Map<number, any>();
+  type ReservationMapEntry = {
+    reservationId: number;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    make: string | null;
+    model: string | null;
+    year: number | null;
+  };
+  const reservationMap = new Map<number, ReservationMapEntry>();
   for (const row of reservationMapRows) {
     reservationMap.set(Number(row.reservationId), row);
   }
@@ -101,7 +110,7 @@ export async function listStripePaymentsForCompany(
         chargeId:
           typeof item.latest_charge === 'string'
             ? item.latest_charge
-            : (item.latest_charge as any)?.id || null,
+            : item.latest_charge?.id ?? null,
         reservationId,
         amount,
         platformFee,

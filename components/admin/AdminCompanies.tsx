@@ -13,7 +13,7 @@ export default function AdminCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<{ name?: string; email?: string; maintenancePercent?: number }>({});
   const [error, setError] = useState<string | null>(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -35,9 +35,9 @@ export default function AdminCompanies() {
     try {
       const companies = await fetchCompanies();
       setCompanies(companies);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Load companies error:', err);
-      setError(err.message || 'Failed to load companies');
+      setError(err instanceof Error ? err.message : 'Failed to load companies');
     } finally {
       setLoading(false);
     }
@@ -57,15 +57,15 @@ export default function AdminCompanies() {
     try {
       const payload = {
         id,
-        name: form.name,
-        email: form.email,
+        name: form.name ?? '',
+        email: form.email ?? '',
         maintenancePercent: Number(form.maintenancePercent),
       };
       await updateCompany(payload);
       await load();
       setEditingId(null);
-    } catch (err: any) {
-      setError(err.message || 'Save failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Save failed');
     }
   }
 
@@ -76,8 +76,8 @@ export default function AdminCompanies() {
     try {
       await deleteCompany(deleteCompanyId);
       await load();
-    } catch (err: any) {
-      setError(err.message || 'Delete failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       closeDeleteModal();
     }
@@ -224,7 +224,7 @@ export default function AdminCompanies() {
                             onChange={(e) =>
                               setForm({
                                 ...form,
-                                maintenancePercent: e.target.value,
+                                maintenancePercent: Number(e.target.value),
                               })
                             }
                             className="w-28 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"

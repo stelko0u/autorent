@@ -2,17 +2,10 @@
 
 import React from 'react';
 import CarCard from '../vehicles/CarCard';
-
-type Car = {
-  id: number;
-  name: string;
-  type: string;
-  pricePerDay: number;
-  img: string;
-};
+import type { HomeCar } from '../../types/home';
 
 type FeaturedProps = {
-  cars: Car[];
+  cars: HomeCar[];
 };
 
 export default function Featured({ cars }: FeaturedProps) {

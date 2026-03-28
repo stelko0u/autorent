@@ -116,9 +116,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         notes: ''
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Reservation error:', error);
-      toast.error(error.message || 'Failed to create reservation');
+      toast.error(error instanceof Error ? error.message : 'Failed to create reservation');
     } finally {
       setLoading(false);
     }

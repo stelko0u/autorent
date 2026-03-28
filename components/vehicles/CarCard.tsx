@@ -37,17 +37,17 @@ function translateEnum(
 export default function CarCard({ car }: CarCardProps) {
   const { t } = useTranslation();
 
-  const imageSrc = car.img || null;
+  const imageSrc = car.images?.[0] || null;
   const carTitle =
     car.name?.trim() ||
     `${car.make ?? ''} ${car.model ?? ''}`.trim() ||
     'Автомобил';
 
-  const bodyTypeLabel = translateEnum(t, 'vehicle.bodyTypes', car.bodyType);
+  const bodyTypeLabel = translateEnum(t, 'vehicle.bodyTypes', car.carType);
   const transmissionLabel = translateEnum(
     t,
     'vehicle.transmissions',
-    car.transmission,
+    car.transmissionType,
   );
   const fuelTypeLabel = translateEnum(t, 'vehicle.fuelTypes', car.fuelType);
 
@@ -107,7 +107,7 @@ export default function CarCard({ car }: CarCardProps) {
           <div className="rounded-2xl bg-gray-50 px-3 py-2">
             <p className="text-xs text-gray-400">{t('vehicle.horsepower')}</p>
             <p className="font-medium text-gray-800">
-              {car.horsepower ? `${car.horsepower} ${t('vehicle.hp')}` : '-'}
+              {car.power ? `${car.power} ${t('vehicle.hp')}` : '-'}
             </p>
           </div>
         </div>

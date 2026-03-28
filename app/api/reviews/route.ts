@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       await ReviewRepository.findAverageRatingByCarId(carId);
     const totalReviews = await ReviewRepository.countByCarId(carId);
 
-    const reviews = rawReviews.map((review: any) => ({
+    const reviews = rawReviews.map((review) => ({
       id: review.id,
       rating: review.rating,
       comment: review.comment,
