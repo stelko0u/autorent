@@ -1,6 +1,16 @@
 import { query, queryOne } from '../db';
 import { Car } from '@/types/database';
 
+interface CarSearchFilters {
+  make?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  transmission?: string;
+  fuelType?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export class CarRepository {
   static async findById(id: number): Promise<Car | null> {
     return queryOne<Car>('SELECT * FROM "Car" WHERE id = $1', [id]);
@@ -55,7 +65,10 @@ export class CarRepository {
       .join(' AND ');
     const values = entries.values();
 
-    return query<Car>(`SELECT * FROM "Car" WHERE ${whereClause}`, Array.from(values));
+    return query<Car>(
+      `SELECT * FROM "Car" WHERE ${whereClause}`,
+      Array.from(values),
+    );
   }
 
   static async findByOwner(ownerId: number): Promise<Car[]> {
@@ -85,5 +98,67 @@ export class CarRepository {
       [carId],
     );
     return parseInt(result[0]?.count || '0', 10) > 0;
+  }
+
+  static async findFiltered(filters: CarSearchFilters) {
+    const conditions: string[] = [];
+    const values: Array<string | number> = [];
+
+    if (filters.make) {
+      values.push(filters.make);
+      conditions.push(`c.make = $${values.length}`);
+    }
+
+    if (filters.transmission) {
+      values.push(filters.transmission);
+      conditions.push(`c.transmission = $${values.length}`);
+    }
+
+    if (filters.fuelType) {
+      values.push(filters.fuelType);
+      conditions.push(`c.fuelType = $${values.length}`);
+    }
+
+    if (typeof filters.minPrice === 'number') {
+      values.push(filters.minPrice);
+      conditions.push(`c."pricePerDay" >= $${values.length}`);
+    }
+
+    if (typeof filters.maxPrice === 'number') {
+      values.push(filters.maxPrice);
+      conditions.push(`c."pricePerDay" <= $${values.length}`);
+    }
+
+    // 🔥 ТУК Е МАГИЯТА
+    if (filters.startDate && filters.endDate) {
+      values.push(filters.startDate);
+      const startIndex = values.length;
+
+      values.push(filters.endDate);
+      const endIndex = values.length;
+
+      conditions.push(`
+        NOT EXISTS (
+          SELECT 1
+          FROM "Reservation" r
+          WHERE r."carId" = c.id
+            AND r."startDate" <= $${endIndex}
+            AND r."endDate" >= $${startIndex}
+            AND r.status IN ('PENDING', 'CONFIRMED')
+        )
+      `);
+    }
+
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const sql = `
+      SELECT c.*
+      FROM "Car" c
+      ${where}
+      ORDER BY c.id DESC
+    `;
+
+    return query(sql, values);
   }
 }

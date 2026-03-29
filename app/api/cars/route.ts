@@ -1,19 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCarsBrowseData } from '@/lib/services/car/carBrowseService';
+import { CarService } from '@/lib/services/car/carService';
 
-export async function GET(req: NextRequest) {
+interface CarSearchFilters {
+  make?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  transmission?: string;
+  fuelType?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
 
-    const data = await getCarsBrowseData({
-      officeId: searchParams.get('officeId'),
-      startDate: searchParams.get('startDate'),
-      endDate: searchParams.get('endDate'),
-    });
+    const filters: CarSearchFilters = {
+      make: searchParams.get('make') ?? undefined,
+      transmission: searchParams.get('transmission') ?? undefined,
+      fuelType: searchParams.get('fuelType') ?? undefined,
+      startDate: searchParams.get('startDate') ?? undefined,
+      endDate: searchParams.get('endDate') ?? undefined,
+      minPrice: searchParams.get('minPrice')
+        ? Number(searchParams.get('minPrice'))
+        : undefined,
+      maxPrice: searchParams.get('maxPrice')
+        ? Number(searchParams.get('maxPrice'))
+        : undefined,
+    };
 
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error('GET /api/cars error:', err);
-    return NextResponse.json({ ok: false, error: 'db_error' }, { status: 500 });
+    const cars = await CarService.getFilteredCars(filters);
+
+    return NextResponse.json(cars, { status: 200 });
+  } catch (error: unknown) {
+    console.error('GET /api/cars error:', error);
+
+    return NextResponse.json(
+      { message: 'Failed to load cars' },
+      { status: 500 },
+    );
   }
 }

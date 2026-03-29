@@ -23,7 +23,7 @@ function HomeContent({
 }) {
   const [active, setActive] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { filteredCars, } = useCarSearch();
+  const { filteredCars, isLoading } = useCarSearch();
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f8fafc_40%,_#eef2f7_100%)] text-gray-800">
@@ -103,7 +103,7 @@ function HomeContent({
                           Results
                         </p>
                         <p className="text-lg font-semibold text-gray-900">
-                          {filteredCars.length}
+                          {isLoading ? '...' : filteredCars.length}
                         </p>
                       </div>
                     </div>

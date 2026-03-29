@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useCarSearch } from '@/providers/CarSearchProvider';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { DateRangePicker } from '@/components/home/DateRangePicker';
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,15 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   );
 }
 
+function getTodayIsoDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = `${now.getMonth() + 1}`.padStart(2, '0');
+  const day = `${now.getDate()}`.padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function CarSearchBar() {
   const { t } = useTranslation();
   const {
@@ -43,6 +53,7 @@ export default function CarSearchBar() {
     uniqueBodyTypes,
     uniqueTransmissions,
     uniqueFuelTypes,
+    isLoading,
   } = useCarSearch();
 
   const [expanded, setExpanded] = useState(false);
@@ -50,6 +61,8 @@ export default function CarSearchBar() {
   const activeFilters = useMemo(() => {
     return Object.values(filters).filter(Boolean).length;
   }, [filters]);
+
+  const todayIsoDate = useMemo(() => getTodayIsoDate(), []);
 
   return (
     <section className="rounded-[28px] border border-white/60 bg-white/85 p-4 shadow-[0_15px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl md:p-6">
@@ -64,17 +77,19 @@ export default function CarSearchBar() {
           </h2>
 
           <p className="mt-1 text-sm text-gray-500">
-            {t('searchBar.carsCount', {
-              filtered: filteredCars.length,
-              total: cars.length,
-            })}
+            {isLoading
+              ? 'Зареждаме свободните автомобили...'
+              : t('searchBar.carsCount', {
+                  filtered: filteredCars.length,
+                  total: cars.length,
+                })}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => setExpanded((v) => !v)}
+            onClick={() => setExpanded((value) => !value)}
             className="rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             {expanded ? t('searchBar.hideFilters') : t('searchBar.moreFilters')}
@@ -91,6 +106,16 @@ export default function CarSearchBar() {
         </div>
       </div>
 
+      <div className="mb-5">
+        <DateRangePicker
+          startDate={filters.startDate}
+          endDate={filters.endDate}
+          onChangeStartDate={(value) => setFilter('startDate', value)}
+          onChangeEndDate={(value) => setFilter('endDate', value)}
+          minDate={todayIsoDate}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div>
           <Label>{t('searchBar.query')}</Label>
@@ -98,7 +123,7 @@ export default function CarSearchBar() {
             type="text"
             placeholder={t('searchBar.queryPlaceholder')}
             value={filters.query}
-            onChange={(e) => setFilter('query', e.target.value)}
+            onChange={(event) => setFilter('query', event.target.value)}
           />
         </div>
 
@@ -106,7 +131,7 @@ export default function CarSearchBar() {
           <Label>{t('searchBar.make')}</Label>
           <Select
             value={filters.make}
-            onChange={(e) => setFilter('make', e.target.value)}
+            onChange={(event) => setFilter('make', event.target.value)}
           >
             <option value="">{t('searchBar.allMakes')}</option>
             {uniqueMakes.map((make) => (
@@ -121,7 +146,7 @@ export default function CarSearchBar() {
           <Label>{t('searchBar.location')}</Label>
           <Select
             value={filters.location}
-            onChange={(e) => setFilter('location', e.target.value)}
+            onChange={(event) => setFilter('location', event.target.value)}
           >
             <option value="">{t('searchBar.allLocations')}</option>
             {uniqueLocations.map((location) => (
@@ -136,7 +161,7 @@ export default function CarSearchBar() {
           <Label>{t('searchBar.bodyType')}</Label>
           <Select
             value={filters.bodyType}
-            onChange={(e) => setFilter('bodyType', e.target.value)}
+            onChange={(event) => setFilter('bodyType', event.target.value)}
           >
             <option value="">{t('common.all')}</option>
             {uniqueBodyTypes.map((bodyType) => (
@@ -147,31 +172,15 @@ export default function CarSearchBar() {
           </Select>
         </div>
 
-        <div>
-          <Label>{t('searchBar.startDate')}</Label>
-          <Input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => setFilter('startDate', e.target.value)}
-          />
-        </div>
-
-        <div>
-          <Label>{t('searchBar.endDate')}</Label>
-          <Input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => setFilter('endDate', e.target.value)}
-          />
-        </div>
-
         {expanded && (
           <>
             <div>
               <Label>{t('searchBar.transmission')}</Label>
               <Select
                 value={filters.transmission}
-                onChange={(e) => setFilter('transmission', e.target.value)}
+                onChange={(event) =>
+                  setFilter('transmission', event.target.value)
+                }
               >
                 <option value="">{t('common.all')}</option>
                 {uniqueTransmissions.map((transmission) => (
@@ -186,7 +195,7 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.fuelType')}</Label>
               <Select
                 value={filters.fuelType}
-                onChange={(e) => setFilter('fuelType', e.target.value)}
+                onChange={(event) => setFilter('fuelType', event.target.value)}
               >
                 <option value="">{t('common.all')}</option>
                 {uniqueFuelTypes.map((fuelType) => (
@@ -201,9 +210,10 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.minPrice')}</Label>
               <Input
                 type="number"
+                min="0"
                 placeholder="50"
                 value={filters.minPrice}
-                onChange={(e) => setFilter('minPrice', e.target.value)}
+                onChange={(event) => setFilter('minPrice', event.target.value)}
               />
             </div>
 
@@ -211,9 +221,10 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.maxPrice')}</Label>
               <Input
                 type="number"
+                min="0"
                 placeholder="250"
                 value={filters.maxPrice}
-                onChange={(e) => setFilter('maxPrice', e.target.value)}
+                onChange={(event) => setFilter('maxPrice', event.target.value)}
               />
             </div>
 
@@ -221,9 +232,12 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.minHorsepower')}</Label>
               <Input
                 type="number"
+                min="0"
                 placeholder="100"
                 value={filters.minHorsepower}
-                onChange={(e) => setFilter('minHorsepower', e.target.value)}
+                onChange={(event) =>
+                  setFilter('minHorsepower', event.target.value)
+                }
               />
             </div>
 
@@ -231,9 +245,12 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.maxHorsepower')}</Label>
               <Input
                 type="number"
+                min="0"
                 placeholder="500"
                 value={filters.maxHorsepower}
-                onChange={(e) => setFilter('maxHorsepower', e.target.value)}
+                onChange={(event) =>
+                  setFilter('maxHorsepower', event.target.value)
+                }
               />
             </div>
 
@@ -241,9 +258,10 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.yearFrom')}</Label>
               <Input
                 type="number"
+                min="1900"
                 placeholder="2018"
                 value={filters.yearFrom}
-                onChange={(e) => setFilter('yearFrom', e.target.value)}
+                onChange={(event) => setFilter('yearFrom', event.target.value)}
               />
             </div>
 
@@ -251,9 +269,10 @@ export default function CarSearchBar() {
               <Label>{t('searchBar.yearTo')}</Label>
               <Input
                 type="number"
+                min="1900"
                 placeholder="2026"
                 value={filters.yearTo}
-                onChange={(e) => setFilter('yearTo', e.target.value)}
+                onChange={(event) => setFilter('yearTo', event.target.value)}
               />
             </div>
           </>

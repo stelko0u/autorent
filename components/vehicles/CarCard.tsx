@@ -54,16 +54,16 @@ export default function CarCard({ car }: CarCardProps) {
   return (
     <Link
       href={`/car/${car.id}`}
-      className="group overflow-hidden rounded-[24px] border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl z-0"
     >
-      <div className="relative h-56 w-full overflow-hidden bg-gray-100">
+      <div className="relative h-56 w-full overflow-hidden bg-gray-100 z-10">
         {imageSrc ? (
           <Image
             src={imageSrc}
             alt={carTitle}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1536px) 50vw, 33vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className="object-cover transition duration-500 group-hover:scale-105 z-10"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
