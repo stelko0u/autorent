@@ -16,6 +16,7 @@ export async function sendForgotPasswordEmail(rawEmail: string) {
 
   if (!user) {
     return {
+      ok: true,
       success: true,
       message: 'Ако съществува акаунт с този имейл, ще получиш инструкции.',
     };
@@ -52,6 +53,7 @@ export async function sendForgotPasswordEmail(rawEmail: string) {
   });
 
   return {
+    ok: true,
     success: true,
     message: 'Ако съществува акаунт с този имейл, ще получиш инструкции.',
   };

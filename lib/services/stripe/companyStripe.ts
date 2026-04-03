@@ -36,15 +36,6 @@ export async function createCompanyStripeAccount(input: {
     },
   });
 
-  console.log({
-    id: account.id,
-    charges_enabled: account.charges_enabled,
-    payouts_enabled: account.payouts_enabled,
-    details_submitted: account.details_submitted,
-    capabilities: account.capabilities,
-    requirements: account.requirements,
-  });
-
   return account.id;
 }
 

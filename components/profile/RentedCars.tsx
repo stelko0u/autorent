@@ -165,7 +165,7 @@ export default function RentedCars({ userId }: RentedCarsProps) {
 
                   <div className="flex items-center justify-between">
                     <div className="text-lg font-semibold text-indigo-600">
-                      ${reservation.totalPrice}
+                      €{reservation.totalPrice}
                     </div>
 
                     {reservation.paymentStatus ? (

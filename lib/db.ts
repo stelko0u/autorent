@@ -1,41 +1,22 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool, PoolClient, QueryResult } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
-let globalConnection: PoolClient | null = null;
-
-export async function getConnection(): Promise<PoolClient> {
-  if (!globalConnection) {
-    globalConnection = await pool.connect();
-  }
-  return globalConnection;
-}
-
-export async function closeConnection(): Promise<void> {
-  if (globalConnection) {
-    globalConnection.release();
-    globalConnection = null;
-  }
-}
-
 export async function query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]> {
-  const client = await getConnection();
-  try {
-    const result = await client.query(text, params);
-    return result.rows;
-  } finally {
-    if (process.env.NODE_ENV === 'production') {
-      await closeConnection();
-    }
-  }
+  const result = await pool.query(text, params);
+  return result.rows;
 }
 
 export async function queryOne<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T | null> {
   const rows = await query<T>(text, params);
   return rows.length > 0 ? rows[0] : null;
+}
+
+export async function execute(text: string, params?: unknown[]): Promise<QueryResult> {
+  return pool.query(text, params);
 }
 
 export async function transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {

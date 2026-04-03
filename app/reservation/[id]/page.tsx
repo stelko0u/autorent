@@ -14,7 +14,7 @@ import {
   type ReservationCar,
   type ReservationPeriod,
 } from '@/lib/api/reservationApi';
-import { ArrowLeft } from '@/app/components/icons';
+import { ArrowLeft } from '@/components/icons';
 import { Calendars, CreditCard, MoneyBill1 } from '@/components/icons';
 
 export default function ReservationPage() {

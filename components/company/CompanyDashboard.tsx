@@ -587,14 +587,14 @@ export default function CompanyDashboard() {
               Stripe status
             </h3>
             <div className="mt-5 grid gap-3">
-              {/* <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
                   Available in Stripe
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-gray-950">
                   {money(stats.balanceAvailable)}
                 </p>
-              </div> */}
+              </div>
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
                   Pending in Stripe

@@ -10,7 +10,19 @@ export interface Review {
 }
 
 export class ReviewRepository {
-  static async create(data: {
+  private static async syncIdSequence(): Promise<void> {
+    await queryOne(
+      `
+      SELECT setval(
+        pg_get_serial_sequence('"Review"', 'id'),
+        COALESCE((SELECT MAX(id) FROM "Review"), 0) + 1,
+        false
+      )
+      `,
+    );
+  }
+
+  private static async insertReview(data: {
     userId: number;
     carId: number;
     rating: number;
@@ -40,7 +52,34 @@ export class ReviewRepository {
     if (!review) {
       throw new Error('Failed to create review');
     }
+
     return review;
+  }
+
+  static async create(data: {
+    userId: number;
+    carId: number;
+    rating: number;
+    comment?: string;
+  }): Promise<Review> {
+    try {
+      return await this.insertReview(data);
+    } catch (error: unknown) {
+      const isDuplicateReviewPrimaryKey =
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code?: string }).code === '23505' &&
+        'constraint' in error &&
+        (error as { constraint?: string }).constraint === 'Review_pkey';
+
+      if (!isDuplicateReviewPrimaryKey) {
+        throw error;
+      }
+
+      await this.syncIdSequence();
+      return this.insertReview(data);
+    }
   }
 
   static async hasUserReviewedCar(

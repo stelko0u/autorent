@@ -1,6 +1,5 @@
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { CarRepository } from '@/lib/repository/CarRepository';
-import { processCompletedReservationsForReviewEmails } from '@/lib/services/reviews/processCompletedReservationsForReviewEmails';
 import {
   getStripeBalanceSummary,
   listStripePaymentsForCompany,
@@ -40,35 +39,20 @@ export async function getCompanyDashboardData(user: DashboardUser) {
     throw new Error('COMPANY_NOT_FOUND');
   }
 
-  await processCompletedReservationsForReviewEmails({
-    companyId: company.id,
-  });
-
-  const [allReservations, cars] = await Promise.all([
-    ReservationRepository.getCompanyDashboardReservations(company.id),
-    CarRepository.findByCompany(company.id),
+  const [reservationStats, recentReservationsData, totalCars] = await Promise.all([
+    ReservationRepository.getCompanyDashboardStats(company.id),
+    ReservationRepository.getCompanyRecentReservations(company.id, 10),
+    CarRepository.countByCompany(company.id),
   ]);
 
-  const totalReservations = allReservations.length;
-
-  const pendingReservations = (allReservations as DashboardReservation[]).filter(
-    (r) => r.status === 'PENDING' || r.status === 'CONFIRMED',
-  ).length;
-
-  const completedReservations = (allReservations as DashboardReservation[]).filter(
-    (r) => r.status === 'COMPLETED' || r.status === 'RETURNED',
-  ).length;
-
-  const totalCars = cars.length;
   const maintenancePercent = Number(company.maintenancePercent || 0);
 
   const money = await getCompanyMoneyStats(
     company,
-    allReservations as DashboardReservation[],
     maintenancePercent,
   );
 
-  const recentReservations = (allReservations as DashboardReservation[]).slice(0, 10).map((r) => ({
+  const recentReservations = (recentReservationsData as DashboardReservation[]).map((r) => ({
     id: r.id,
     carMake: r.carMake,
     carModel: r.carModel,
@@ -89,9 +73,9 @@ export async function getCompanyDashboardData(user: DashboardUser) {
       totalRevenue: money.totalRevenue,
       platformFee: money.platformFee,
       companyEarnings: money.companyEarnings,
-      totalReservations,
-      pendingReservations,
-      completedReservations,
+      totalReservations: reservationStats.totalReservations,
+      pendingReservations: reservationStats.pendingReservations,
+      completedReservations: reservationStats.completedReservations,
       totalCars,
       maintenancePercent,
       balanceAvailable: money.balanceAvailable,
@@ -104,7 +88,6 @@ export async function getCompanyDashboardData(user: DashboardUser) {
 
 async function getCompanyMoneyStats(
   company: Company,
-  allReservations: DashboardReservation[],
   maintenancePercent: number,
 ) {
   let moneySource: 'stripe' | 'database' = 'stripe';
@@ -129,14 +112,7 @@ async function getCompanyMoneyStats(
 
     moneySource = 'database';
 
-    const paidReservations = allReservations.filter(
-      (r) => r.paymentStatus === 'PAID',
-    );
-
-    totalRevenue = paidReservations.reduce(
-      (sum, r) => sum + parseFloat(String(r.totalPrice || 0)),
-      0,
-    );
+    totalRevenue = await ReservationRepository.getCompanyRevenueSummary(company.id);
 
     platformFee = Number(
       ((totalRevenue * maintenancePercent) / 100).toFixed(2),

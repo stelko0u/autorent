@@ -11,6 +11,7 @@ export default function ResetPasswordPage() {
         alt=""
         fill
         priority
+        quality={50}
         className="object-cover blur-sm scale-105"
       />
 

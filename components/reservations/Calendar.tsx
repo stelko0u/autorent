@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight } from '../icons';
+import { useAlert } from '@/providers/AlertProvider';
 
 interface Reservation {
   startDate: string | Date;
@@ -23,6 +24,7 @@ export default function Calendar({
   onDateSelect,
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { showAlert } = useAlert();
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -91,7 +93,11 @@ export default function Calendar({
         }
 
         if (hasReservedInBetween) {
-          alert('Cannot select dates with reserved days in between');
+          showAlert({
+            type: 'warning',
+            title: 'Invalid Selection',
+            message: 'Cannot select dates with reserved days in between',
+          });
           onDateSelect(null, null);
         } else {
           onDateSelect(selectedStartDate, date);

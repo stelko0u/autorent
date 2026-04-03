@@ -96,6 +96,71 @@ export class ReservationRepository {
     );
   }
 
+  static async getCompanyDashboardStats(companyId: number) {
+    const result = await queryOne<{
+      totalReservations: string;
+      pendingReservations: string;
+      completedReservations: string;
+    }>(
+      `SELECT 
+        COUNT(*) as "totalReservations",
+        COUNT(*) FILTER (WHERE r.status IN ('PENDING', 'CONFIRMED')) as "pendingReservations",
+        COUNT(*) FILTER (WHERE r.status IN ('COMPLETED', 'RETURNED')) as "completedReservations"
+      FROM "Reservation" r
+      JOIN "Car" c ON r."carId" = c.id
+      WHERE c."companyId" = $1`,
+      [companyId],
+    );
+
+    return {
+      totalReservations: parseInt(result?.totalReservations || '0', 10),
+      pendingReservations: parseInt(result?.pendingReservations || '0', 10),
+      completedReservations: parseInt(result?.completedReservations || '0', 10),
+    };
+  }
+
+  static async getCompanyRecentReservations(companyId: number, limit = 10) {
+    return query(
+      `SELECT 
+        r.id,
+        r.status,
+        r."paymentStatus",
+        r."totalPrice",
+        r."startDate",
+        r."endDate",
+        r."firstName",
+        r."lastName",
+        r.email,
+        c.make as "carMake", 
+        c.model as "carModel", 
+        u."name" as "userName", 
+        u."email" as "userEmail"
+     FROM "Reservation" r
+     JOIN "Car" c ON r."carId" = c.id
+     LEFT JOIN "User" u ON r."userId" = u.id
+     WHERE c."companyId" = $1
+     ORDER BY r."createdAt" DESC
+     LIMIT $2`,
+      [companyId, limit],
+    );
+  }
+
+  static async getCompanyRevenueSummary(companyId: number) {
+    const result = await queryOne<{
+      totalRevenue: string;
+    }>(
+      `SELECT 
+        COALESCE(SUM(r."totalPrice"), 0) as "totalRevenue"
+      FROM "Reservation" r
+      JOIN "Car" c ON r."carId" = c.id
+      WHERE c."companyId" = $1 
+        AND r."paymentStatus" = 'PAID'`,
+      [companyId],
+    );
+
+    return parseFloat(result?.totalRevenue || '0');
+  }
+
   static async getReservationsByCompanyId(companyId: number) {
     return query(
       `SELECT 

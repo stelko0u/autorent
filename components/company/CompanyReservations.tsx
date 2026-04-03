@@ -15,6 +15,7 @@ import {
   CompanyPanelToolbar,
 } from './CompanyPanelUI';
 import { getCompanyReservations } from '@/lib/api/companyApi';
+import { ConfirmCashPaymentButton } from '@/components/company/ConfirmCashPaymentButton';
 
 interface Reservation {
   id: number;
@@ -383,13 +384,35 @@ export default function CompanyReservations() {
                     </td>
 
                     <td className="px-6 py-5">
-                      <div>
-                        <CompanyPanelBadge
-                          tone={getPaymentTone(reservation.paymentStatus)}
-                        >
-                          {normalizeLabel(reservation.paymentStatus)}
-                        </CompanyPanelBadge>
+                      {/* <span className="text-sm text-slate-500">
+                          {reservation.paymentMethod === 'ON_SPOT'
+                            ? 'On spot'
+                            : reservation.paymentMethod}
+                        </span> */}
+                      <div className="flex flex-col gap-2">
+                        {reservation.paymentMethod === 'ON_SPOT' &&
+                        reservation.paymentStatus !== 'PAID' &&
+                        reservation.status !== 'CANCELLED' ? (
+                          <ConfirmCashPaymentButton
+                            reservationId={reservation.id}
+                            initialPaymentStatus={reservation.paymentStatus}
+                            initialReservationStatus={reservation.status}
+                          />
+                        ) : (
+                          <span
+                            className={
+                              reservation.paymentStatus === 'PAID'
+                                ? 'inline-flex w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700'
+                                : reservation.paymentStatus === 'PENDING'
+                                  ? 'inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700'
+                                  : 'inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700'
+                            }
+                          >
+                            {reservation.paymentStatus}
+                          </span>
+                        )}
                       </div>
+
                       <div className="mt-2 text-xs text-gray-500">
                         {reservation.paymentMethod === 'CARD'
                           ? 'Online card'

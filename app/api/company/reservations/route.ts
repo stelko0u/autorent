@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireCompanyUser } from '@/lib/auth/requireCompany';
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
-import { processCompletedReservationsForReviewEmails } from '@/lib/services/reviews/processCompletedReservationsForReviewEmails';
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
 
 export async function GET() {
@@ -16,10 +15,6 @@ export async function GET() {
         { status: 404 },
       );
     }
-
-    await processCompletedReservationsForReviewEmails({
-      companyId: company.id,
-    });
 
     const reservations = await ReservationRepository.getReservationsByCompanyId(company.id);
 

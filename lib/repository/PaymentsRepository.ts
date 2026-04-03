@@ -28,16 +28,11 @@ export class PaymentsRepository {
     id: number,
     data: Partial<Omit<Payments, 'id' | 'createdAt' | 'updatedAt'>>,
   ): Promise<Payments | null> {
-    console.log('PaymentsRepository.update called with:', { id, data });
-
     try {
       const fields = Object.keys(data)
         .map((key, i) => `"${key}" = $${i + 2}`)
         .join(', ');
       const values = [id, ...Object.values(data)];
-
-      console.log('Update SQL fields:', fields);
-      console.log('Update SQL values:', values);
 
       const query = `
         UPDATE "Payments" 
@@ -46,10 +41,7 @@ export class PaymentsRepository {
         RETURNING *
       `;
 
-      console.log('Update SQL query:', query);
-
       const result = await queryOne<Payments>(query, values);
-      console.log('Payment updated successfully:', result);
 
       return result;
     } catch (err) {

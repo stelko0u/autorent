@@ -1,4 +1,4 @@
-import { query, queryOne } from '@/lib/db';
+import { query, queryOne, execute } from '@/lib/db';
 import { Company } from '@/types/database';
 
 export class CompanyRepository {
@@ -40,7 +40,7 @@ export class CompanyRepository {
     const setClause = entries
       .map(([key], i) => `"${key}" = $${i + 2}`)
       .join(', ');
-    const values = [id, ...entries.map(([value]) => value)];
+    const values = [id, ...entries.map(([, value]) => value)];
 
     return queryOne<Company>(
       `UPDATE "Company" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
@@ -49,8 +49,8 @@ export class CompanyRepository {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM "Company" WHERE id = $1', [id]);
-    return result.length > 0;
+    const result = await execute('DELETE FROM "Company" WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   static async findMany(where?: Partial<Company>): Promise<Company[]> {
@@ -60,7 +60,7 @@ export class CompanyRepository {
     const whereClause = entries
       .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = Array.from(entries.values());
+    const values = entries.map(([, value]) => value);
 
     return query<Company>(
       `SELECT * FROM "Company" WHERE ${whereClause}`,
@@ -71,9 +71,9 @@ export class CompanyRepository {
 
   
   static async deleteByOwnerId(ownerId: number): Promise<boolean> {
-    const result = await query('DELETE FROM "Company" WHERE "ownerId" = $1', [
+    const result = await execute('DELETE FROM "Company" WHERE "ownerId" = $1', [
       ownerId,
     ]);
-    return result.length > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 }

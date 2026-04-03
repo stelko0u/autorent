@@ -1,4 +1,4 @@
-import { query, queryOne } from '../db';
+import { query, queryOne, execute } from '../db';
 import { User } from '@/types/database';
 
 export class UserRepository {
@@ -38,7 +38,7 @@ export class UserRepository {
     const setClause = entries
       .map(([key], i) => `"${key}" = $${i + 2}`)
       .join(', ');
-    const values = [id, ...entries.values()];
+    const values = [id, ...entries.map(([, value]) => value)];
 
     return queryOne<User>(
       `UPDATE "User" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
@@ -61,9 +61,9 @@ export class UserRepository {
     const whereClause = entries
       .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = entries.values();
+    const values = entries.map(([, value]) => value);
 
-    return query<User>(`SELECT * FROM "User" WHERE ${whereClause}`, Array.from(values));
+    return query<User>(`SELECT * FROM "User" WHERE ${whereClause}`, values);
   }
 
   static async ban(id: number, reason?: string): Promise<User | null> {

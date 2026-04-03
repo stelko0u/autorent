@@ -1,4 +1,4 @@
-import { query, queryOne } from '@/lib/db';
+import { query, queryOne, execute } from '@/lib/db';
 import { Office } from '@/types/database';
 
 export class OfficeRepository {
@@ -55,7 +55,7 @@ export class OfficeRepository {
     const whereClause = entries
       .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = entries.map(([value]) => value);
+    const values = entries.map(([, value]) => value);
 
     return query<Office>(`SELECT * FROM "Office" WHERE ${whereClause}`, values);
   }
@@ -69,7 +69,8 @@ export class OfficeRepository {
   }
 
   // Add the delete method
-  static async delete(id: number): Promise<void> {
-    await query('DELETE FROM "Office" WHERE id = $1', [id]);
+  static async delete(id: number): Promise<boolean> {
+    const result = await execute('DELETE FROM "Office" WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
   }
 }

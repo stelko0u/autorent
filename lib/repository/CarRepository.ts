@@ -1,4 +1,4 @@
-import { query, queryOne } from '../db';
+import { query, queryOne, execute } from '../db';
 import { Car } from '@/types/database';
 
 interface CarSearchFilters {
@@ -63,11 +63,11 @@ export class CarRepository {
     const whereClause = entries
       .map(([key], i) => `${key} = $${i + 1}`)
       .join(' AND ');
-    const values = entries.values();
+    const values = entries.map(([, value]) => value);
 
     return query<Car>(
       `SELECT * FROM "Car" WHERE ${whereClause}`,
-      Array.from(values),
+      values,
     );
   }
 
@@ -81,6 +81,14 @@ export class CarRepository {
     ]);
   }
 
+  static async countByCompany(companyId: number): Promise<number> {
+    const result = await query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM "Car" WHERE "companyId" = $1',
+      [companyId],
+    );
+    return parseInt(result[0]?.count || '0', 10);
+  }
+
   static async findManyByCompanyId(companyId: number) {
     const cars = await query('SELECT * FROM "Car" WHERE "companyId" = $1', [
       companyId,
@@ -89,8 +97,8 @@ export class CarRepository {
   }
 
   static async delete(id: number): Promise<boolean> {
-    const result = await query('DELETE FROM "Car" WHERE id = $1', [id]);
-    return result.length > 0;
+    const result = await execute('DELETE FROM "Car" WHERE id = $1', [id]);
+    return result.rowCount !== null && result.rowCount > 0;
   }
   static async hasReservations(carId: number): Promise<boolean> {
     const result = await query<{ count: string }>(

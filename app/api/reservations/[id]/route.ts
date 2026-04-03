@@ -11,19 +11,13 @@ export async function GET(
     const user = await getAuthUser();
     const { id } = await params;
 
-    console.log('🔍 Looking for reservation:', id, 'for user:', user?.id);
-
     if (!user) {
       throw new Error('UNAUTHORIZED');
     }
 
     const reservationId = parseInt(id);
 
-    console.log('📊 Querying database for reservation:', reservationId);
-
     const result = await getUserReservationDetails(reservationId, user.id);
-
-    console.log('✅ Returning reservation data');
 
     return NextResponse.json(result);
   } catch (error) {

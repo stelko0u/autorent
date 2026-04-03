@@ -5,8 +5,6 @@ import { Reservation } from '@/lib/database';
 
 
 const sendReservationEmail = async (to: string, reservationDetails: Reservation) => {
-  console.log('Sending reservation email to:', to);
-  console.log('Reservation details:', reservationDetails);
   return Promise.resolve();
 };
 

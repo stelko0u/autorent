@@ -46,9 +46,6 @@ export async function GET(req: Request) {
         { status: 404 },
       );
     }
-    if (!user) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     return NextResponse.json({ ok: true, user }, { status: 200 });
   } catch (err) {

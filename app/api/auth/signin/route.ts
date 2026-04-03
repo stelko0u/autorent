@@ -34,7 +34,6 @@ function getRedirectByUser(user: {
   banned?: boolean;
   role: 'USER' | 'ADMIN' | 'COMPANY' | null;
 }) {
-  console.log('Determining redirect for user:', user.banned, user.role);
   if (user.banned) return '/banned';
 
   switch (user.role) {

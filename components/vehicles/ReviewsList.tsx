@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { EmptyStar, FullStar } from '@/components/icons';
+import { useAlert } from '@/providers/AlertProvider';
 
 interface Review {
   id?: number;
@@ -34,6 +35,7 @@ export default function ReviewsList({
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     if (initialOpen && canAddReview) {
@@ -45,7 +47,11 @@ export default function ReviewsList({
     e.preventDefault();
 
     if (rating === 0 || !comment.trim()) {
-      alert('Please select a rating and write a comment');
+      showAlert({
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please select a rating and write a comment',
+      });
       return;
     }
 
@@ -58,7 +64,11 @@ export default function ReviewsList({
         setShowReviewForm(false);
       } catch (error: unknown) {
         console.error('Error submitting review:', error);
-        alert(error instanceof Error ? error.message : 'Error submitting review');
+        showAlert({
+          type: 'error',
+          title: 'Error',
+          message: error instanceof Error ? error.message : 'Error submitting review',
+        });
       } finally {
         setSubmitting(false);
       }

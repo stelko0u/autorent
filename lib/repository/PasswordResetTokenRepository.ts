@@ -1,4 +1,4 @@
-import { query, queryOne } from '@/lib/db';
+import { query, queryOne, execute } from '@/lib/db';
 import { PasswordResetToken } from '@/types/database';
 
 export class PasswordResetTokenRepository {
@@ -22,27 +22,27 @@ export class PasswordResetTokenRepository {
   }
 
   static async deleteByEmail(email: string): Promise<boolean> {
-    const result = await query(
+    const result = await execute(
       'DELETE FROM "PasswordResetToken" WHERE email = $1',
       [email],
     );
-    return result.length > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   static async deleteByToken(token: string): Promise<boolean> {
-    const result = await query(
+    const result = await execute(
       'DELETE FROM "PasswordResetToken" WHERE token = $1',
       [token],
     );
-    return result.length > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   static async deleteExpired(): Promise<boolean> {
-    const result = await query(
+    const result = await execute(
       'DELETE FROM "PasswordResetToken" WHERE "expiresAt" < NOW()',
       [],
     );
-    return result.length > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   static async findByEmailAndToken(

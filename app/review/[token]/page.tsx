@@ -8,7 +8,13 @@ import {
   submitReviewFromLink,
   type ReviewPageData,
 } from '@/lib/api/reviewApi';
-import { FullStar } from '@/components/icons';
+import {
+  Check,
+  Clock,
+  EmptyStar,
+  FullStar,
+  TriangleExclamation,
+} from '@/components/icons';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('bg-BG', {
@@ -51,7 +57,11 @@ function Star({ active, onClick, onMouseEnter, onMouseLeave }: StarProps) {
       onMouseLeave={onMouseLeave}
       className="transition-transform hover:scale-110"
     >
-      <FullStar className={`h-10 w-10 ${active ? 'fill-yellow-400' : 'fill-gray-200'}`} />
+      {active ? (
+        <FullStar className="h-10 w-10 text-yellow-400 transition-colors cursor-pointer" />
+      ) : (
+        <EmptyStar className="h-10 w-10 text-gray-300 hover:text-yellow-600 transition-colors cursor-pointer" />
+      )}
     </button>
   );
 }
@@ -80,7 +90,7 @@ function InvalidState({
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 px-4">
       <div className="w-full max-w-xl rounded-3xl bg-white p-8 text-center shadow-2xl md:p-10">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-3xl">
-          ⚠️
+          <TriangleExclamation className="h-8 w-8 text-yellow-600" />
         </div>
         <h1 className="mb-3 text-3xl font-bold text-slate-900">
           Невалиден линк
@@ -102,7 +112,7 @@ function CannotReviewState() {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 px-4">
       <div className="w-full max-w-xl rounded-3xl bg-white p-8 text-center shadow-2xl md:p-10">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-3xl">
-          ⏳
+          <Clock className="h-8 w-8 text-amber-600" />
         </div>
         <h1 className="mb-3 text-3xl font-bold text-slate-900">
           Все още не може да оставиш ревю
@@ -154,7 +164,7 @@ function ReviewCompletedState({
 
         <div className="p-8 text-center md:p-10">
           <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-4xl">
-            ✅
+            <Check className="h-10 w-10 text-emerald-600" />
           </div>
           <h2 className="mb-3 text-3xl font-bold text-slate-900">
             Благодарим ти!
@@ -230,7 +240,9 @@ export default function ReviewPage() {
       const payload = await getReviewPageData(token);
       setData(payload);
     } catch (err: unknown) {
-      setPageError(err instanceof Error ? err.message : 'Failed to load review page');
+      setPageError(
+        err instanceof Error ? err.message : 'Failed to load review page',
+      );
     } finally {
       setLoading(false);
     }
@@ -265,7 +277,9 @@ export default function ReviewPage() {
 
         setSubmitted(true);
       } catch (err: unknown) {
-        setSubmitError(err instanceof Error ? err.message : 'Failed to submit review');
+        setSubmitError(
+          err instanceof Error ? err.message : 'Failed to submit review',
+        );
       } finally {
         setSubmitting(false);
       }

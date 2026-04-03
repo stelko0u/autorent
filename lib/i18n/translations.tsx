@@ -117,6 +117,14 @@ export const translations = {
       sending: 'Изпращане...',
       resetting: 'Смяна...',
       signOutButton: 'Изход от профила',
+      newPassword: 'Нова парола',
+      confirmPassword: 'Потвърди новата парола',
+      saveNewPassword: 'Запази новата парола',
+      verifyingToken: 'Проверка на токена...',
+      invalidLinkTitle: 'Невалиден линк',
+      sendNewResetLink: 'Изпрати нов линк за смяна на паролата',
+      invalidToken:
+        'Токенът е невалиден или е изтекъл. Моля, поискайте нов линк за смяна на паролата.',
     },
     validation: {
       requiredEmail: 'Имейлът е задължителен.',
@@ -173,6 +181,11 @@ export const translations = {
         hybrid: 'Хибрид',
         other: 'Друг',
       },
+    },
+    reviews: {
+      thankYou:
+        'Благодарим ти, че използва Smart Rent. Сподели как премина наемът и помогни на следващите клиенти.',
+        
     },
   },
   en: {
@@ -336,13 +349,12 @@ export function getNestedValue(
   obj: Record<string, TranslationValue>,
   path: string,
 ): string | undefined {
-  const result = path.split('.').reduce<TranslationValue | undefined>(
-    (acc, part) => {
+  const result = path
+    .split('.')
+    .reduce<TranslationValue | undefined>((acc, part) => {
       if (!acc || typeof acc === 'string') return undefined;
       return acc[part];
-    },
-    obj,
-  );
+    }, obj);
 
   return typeof result === 'string' ? result : undefined;
 }

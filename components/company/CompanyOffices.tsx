@@ -19,6 +19,7 @@ import {
   getCompanyOffices,
   saveCompanyOffice,
 } from '@/lib/api/companyApi';
+import { useAlert } from '@/providers/AlertProvider';
 
 const MapComponent = dynamic(() => import('./MapComponent'), {
   ssr: false,
@@ -44,6 +45,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showConfirm } = useAlert();
 
   const companyColors = {
     1: '#6366f1',
@@ -129,19 +131,22 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
   }
 
   async function removeOffice(id: number) {
-    const confirmed = window.confirm('Delete office?');
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setError(null);
-      await deleteCompanyOffice(id);
-      await load();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete office');
-    }
+    showConfirm({
+      type: 'warning',
+      title: 'Delete Office',
+      message: 'Are you sure you want to delete this office? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          setError(null);
+          await deleteCompanyOffice(id);
+          await load();
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Failed to delete office');
+        }
+      },
+    });
   }
 
   return (

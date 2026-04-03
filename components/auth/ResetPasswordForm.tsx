@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { resetPassword, verifyResetToken } from '@/lib/api/authApi';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { Circle } from '../icons';
 
 export default function ResetPasswordForm() {
   const { t } = useTranslation();
@@ -145,17 +146,10 @@ export default function ResetPasswordForm() {
   if (isCheckingToken) {
     return (
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
-        <Image
-          src="/authbg.jpg"
-          alt=""
-          fill
-          priority
-          quality={70}
-          sizes="100vw"
-          className="scale-105 object-cover blur-sm"
-        />
-        <div className="absolute inset-0 bg-black/25" />
-        <p className="relative z-10 text-white">{t('auth.verifyingToken')}</p>
+        <span className="flex flex-col">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
+          <p className="relative z-10 text-white">{t('auth.verifyingToken')}</p>
+        </span>
       </div>
     );
   }
@@ -163,17 +157,6 @@ export default function ResetPasswordForm() {
   if (!isTokenValid) {
     return (
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-        <Image
-          src="/authbg.jpg"
-          alt=""
-          fill
-          priority
-          quality={70}
-          sizes="100vw"
-          className="scale-105 object-cover blur-sm"
-        />
-        <div className="absolute inset-0 bg-black/25" />
-
         <div className="relative z-10 max-w-md rounded-xl bg-white p-6 text-center shadow-md">
           <h2 className="mb-2 text-xl font-semibold text-red-600">
             {t('auth.invalidLinkTitle')}
@@ -196,7 +179,7 @@ export default function ResetPasswordForm() {
       onSubmit={handleSubmit}
       className="w-full max-w-md rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur-sm"
     >
-      <h2 className="mb-5 text-center text-3xl font-bold text-gray-700">
+      <h2 className="mb-5 text-start text-3xl font-bold text-black">
         {t('auth.resetPasswordTitle')}
       </h2>
 
@@ -214,7 +197,7 @@ export default function ResetPasswordForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+          className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
         />
       </label>
 
@@ -227,7 +210,7 @@ export default function ResetPasswordForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+          className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
         />
       </label>
 
@@ -243,7 +226,7 @@ export default function ResetPasswordForm() {
         </p>
       ) : null}
 
-      <div className="mt-4 text-sm text-gray-600">
+      <div className="mt-4 text-sm text-gray-600 mb-2 ml-1">
         {t('auth.rememberPassword')}{' '}
         <Link
           href="/signin"
@@ -256,7 +239,7 @@ export default function ResetPasswordForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-2 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="h-11 w-full rounded-xl bg-black text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? t('common.submitting') : t('auth.saveNewPassword')}
       </button>

@@ -41,16 +41,22 @@ export async function POST(req: Request) {
       password: hashed,
       name,
       role: 'COMPANY',
-      emailVerified: false,
+      emailVerified: true,
       mustChangePassword: false,
     });
 
+    let company;
     try {
-      await CompanyRepository.create({
+      company = await CompanyRepository.create({
         ownerId: user.id,
         name,
         email,
         maintenancePercent: maintenance,
+      });
+
+      // Update user with companyId
+      await UserRepository.update(user.id, {
+        companyId: company.id,
       });
     } catch (e) {
       try {
@@ -70,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, userId: user.id });
+    return NextResponse.json({ ok: true, userId: user.id, companyId: company.id });
   } catch (err) {
     console.error('/api/admin/company POST error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

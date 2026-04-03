@@ -15,19 +15,6 @@ export async function getUserReservationDetails(
   );
 
   if (reservations.length === 0) {
-    const anyReservation = await ReservationRepository.findReservationOwnerById(reservationId);
-
-    if (anyReservation.length > 0) {
-      console.log(
-        '⚠️ Reservation exists but belongs to user:',
-        anyReservation[0].userId,
-        'not',
-        userId,
-      );
-    } else {
-      console.log('⚠️ Reservation does not exist in database');
-    }
-
     throw new Error('RESERVATION_NOT_FOUND');
   }
 
