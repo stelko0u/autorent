@@ -19,6 +19,7 @@ const PUBLIC_PATHS = [
   '/reset-password',
   '/review',
   '/banned',
+  '/change-temporary-password',
 ];
 
 const PUBLIC_API_PREFIXES = [
@@ -54,15 +55,20 @@ function isPublicPath(pathname: string) {
 
 async function readSession(req: NextRequest): Promise<SessionPayload | null> {
   const token = req.cookies.get('token')?.value;
-  if (!token) return null;
+  if (!token) {
+    return null;
+  }
 
   const secretValue = process.env.JWT_SECRET;
-  if (!secretValue) return null;
+  if (!secretValue) {
+    return null;
+  }
 
   try {
     const secret = new TextEncoder().encode(secretValue);
     const { payload } = await jwtVerify(token, secret);
-    return payload as unknown as SessionPayload;
+
+    return payload as SessionPayload;
   } catch (err) {
     console.error('Invalid session token:', err);
     return null;
@@ -87,7 +93,6 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const session = await readSession(req);
 
-  // Баннат user: само /banned и signout
   if (session?.banned) {
     const allowedForBanned =
       pathname === '/banned' ||
@@ -112,6 +117,7 @@ export async function middleware(req: NextRequest) {
       const url = req.nextUrl.clone();
       url.pathname = '/banned';
       url.search = '';
+
       return withLocaleCookie(req, NextResponse.redirect(url));
     }
 
@@ -150,6 +156,8 @@ export async function middleware(req: NextRequest) {
 
     const url = req.nextUrl.clone();
     url.pathname = '/change-temporary-password';
+    url.search = '';
+
     return withLocaleCookie(req, NextResponse.redirect(url));
   }
 

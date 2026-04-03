@@ -4,12 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { useTranslation } from '@/providers/LanguageProvider';
-import { signIn } from '@/lib/api/authApi';
-
-type SignInResponse = {
-  ok?: boolean;
-  error?: string;
-};
+import { signIn, type SignInResponse } from '@/lib/api/authApi';
 
 export default function SignInForm() {
   const router = useRouter();
@@ -40,6 +35,23 @@ export default function SignInForm() {
     return '';
   }
 
+  function getErrorMessage(data: Extract<SignInResponse, { ok: false }>) {
+    if (data.mustChangePassword && data.redirectTo) {
+      return '';
+    }
+
+    switch (data.error) {
+      case 'invalid_credentials':
+        return t('messages.invalidCredentials');
+      case 'email_not_verified':
+        return 'Имейлът не е потвърден.';
+      case 'email_and_password_required':
+        return 'Имейлът и паролата са задължителни.';
+      default:
+        return t('messages.unexpectedError');
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
@@ -50,25 +62,27 @@ export default function SignInForm() {
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
+    try {
       const data = await signIn(email, password);
 
       if (!data.ok) {
-        setError(
-          data.error === 'invalid_credentials'
-            ? t('messages.invalidCredentials')
-            : t('messages.unexpectedError'),
-        );
-        setLoading(false);
+        if (data.mustChangePassword && data.redirectTo) {
+          router.push(data.redirectTo);
+          router.refresh();
+          return;
+        }
+
+        setError(getErrorMessage(data));
         return;
       }
 
-      router.push(callbackUrl);
+      router.push(data.redirectTo || callbackUrl);
       router.refresh();
     } catch {
       setError(t('messages.unexpectedError'));
+    } finally {
       setLoading(false);
     }
   }
@@ -92,7 +106,7 @@ export default function SignInForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-black outline-none transition focus:border-black"
             placeholder="name@example.com"
           />
         </div>
@@ -106,7 +120,7 @@ export default function SignInForm() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-black outline-none transition focus:border-black"
             placeholder="••••••••"
           />
         </div>

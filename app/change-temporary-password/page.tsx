@@ -2,7 +2,10 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { completeOnboarding } from '@/lib/api/authApi';
+import authbg from 'public/authbg.jpg';
 
 function ChangeTemporaryPasswordForm() {
   const searchParams = useSearchParams();
@@ -62,68 +65,102 @@ function ChangeTemporaryPasswordForm() {
     }
   }
 
-  if (!userId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-white p-6 rounded-xl shadow-md text-center max-w-md">
-          <h2 className="text-xl font-semibold mb-2 text-red-600">
-            Invalid link
-          </h2>
-          <p className="text-gray-600">The link is invalid or expired.</p>
-          <a
-            href="/signin"
-            className="mt-4 inline-block text-blue-800 font-bold hover:underline"
-          >
-            Go back to Sign In
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-2xl p-6 w-full max-w-md"
-      >
-        <h2 className="text-xl font-semibold mb-4 text-center text-gray-600">
-          Change Temporary Password
-        </h2>
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div className="absolute inset-0 -z-10 bg-black overflow-hidden">
+        <Image
+          src={authbg}
+          alt=""
+          fill
+          priority
+          className="object-cover blur-sm scale-105"
+        />
+        <div className="absolute inset-0 bg-black/25" />
+      </div>
 
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        {success && <p className="text-green-600 text-sm mb-2">{success}</p>}
+      {!userId ? (
+        <div className="mx-auto w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-red-600">Invalid link</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              The link is invalid or expired.
+            </p>
+          </div>
 
-        <label className="block mb-3">
-          <span className="text-gray-700">New Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="mt-1 block w-full border rounded-md p-2 text-gray-500"
-          />
-        </label>
+          <div className="mt-4 text-sm text-gray-600">
+            Go back to{' '}
+            <Link
+              href="/signin"
+              className="font-medium text-blue-600 hover:underline"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="mx-auto w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Change Temporary Password
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Enter your new password below to complete your account setup.
+            </p>
+          </div>
 
-        <label className="block mb-4">
-          <span className="text-gray-700">Confirm Password</span>
-          <input
-            type="password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-            className="mt-1 block w-full border rounded-md p-2 text-gray-500"
-          />
-        </label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                New Password
+              </label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-black outline-none transition focus:border-black"
+                placeholder="Enter new password"
+                required
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-60"
-        >
-          {loading ? 'Submitting...' : 'Save New Password'}
-        </button>
-      </form>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-black outline-none transition focus:border-black"
+                placeholder="Confirm new password"
+                required
+              />
+            </div>
+
+            {error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </div>
+            ) : null}
+
+            {success ? (
+              <div className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                {success}
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="h-11 w-full rounded-xl bg-black text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? 'Submitting...' : 'Save New Password'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

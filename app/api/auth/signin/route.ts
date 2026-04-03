@@ -14,8 +14,38 @@ type ReqBody = {
 const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? 'token';
 const JWT_SECRET = process.env.JWT_SECRET;
 
-function normalizeRole(role: unknown): 'USER' | 'ADMIN' | 'COMPANY' | null {
-  if (typeof role !== 'string') return null;
+type NormalizedRole = 'USER' | 'ADMIN' | 'COMPANY' | null;
+
+type SignInSuccessResponse = {
+  ok: true;
+  user: {
+    id: number;
+    email: string;
+    name: string | null;
+    role: NormalizedRole;
+    companyId: number | null;
+    banned: boolean;
+    banReason: string | null;
+    bannedAt: string | null;
+  };
+  redirectTo: string;
+};
+
+type SignInMustChangePasswordResponse = {
+  ok: false;
+  mustChangePassword: true;
+  redirectTo: string;
+};
+
+type SignInErrorResponse = {
+  ok: false;
+  error: string;
+};
+
+function normalizeRole(role: unknown): NormalizedRole {
+  if (typeof role !== 'string') {
+    return null;
+  }
 
   const value = role.trim().toUpperCase();
 
@@ -32,9 +62,11 @@ function normalizeRole(role: unknown): 'USER' | 'ADMIN' | 'COMPANY' | null {
 
 function getRedirectByUser(user: {
   banned?: boolean;
-  role: 'USER' | 'ADMIN' | 'COMPANY' | null;
-}) {
-  if (user.banned) return '/banned';
+  role: NormalizedRole;
+}): string {
+  if (user.banned) {
+    return '/banned';
+  }
 
   switch (user.role) {
     case 'ADMIN':
@@ -50,58 +82,60 @@ export async function POST(req: Request) {
   try {
     if (!JWT_SECRET) {
       console.error('JWT_SECRET missing');
-      return NextResponse.json(
-        { error: 'server misconfigured' },
+
+      return NextResponse.json<SignInErrorResponse>(
+        { ok: false, error: 'server_misconfigured' },
         { status: 500 },
       );
     }
 
     const body = (await req.json()) as ReqBody;
+
     const email = String(body.email ?? '')
       .trim()
       .toLowerCase();
     const password = String(body.password ?? '');
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
+      return NextResponse.json<SignInErrorResponse>(
+        { ok: false, error: 'email_and_password_required' },
         { status: 400 },
       );
     }
 
     const user = await UserRepository.findByEmail(email);
 
-    if (user?.mustChangePassword) {
-      return NextResponse.json(
-        {
-          mustChangePassword: true,
-          redirectTo: `/change-temporary-password?userId=${user.id}`,
-        },
-        { status: 403 },
-      );
-    }
-
     if (!user || !user.password) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
+      return NextResponse.json<SignInErrorResponse>(
+        { ok: false, error: 'invalid_credentials' },
         { status: 401 },
       );
     }
 
     if (!user.emailVerified) {
-      return NextResponse.json(
-        {
-          error: 'Email not verified. Please check your mailbox.',
-        },
+      return NextResponse.json<SignInErrorResponse>(
+        { ok: false, error: 'email_not_verified' },
         { status: 403 },
       );
     }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
+    const passwordMatches = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatches) {
+      return NextResponse.json<SignInErrorResponse>(
+        { ok: false, error: 'invalid_credentials' },
         { status: 401 },
+      );
+    }
+
+    if (user.mustChangePassword) {
+      return NextResponse.json<SignInMustChangePasswordResponse>(
+        {
+          ok: false,
+          mustChangePassword: true,
+          redirectTo: `/change-temporary-password?userId=${user.id}`,
+        },
+        { status: 403 },
       );
     }
 
@@ -122,26 +156,27 @@ export async function POST(req: Request) {
       },
     );
 
-    const res = NextResponse.json(
-      {
-        ok: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name ?? null,
-          role: normalizedRole,
-          companyId: user.companyId ?? null,
-          banned: Boolean(user.banned),
-          banReason: user.banReason ?? null,
-          bannedAt: user.bannedAt ?? null,
-        },
-        redirectTo: getRedirectByUser({
-          banned: Boolean(user.banned),
-          role: normalizedRole,
-        }),
+    const responseBody: SignInSuccessResponse = {
+      ok: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name ?? null,
+        role: normalizedRole,
+        companyId: user.companyId ?? null,
+        banned: Boolean(user.banned),
+        banReason: user.banReason ?? null,
+        bannedAt: user.bannedAt ? new Date(user.bannedAt).toISOString() : null,
       },
-      { status: 200 },
-    );
+      redirectTo: getRedirectByUser({
+        banned: Boolean(user.banned),
+        role: normalizedRole,
+      }),
+    };
+
+    const res = NextResponse.json<SignInSuccessResponse>(responseBody, {
+      status: 200,
+    });
 
     res.cookies.set(COOKIE_NAME, token, {
       httpOnly: true,
@@ -154,8 +189,9 @@ export async function POST(req: Request) {
     return res;
   } catch (err: unknown) {
     console.error('POST /api/auth/signin error:', err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Server error' },
+
+    return NextResponse.json<SignInErrorResponse>(
+      { ok: false, error: 'server_error' },
       { status: 500 },
     );
   }

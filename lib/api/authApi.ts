@@ -67,6 +67,28 @@ export interface ForgotPasswordResponse {
   error?: string;
 }
 
+export type SignInResponse =
+  | {
+      ok: true;
+      redirectTo?: string;
+      user?: {
+        id: number;
+        email: string;
+        name: string | null;
+        role: 'USER' | 'ADMIN' | 'COMPANY' | null;
+        companyId: number | null;
+        banned: boolean;
+        banReason: string | null;
+        bannedAt: string | null;
+      };
+    }
+  | {
+      ok: false;
+      error?: string;
+      mustChangePassword?: boolean;
+      redirectTo?: string;
+    };
+
 export async function getCurrentUser(): Promise<MeResponse> {
   const res = await fetch('/api/auth/me', {
     credentials: 'include',
@@ -127,16 +149,22 @@ export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
 export async function signIn(
   email: string,
   password: string,
-): Promise<AuthResponse> {
+): Promise<SignInResponse> {
   const res = await fetch('/api/auth/signin', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify({ email, password }),
   });
 
-  return res.json();
+  const data: SignInResponse = await res.json().catch(() => ({
+    ok: false,
+    error: 'server_error',
+  }));
+
+  return data;
 }
 
 export async function signOut(): Promise<void> {
