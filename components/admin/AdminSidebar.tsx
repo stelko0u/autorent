@@ -36,6 +36,11 @@ export default function AdminSidebar({
       label: 'Manage Users',
       icon: <UsersGear className="w-5 h-5" />,
     },
+    {
+      key: 'audit',
+      label: 'Audit Logs',
+      icon: <UsersGear className="w-5 h-5" />,
+    }
   ];
 
   const handleTabChange = (key: string) => {

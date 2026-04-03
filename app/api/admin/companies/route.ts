@@ -1,214 +1,118 @@
 import { NextResponse } from 'next/server';
-import { CompanyRepository } from '@/lib/repository/CompanyRepository';
-import { UserRepository } from '@/lib/repository/UserRepository';
-import { rollbackStripeAccount } from '@/lib/services/stripe/companyStripe';
-import { onboardCompany } from '@/lib/services/company/onBoardCompany';
-import { deleteCompanyDeep } from '@/lib/services/admin/deleteEntity';
+import { CarRepository } from '@/lib/repository/CarRepository';
 import { requireAdmin } from '@/lib/auth/requireAdmin';
+import { buildAuditActor } from '@/lib/audit/buildAuditActor';
+import { safeLogAuditEvent } from '@/lib/audit/logAuditEvent';
+
+type DeleteCarBody = {
+  id?: unknown;
+};
 
 export async function GET(req: Request) {
   const check = await requireAdmin(req);
   if (!check.ok) return check.resp;
 
   try {
-    const companies = await CompanyRepository.findMany();
-    return NextResponse.json({ ok: true, companies });
+    const cars = await CarRepository.findMany();
+    return NextResponse.json({ ok: true, cars });
   } catch (err) {
-    console.error('GET /api/admin/companies error:', err);
+    console.error('GET /api/admin/cars error:', err);
     return NextResponse.json({ ok: false, error: 'db_error' }, { status: 500 });
   }
 }
-
-export async function POST(req: Request) {
-  const check = await requireAdmin(req);
-  if (!check.ok) return check.resp;
-
-  try {
-    const body = await req.json();
-    const name = String(body?.name ?? '').trim();
-    const email = String(body?.email ?? '')
-      .trim()
-      .toLowerCase();
-    const maintenancePercent = body?.maintenancePercent ?? 0;
-
-    if (!name || !email) {
-      return NextResponse.json(
-        { ok: false, error: 'name_email_required' },
-        { status: 400 },
-      );
-    }
-
-    const m = Number(maintenancePercent);
-    if (!Number.isFinite(m) || m < 0 || m > 100) {
-      return NextResponse.json(
-        { ok: false, error: 'invalid_maintenance_percent' },
-        { status: 400 },
-      );
-    }
-
-    const existingUser = await UserRepository.findByEmail(email);
-    if (existingUser) {
-      return NextResponse.json(
-        { ok: false, error: 'email_already_exists' },
-        { status: 409 },
-      );
-    }
-
-    const existingCompany = await CompanyRepository.findByEmail(email);
-    if (existingCompany) {
-      return NextResponse.json(
-        { ok: false, error: 'company_email_already_exists' },
-        { status: 409 },
-      );
-    }
-
-    const { company, mailInfo } = await onboardCompany({
-      name,
-      email,
-      maintenancePercent: m,
-    });
-
-    return NextResponse.json(
-      {
-        ok: true,
-        company: {
-          id: company.id,
-          name: company.name,
-          email: company.email,
-          maintenancePercent: company.maintenancePercent,
-          ownerId: company.ownerId,
-          stripeAccountId: company.stripeAccountId ?? null,
-        },
-        onboardingEmail: {
-          sentTo: mailInfo.sentTo,
-          devOverrideUsed: mailInfo.devOverrideUsed,
-        },
-      },
-      { status: 201 },
-    );
-  } catch (err) {
-    console.error('POST /api/admin/companies error:', err);
-    return NextResponse.json(
-      { ok: false, error: 'company_creation_failed' },
-      { status: 500 },
-    );
-  }
-}
-
-export async function PATCH(req: Request) {
-  const check = await requireAdmin(req);
-  if (!check.ok) return check.resp;
-
-  try {
-    const body = await req.json();
-    const { id, maintenancePercent, name, email } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { ok: false, error: 'id_required' },
-        { status: 400 },
-      );
-    }
-
-    const updates: Partial<{
-      name: string;
-      email: string;
-      maintenancePercent: number;
-    }> = {};
-
-    if (name !== undefined) {
-      updates.name = name;
-    }
-
-    if (email !== undefined) {
-      const existingCompany = await CompanyRepository.findByEmail(email);
-      if (existingCompany && existingCompany.id !== Number(id)) {
-        return NextResponse.json(
-          { ok: false, error: 'email_already_in_use' },
-          { status: 409 },
-        );
-      }
-      updates.email = email;
-    }
-
-    if (maintenancePercent !== undefined) {
-      const m = Number(maintenancePercent);
-      if (!Number.isFinite(m) || m < 0 || m > 100) {
-        return NextResponse.json(
-          { ok: false, error: 'invalid_maintenance_percent' },
-          { status: 400 },
-        );
-      }
-      updates.maintenancePercent = m;
-    }
-
-    const company = await CompanyRepository.update(Number(id), updates);
-
-    if (!company) {
-      return NextResponse.json(
-        { ok: false, error: 'company_not_found' },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json({ ok: true, company });
-  } catch (err) {
-    console.error('PATCH /api/admin/companies error:', err);
-    return NextResponse.json(
-      { ok: false, error: 'update_error' },
-      { status: 500 },
-    );
-  }
-}
-
 
 export async function DELETE(req: Request) {
   const check = await requireAdmin(req);
   if (!check.ok) return check.resp;
 
-  try {
-    const body = await req.json();
-    const { id } = body;
+  const actor = buildAuditActor(check.user);
 
-    if (!id) {
+  try {
+    const body = (await req.json()) as DeleteCarBody;
+    const id = Number(body.id);
+
+    if (!id || Number.isNaN(id)) {
+      await safeLogAuditEvent(req, {
+        entityType: 'CAR',
+        operation: 'DELETE',
+        status: 'FAILURE',
+        action: 'Admin failed to delete car',
+        targetEntityId: null,
+        actor,
+        companyId: actor.companyId,
+        metadata: {
+          reason: 'id_required',
+        },
+        errorMessage: 'id_required',
+      });
+
       return NextResponse.json(
         { ok: false, error: 'id_required' },
         { status: 400 },
       );
     }
 
-    const company = await CompanyRepository.findById(Number(id));
-    if (!company) {
+    const car = await CarRepository.findById(id);
+    if (!car) {
+      await safeLogAuditEvent(req, {
+        entityType: 'CAR',
+        operation: 'DELETE',
+        status: 'FAILURE',
+        action: 'Admin failed to delete car',
+        targetEntityId: id,
+        actor,
+        companyId: null,
+        metadata: {
+          reason: 'not_found',
+        },
+        errorMessage: 'not_found',
+      });
+
       return NextResponse.json(
-        { ok: false, error: 'company_not_found' },
+        { ok: false, error: 'not_found' },
         { status: 404 },
       );
     }
 
-    const stripeAccountId = company.stripeAccountId;
+    await CarRepository.delete(id);
 
-    await deleteCompanyDeep(Number(id));
-
-    if (stripeAccountId) {
-      try {
-        await rollbackStripeAccount(stripeAccountId);
-      } catch (stripeErr) {
-        console.warn('Stripe rollback failed:', stripeErr);
-      }
-    }
+    await safeLogAuditEvent(req, {
+      entityType: 'CAR',
+      operation: 'DELETE',
+      status: 'SUCCESS',
+      action: 'Admin deleted car',
+      targetEntityId: id,
+      actor,
+      companyId: car.companyId ?? null,
+      metadata: {
+        deletedCar: {
+          id: car.id,
+          make: car.make,
+          model: car.model,
+          year: car.year,
+          officeId: car.officeId ?? null,
+          companyId: car.companyId ?? null,
+        },
+      },
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('DELETE /api/admin/companies error:', err);
+    console.error('DELETE /api/admin/cars error:', err);
 
     const message = err instanceof Error ? err.message : 'delete_error';
 
-    if (message === 'company_not_found') {
-      return NextResponse.json(
-        { ok: false, error: 'company_not_found' },
-        { status: 404 },
-      );
-    }
+    await safeLogAuditEvent(req, {
+      entityType: 'CAR',
+      operation: 'DELETE',
+      status: 'FAILURE',
+      action: 'Admin failed to delete car',
+      targetEntityId: null,
+      actor,
+      companyId: actor.companyId,
+      metadata: {},
+      errorMessage: message,
+    });
 
     return NextResponse.json(
       { ok: false, error: 'delete_error' },

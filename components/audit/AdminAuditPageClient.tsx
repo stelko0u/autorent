@@ -1,0 +1,75 @@
+'use client';
+
+import React, { useCallback, useEffect, useState } from 'react';
+import { AdminAuditTable } from '@/components/audit/AdminAuditTable';
+import { getAdminAuditLogs } from '@/lib/api/auditApi';
+import type { AuditLogListFilters, AuditLogListResult } from '@/types/audit';
+
+const INITIAL_FILTERS: AuditLogListFilters = {
+  page: 1,
+  pageSize: 300,
+  search: '',
+  entityType: 'ALL',
+  operation: 'ALL',
+  status: 'ALL',
+  dateFrom: '',
+  dateTo: '',
+};
+
+export function AdminAuditPageClient() {
+  const [data, setData] = useState<AuditLogListResult>({
+    logs: [],
+    total: 0,
+    page: 1,
+    pageSize: 300,
+    totalPages: 1,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadLogs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const nextData = await getAdminAuditLogs(INITIAL_FILTERS);
+      setData(nextData);
+    } catch (err) {
+      console.error('Failed to load admin audit logs:', err);
+      setError('Неуспешно зареждане на одит записите.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadLogs();
+  }, [loadLogs]);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          Админ одитен журнал
+        </h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Виждаш действията по потребители, компании, офиси и коли.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="rounded-[24px] border border-slate-200 bg-white p-10 text-center text-sm text-slate-500 shadow-sm">
+          Зареждане...
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-[24px] border border-red-200 bg-red-50 p-4 text-sm text-red-700 shadow-sm">
+          {error}
+        </div>
+      ) : null}
+
+      {!loading && !error ? <AdminAuditTable logs={data.logs} /> : null}
+    </div>
+  );
+}

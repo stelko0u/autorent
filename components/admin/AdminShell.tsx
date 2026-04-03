@@ -8,6 +8,7 @@ import AdminCompanies from './AdminCompanies';
 import AdminAddCompany from './AdminAddCompany';
 import AdminCars from './AdminCars';
 import AdminUsersPage from './AdminManageUsers';
+import { AdminAuditPageClient } from '../audit/AdminAuditPageClient';
 
 type AdminShellProps = {
   me: { name?: string; email?: string; role?: string; id?: number } | null;
@@ -44,6 +45,7 @@ export default function AdminShell({ children }: AdminShellProps) {
               {active === 'add-company' && <AdminAddCompany />}
               {active === 'cars' && <AdminCars />}
               {active === 'users' && <AdminUsersPage />}
+              {active === 'audit' && <AdminAuditPageClient />}
             </>
           )}
         </main>

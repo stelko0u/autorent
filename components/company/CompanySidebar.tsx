@@ -66,6 +66,11 @@ export default function CompanySidebar({ company, locked }: Props) {
       label: 'Offices',
       icon: <Building className="w-5 h-5" />,
     },
+    {
+      id: 'audit',
+      label: 'Audit Logs',
+      icon: <Clipboard className="w-5 h-5" />,
+    }
   ];
 
   const handleTabChange = (tab: string) => {

@@ -43,15 +43,22 @@ export class CarRepository {
     data: Partial<Omit<Car, 'id' | 'createdAt'>>,
   ): Promise<Car | null> {
     const entries = Object.entries(data);
-    if (entries.length === 0) return this.findById(id);
+
+    if (entries.length === 0) {
+      return this.findById(id);
+    }
 
     const setClause = entries
-      .map(([key], i) => `"${key}" = $${i + 2}`)
+      .map(([key], index) => `"${key}" = $${index + 2}`)
       .join(', ');
-    const values = [id, ...entries.values()];
+
+    const values = [id, ...entries.map(([, value]) => value)];
 
     return queryOne<Car>(
-      `UPDATE "Car" SET ${setClause}, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
+      `UPDATE "Car"
+     SET ${setClause}, "updatedAt" = NOW()
+     WHERE id = $1
+     RETURNING *`,
       values,
     );
   }
@@ -65,10 +72,7 @@ export class CarRepository {
       .join(' AND ');
     const values = entries.map(([, value]) => value);
 
-    return query<Car>(
-      `SELECT * FROM "Car" WHERE ${whereClause}`,
-      values,
-    );
+    return query<Car>(`SELECT * FROM "Car" WHERE ${whereClause}`, values);
   }
 
   static async findByOwner(ownerId: number): Promise<Car[]> {

@@ -19,6 +19,7 @@ import {
   getCompanyStripeOnboardingLink,
   type CompanyAccessState,
 } from '@/lib/api/companyApi';
+import { CompanyAuditPageClient } from '../audit/CompanyAuditPageClient';
 
 async function parseJsonSafe(res: Response) {
   const text = await res.text();
@@ -279,6 +280,7 @@ export default function CompanyArea() {
                 {active === 'offices' && company && (
                   <CompanyOffices companyId={company.id ?? 0} />
                 )}
+                {active === 'audit' && <CompanyAuditPageClient />}
               </>
             )}
           </div>

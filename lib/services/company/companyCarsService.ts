@@ -1,10 +1,5 @@
 import { NextRequest } from 'next/server';
-import type {
-  Car,
-  CarType,
-  FuelType,
-  TransmissionType,
-} from '@/types/types';
+import type { Car, CarType, FuelType, TransmissionType } from '@/types/types';
 import { CarRepository } from '@/lib/repository/CarRepository';
 // import { countReservationsByCarId } from '@/lib/repository/ReservationRepository';
 import {
@@ -111,15 +106,25 @@ async function parseCreateCompanyCarRequest(
 
     carType = mapCarType(body?.carType != null ? String(body.carType) : null);
     transmissionType =
-      mapTransmissionType(body?.transmission != null ? String(body.transmission) : null) ||
-      mapTransmissionType(body?.transmissionType != null ? String(body.transmissionType) : null);
-    fuelType = mapFuelType(body?.fuelType != null ? String(body.fuelType) : null);
+      mapTransmissionType(
+        body?.transmission != null ? String(body.transmission) : null,
+      ) ||
+      mapTransmissionType(
+        body?.transmissionType != null ? String(body.transmissionType) : null,
+      );
+    fuelType = mapFuelType(
+      body?.fuelType != null ? String(body.fuelType) : null,
+    );
 
     officeId =
-      body?.officeId != null && body.officeId !== '' ? Number(body.officeId) : null;
+      body?.officeId != null && body.officeId !== ''
+        ? Number(body.officeId)
+        : null;
 
     if (Array.isArray(body?.images)) {
-      images = body.images.filter((it: unknown) => typeof it === 'string') as string[];
+      images = body.images.filter(
+        (it: unknown) => typeof it === 'string',
+      ) as string[];
     }
   }
 
@@ -192,7 +197,8 @@ export async function deleteCompanyCar(carId: number, companyId: number) {
     throw new Error('UNAUTHORIZED_CAR_ACCESS');
   }
 
-  const reservationsCount = await ReservationRepository.countReservationsByCarId(carId);
+  const reservationsCount =
+    await ReservationRepository.countReservationsByCarId(carId);
 
   if (reservationsCount > 0) {
     throw new Error('CAR_HAS_RESERVATIONS');
@@ -223,7 +229,7 @@ export async function updateCompanyCar(
   let body: Record<string, unknown>;
 
   try {
-    body = await req.json() as Record<string, unknown>;
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
     throw new Error('INVALID_JSON_BODY');
   }
@@ -242,16 +248,22 @@ export async function updateCompanyCar(
   }
 
   if (body.carType !== undefined) {
-    updateData.carType = mapCarType(body.carType != null ? String(body.carType) : null) ?? undefined;
+    updateData.carType =
+      mapCarType(body.carType != null ? String(body.carType) : null) ??
+      undefined;
   }
 
   if (body.transmissionType !== undefined) {
     updateData.transmissionType =
-      mapTransmissionType(body.transmissionType != null ? String(body.transmissionType) : null) ?? undefined;
+      mapTransmissionType(
+        body.transmissionType != null ? String(body.transmissionType) : null,
+      ) ?? undefined;
   }
 
   if (body.fuelType !== undefined) {
-    updateData.fuelType = mapFuelType(body.fuelType != null ? String(body.fuelType) : null) ?? undefined;
+    updateData.fuelType =
+      mapFuelType(body.fuelType != null ? String(body.fuelType) : null) ??
+      undefined;
   }
 
   if (body.officeId !== undefined) {
@@ -269,6 +281,50 @@ export async function updateCompanyCar(
 
   if (!updated) {
     throw new Error('CAR_NOT_FOUND');
+  }
+
+  if (body.year !== undefined) {
+    const year = Number(body.year);
+    if (Number.isNaN(year)) {
+      throw new Error('INVALID_CAR_YEAR');
+    }
+    updateData.year = year;
+  }
+
+  if (body.pricePerDay !== undefined) {
+    const pricePerDay = Number(body.pricePerDay);
+    if (Number.isNaN(pricePerDay)) {
+      throw new Error('INVALID_CAR_PRICE');
+    }
+    updateData.pricePerDay = pricePerDay;
+  }
+
+  if (body.power !== undefined) {
+    const power = Number(body.power);
+    if (Number.isNaN(power)) {
+      throw new Error('INVALID_CAR_POWER');
+    }
+    updateData.power = power;
+  }
+
+  if (body.displacement !== undefined) {
+    const displacement = Number(body.displacement);
+    if (Number.isNaN(displacement)) {
+      throw new Error('INVALID_CAR_DISPLACEMENT');
+    }
+    updateData.displacement = displacement;
+  }
+
+  if (body.officeId !== undefined) {
+    if (body.officeId === null || body.officeId === '') {
+      updateData.officeId = undefined;
+    } else {
+      const officeId = Number(body.officeId);
+      if (Number.isNaN(officeId)) {
+        throw new Error('INVALID_OFFICE_ID');
+      }
+      updateData.officeId = officeId;
+    }
   }
 
   return updated;
