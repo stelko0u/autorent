@@ -7,6 +7,7 @@ import { CarSearchProvider, useCarSearch } from '@/providers/CarSearchProvider';
 import type { HomeCar, Role } from '@/types/home';
 import CarSearchBar from '@/components/home/CarSearchBar';
 import FilteredCarsList from '@/components/home/FilteredCarsList';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type Props = {
   isLoggedIn: boolean;
@@ -24,6 +25,7 @@ function HomeContent({
   const [active, setActive] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { filteredCars, isLoading } = useCarSearch();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#ffffff_0%,_#f8fafc_40%,_#eef2f7_100%)] text-gray-800">
@@ -46,7 +48,7 @@ function HomeContent({
         >
           <button
             type="button"
-            aria-label="Close mobile menu"
+            aria-label={t('homePage.closeMobileMenu')}
             className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
             onClick={() => setMobileMenuOpen(false)}
           />
@@ -87,20 +89,19 @@ function HomeContent({
                     <div className="flex flex-col gap-4 rounded-3xl border border-gray-200/70 bg-white/90 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-                          Available vehicles
+                          {t('homePage.availableVehicles')}
                         </p>
                         <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">
-                          Featured cars
+                          {t('homePage.featuredCars')}
                         </h2>
                         <p className="mt-1 text-sm text-gray-500">
-                          Разгледай наличните автомобили според избраните от теб
-                          критерии.
+                          {t('homePage.featuredSubtitle')}
                         </p>
                       </div>
 
                       <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                          Results
+                          {t('homePage.results')}
                         </p>
                         <p className="text-lg font-semibold text-gray-900">
                           {isLoading ? '...' : filteredCars.length}

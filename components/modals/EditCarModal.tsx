@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import { Car } from '@/types/types';
 import { updateCar } from '@/lib/api/adminApi';
+import { useTranslation } from '@/providers/LanguageProvider';
+import {
+  carTypeKey,
+  fuelTypeKey,
+  transmissionKey,
+} from '@/lib/utils/vehicleLocalization';
 
 interface EditCarModalProps {
   car: Car;
@@ -18,6 +24,7 @@ export default function EditCarModal({
   onClose,
   onSuccess,
 }: EditCarModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<Partial<Car>>({
     make: car.make,
     model: car.model,
@@ -29,7 +36,6 @@ export default function EditCarModal({
     power: car.power,
     displacement: car.displacement,
   });
-  console.log('Editing car:', formData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
@@ -68,17 +74,17 @@ export default function EditCarModal({
     <Modal
       isOpen={true}
       onRequestClose={onClose}
-      contentLabel="Edit Car"
+      contentLabel={t('editCarModal.title')}
       className="bg-white rounded-lg py-4 max-w-lg w-full relative z-50 flex items-center justify-center"
       overlayClassName="fixed inset-0 bg-black/50 z-40 flex items-center justify-center"
     >
       <div>
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Edit Car</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">{t('editCarModal.title')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Make
+                {t('vehicle.brand')}
               </label>
               <input
                 type="text"
@@ -92,7 +98,7 @@ export default function EditCarModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Model
+                {t('vehicle.model')}
               </label>
               <input
                 type="text"
@@ -106,7 +112,7 @@ export default function EditCarModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Year
+                {t('vehicle.year')}
               </label>
               <input
                 type="number"
@@ -120,7 +126,7 @@ export default function EditCarModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price Per Day
+                {t('vehicle.pricePerDay')}
               </label>
               <input
                 type="number"
@@ -134,7 +140,7 @@ export default function EditCarModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Car Type
+                {t('vehicle.bodyType')}
               </label>
               <select
                 name="carType"
@@ -143,17 +149,31 @@ export default function EditCarModal({
                 required
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select Type</option>
-                <option value="SUV">SUV</option>
-                <option value="SEDAN">Sedan</option>
-                <option value="HATCHBACK">Hatchback</option>
-                <option value="COUPE">Coupe</option>
+                <option value="">{t('editCarModal.selectType')}</option>
+                {[
+                  'SUV',
+                  'SEDAN',
+                  'HATCHBACK',
+                  'COUPE',
+                  'CONVERTIBLE',
+                  'WAGON',
+                  'VAN',
+                  'PICKUP',
+                  'OTHER',
+                ].map((option) => {
+                  const key = carTypeKey(option);
+                  return (
+                    <option key={option} value={option}>
+                      {key ? t(`vehicle.bodyTypes.${key}`) : option}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Transmission Type
+                {t('vehicle.transmission')}
               </label>
               <select
                 name="transmissionType"
@@ -162,15 +182,23 @@ export default function EditCarModal({
                 required
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select Transmission</option>
-                <option value="AUTOMATIC">Automatic</option>
-                <option value="MANUAL">Manual</option>
+                <option value="">{t('editCarModal.selectTransmission')}</option>
+                {['AUTOMATIC', 'MANUAL', 'SEMI_AUTOMATIC', 'OTHER'].map(
+                  (option) => {
+                    const key = transmissionKey(option);
+                    return (
+                      <option key={option} value={option}>
+                        {key ? t(`vehicle.transmissions.${key}`) : option}
+                      </option>
+                    );
+                  },
+                )}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fuel Type
+                {t('vehicle.fuelType')}
               </label>
               <select
                 name="fuelType"
@@ -179,17 +207,23 @@ export default function EditCarModal({
                 required
                 className="text-gray-500 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select Fuel</option>
-                <option value="PETROL">Petrol</option>
-                <option value="DIESEL">Diesel</option>
-                <option value="ELECTRIC">Electric</option>
-                <option value="HYBRID">Hybrid</option>
+                <option value="">{t('editCarModal.selectFuel')}</option>
+                {['PETROL', 'DIESEL', 'ELECTRICITY', 'HYBRID', 'OTHER'].map(
+                  (option) => {
+                    const key = fuelTypeKey(option);
+                    return (
+                      <option key={option} value={option}>
+                        {key ? t(`vehicle.fuelTypes.${key}`) : option}
+                      </option>
+                    );
+                  },
+                )}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Power (HP)
+                {t('editCarModal.power')}
               </label>
               <input
                 type="number"
@@ -203,7 +237,7 @@ export default function EditCarModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Displacement (cc)
+                {t('editCarModal.displacement')}
               </label>
               <input
                 type="number"
@@ -223,14 +257,14 @@ export default function EditCarModal({
               disabled={isSubmitting}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition disabled:opacity-50"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('profileSettings.saving') : t('profileSettings.saveChanges')}
             </button>
           </div>
         </form>

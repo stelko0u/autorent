@@ -50,8 +50,8 @@ export default async function CompanyAuditPage({
     <main className="space-y-6 p-4 md:p-6">
       <AuditLogsClient
         mode="company"
-        title="Company Audit Logs"
-        description="Тук се пазят действията, извършени за твоята компания."
+        title="companyAudit.title"
+        description="companyAudit.description"
         initialData={initialData}
         initialFilters={initialFilters}
       />

@@ -15,9 +15,11 @@ import {
   type ReservationPeriod,
 } from '@/lib/api/reservationApi';
 import { ArrowLeft } from '@/components/icons';
-import { Calendars, CreditCard, MoneyBill1 } from '@/components/icons';
+import { CreditCard, MoneyBill1 } from '@/components/icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function ReservationPage() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const carId = params?.id as string;
@@ -60,7 +62,7 @@ export default function ReservationPage() {
         setReservations(data.reservations);
       } catch (err: unknown) {
         if (!isMounted) return;
-        setError(err instanceof Error ? err.message : 'Failed to load data');
+        setError(err instanceof Error ? err.message : t('reservationPage.failedToLoad'));
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -73,7 +75,7 @@ export default function ReservationPage() {
     return () => {
       isMounted = false;
     };
-  }, [carId]);
+  }, [carId, t]);
 
   useEffect(() => {
     if (!userData) return;
@@ -117,7 +119,7 @@ export default function ReservationPage() {
       !email ||
       !phone
     ) {
-      setError('Please fill in all required fields');
+      setError(t('reservationPage.requiredFields'));
       return;
     }
 
@@ -140,7 +142,7 @@ export default function ReservationPage() {
       const nextStep = data.flow?.nextStep;
 
       if (!reservationId) {
-        throw new Error('Missing reservation id');
+        throw new Error(t('reservationPage.missingReservationId'));
       }
 
       if (paymentMethod === 'CARD') {
@@ -158,7 +160,7 @@ export default function ReservationPage() {
       router.push(`/reservation/success?id=${reservationId}&step=created`);
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : 'Failed to create reservation',
+        err instanceof Error ? err.message : t('reservationPage.failedCreate'),
       );
     } finally {
       setSubmitting(false);
@@ -168,7 +170,7 @@ export default function ReservationPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-lg">
-        Loading reservation details...
+        {t('reservationPage.loading')}
       </div>
     );
   }
@@ -176,7 +178,7 @@ export default function ReservationPage() {
   if (!car) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-600">
-        {error || 'Car not found'}
+        {error || t('reservationPage.carNotFound')}
       </div>
     );
   }
@@ -189,7 +191,7 @@ export default function ReservationPage() {
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back</span>
+          <span className="font-medium">{t('reservationPage.back')}</span>
         </button>
 
         <div className="grid lg:grid-cols-3 gap-10">
@@ -204,14 +206,14 @@ export default function ReservationPage() {
                   <Image
                     src={car.images[0]}
                     className="object-cover"
-                    alt="Car"
+                    alt={t('reservationPage.carImageAlt')}
                     fill
                   />
                 </div>
               )}
 
               <p className="text-gray-600 text-lg">
-                Price per day:
+                {t('reservationPage.pricePerDay')}
                 <span className="font-semibold text-gray-900 ml-2">
                   €{car.pricePerDay}
                 </span>
@@ -220,7 +222,7 @@ export default function ReservationPage() {
 
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                Select Reservation Dates
+                {t('reservationPage.selectDates')}
               </h3>
 
               <Calendar
@@ -236,13 +238,13 @@ export default function ReservationPage() {
 
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                Personal Information
+                {t('reservationPage.personalInfo')}
               </h3>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
                   <label className="mb-1 text-sm font-medium text-gray-700">
-                    First Name *
+                    {t('reservationPage.firstName')}
                   </label>
                   <input
                     type="text"
@@ -255,7 +257,7 @@ export default function ReservationPage() {
 
                 <div className="flex flex-col">
                   <label className="mb-1 text-sm font-medium text-gray-700">
-                    Last Name *
+                    {t('reservationPage.lastName')}
                   </label>
                   <input
                     type="text"
@@ -268,7 +270,7 @@ export default function ReservationPage() {
 
                 <div className="flex flex-col md:col-span-2">
                   <label className="mb-1 text-sm font-medium text-gray-700">
-                    Email *
+                    {t('reservationPage.email')}
                   </label>
                   <input
                     type="email"
@@ -281,7 +283,7 @@ export default function ReservationPage() {
 
                 <div className="flex flex-col md:col-span-2">
                   <label className="mb-1 text-sm font-medium text-gray-700">
-                    Phone *
+                    {t('reservationPage.phone')}
                   </label>
                   <input
                     type="tel"
@@ -296,7 +298,7 @@ export default function ReservationPage() {
 
             <div className="bg-white rounded-2xl shadow p-6">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                Payment Method
+                {t('reservationPage.paymentMethod')}
               </h3>
 
               <div className="space-y-3">
@@ -317,11 +319,10 @@ export default function ReservationPage() {
                   />
                   <div className="ml-4 flex-1">
                     <div className="font-semibold text-gray-900">
-                      Pay Online with Card
+                      {t('reservationPage.payOnlineTitle')}
                     </div>
                     <div className="text-sm text-gray-500">
-                      First we create the reservation and send you an email.
-                      From the email you continue to payment.
+                      {t('reservationPage.payOnlineDescription')}
                     </div>
                   </div>
                   <CreditCard className="w-8 h-8 text-gray-400" />
@@ -344,10 +345,10 @@ export default function ReservationPage() {
                   />
                   <div className="ml-4 flex-1">
                     <div className="font-semibold text-gray-900">
-                      Pay On-Site
+                      {t('reservationPage.payOnSiteTitle')}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Pay when you pick up the car at the office
+                      {t('reservationPage.payOnSiteDescription')}
                     </div>
                   </div>
                   <MoneyBill1 className="w-8 h-8 text-gray-400" />
@@ -357,9 +358,8 @@ export default function ReservationPage() {
               {paymentMethod === 'ON_SPOT' && (
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> You will need to pay the full amount
-                    when you arrive to pick up the car. Please bring a valid
-                    payment method and identification.
+                    <strong>{t('reservationPage.note')}</strong>{' '}
+                    {t('reservationPage.onSpotNote')}
                   </p>
                 </div>
               )}
@@ -368,12 +368,12 @@ export default function ReservationPage() {
 
           <div className="bg-white rounded-2xl shadow p-6 h-fit sticky top-10">
             <h3 className="text-xl font-semibold mb-6 text-gray-800">
-              Reservation Summary
+              {t('reservationPage.summary')}
             </h3>
 
             {!selectedStartDate && (
               <p className="text-gray-500 text-sm">
-                Select dates to see pricing details.
+                {t('reservationPage.selectDatesHint')}
               </p>
             )}
 
@@ -381,38 +381,49 @@ export default function ReservationPage() {
               <>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Pick-up:</span>
+                    <span className="text-gray-600">{t('reservationPage.pickUp')}</span>
                     <span className="font-medium text-gray-800">
-                      {selectedStartDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {selectedStartDate.toLocaleDateString(
+                        locale === 'bg' ? 'bg-BG' : 'en-US',
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        },
+                      )}
                     </span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Drop-off:</span>
+                    <span className="text-gray-600">{t('reservationPage.dropOff')}</span>
                     <span className="font-medium text-gray-800">
-                      {selectedEndDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {selectedEndDate.toLocaleDateString(
+                        locale === 'bg' ? 'bg-BG' : 'en-US',
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        },
+                      )}
                     </span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Duration:</span>
+                    <span className="text-gray-600">{t('reservationPage.duration')}</span>
                     <span className="font-medium text-gray-800">
-                      {days} {days === 1 ? 'day' : 'days'}
+                      {days}{' '}
+                      {days === 1
+                        ? t('reservationPage.day')
+                        : t('reservationPage.days')}
                     </span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Payment:</span>
+                    <span className="text-gray-600">{t('reservationPage.payment')}</span>
                     <span className="font-medium text-gray-800">
-                      {paymentMethod === 'CARD' ? 'Online Card' : 'On-Site'}
+                      {paymentMethod === 'CARD'
+                        ? t('reservationPage.onlineCard')
+                        : t('reservationPage.onSite')}
                     </span>
                   </div>
                 </div>
@@ -422,13 +433,13 @@ export default function ReservationPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      €{car.pricePerDay} × {days} days
+                      €{car.pricePerDay} × {days} {t('reservationPage.days')}
                     </span>
                     <span className="text-gray-800">€{total.toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-lg font-bold pt-2 border-t">
-                    <span className="text-gray-800">Total</span>
+                    <span className="text-gray-800">{t('reservationPage.total')}</span>
                     <span className="text-indigo-600">€{total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -445,10 +456,10 @@ export default function ReservationPage() {
                   className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                 >
                   {submitting
-                    ? 'Processing...'
+                    ? t('reservationPage.processing')
                     : paymentMethod === 'CARD'
-                      ? 'Create Reservation'
-                      : 'Confirm Reservation'}
+                      ? t('reservationPage.createReservation')
+                      : t('reservationPage.confirmReservation')}
                 </button>
               </>
             )}

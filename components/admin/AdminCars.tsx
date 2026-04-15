@@ -5,8 +5,10 @@ import { CarRow, Company } from '@/types/types';
 import Image from 'next/image';
 import React, { useEffect, useMemo, useState } from 'react';
 import DeleteCarModal from '../modals/DeleteCarModal';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AdminCars() {
+  const { t } = useTranslation();
   const [cars, setCars] = useState<CarRow[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function AdminCars() {
       setCars(cars);
       setCompanies(companies);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Load failed');
+      setError(err instanceof Error ? err.message : t('adminCars.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export default function AdminCars() {
       await deleteCar(deleteCarId);
       setCars((prev) => prev.filter((car) => car.id !== deleteCarId));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      setError(err instanceof Error ? err.message : t('adminCars.deleteFailed'));
     } finally {
       closeDeleteModal();
     }
@@ -66,8 +68,8 @@ export default function AdminCars() {
   }, [companies]);
 
   const getCompanyName = (companyId?: number) => {
-    if (!companyId) return 'No company';
-    return companyMap.get(companyId) ?? 'Unknown company';
+    if (!companyId) return t('adminCars.noCompany');
+    return companyMap.get(companyId) ?? t('adminCars.unknownCompany');
   };
 
   return (
@@ -83,10 +85,10 @@ export default function AdminCars() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-slate-900">
-                Vehicle list
+                {t('adminCars.vehicleList')}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                View, edit, and remove cars from the catalog.
+                {t('adminCars.description')}
               </p>
             </div>
 
@@ -94,7 +96,7 @@ export default function AdminCars() {
               onClick={load}
               className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow"
             >
-              Refresh
+              {t('audit.refresh')}
             </button>
           </div>
         </div>
@@ -104,10 +106,10 @@ export default function AdminCars() {
             <div className="text-center">
               <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
               <p className="text-sm font-semibold text-slate-700">
-                Loading cars...
+                {t('adminCars.loadingCars')}
               </p>
               <p className="mt-1 text-sm text-slate-500">
-                Please wait while data is being fetched.
+                {t('adminCars.loadingDescription')}
               </p>
             </div>
           </div>
@@ -118,10 +120,10 @@ export default function AdminCars() {
                 🚘
               </div>
               <h4 className="text-lg font-semibold text-slate-900">
-                No cars found
+                {t('adminCars.noCars')}
               </h4>
               <p className="mt-2 text-sm text-slate-500">
-                There are currently no vehicles in the system.
+                {t('adminCars.noCarsDescription')}
               </p>
             </div>
           </div>
@@ -130,12 +132,12 @@ export default function AdminCars() {
             <table className="min-w-full">
               <thead className="bg-gray-100">
                 <tr className="text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  <th className="px-6 py-4">ID</th>
-                  <th className="px-6 py-4">Car</th>
-                  <th className="px-6 py-4">Year</th>
-                  <th className="px-6 py-4">Price / day</th>
-                  <th className="px-6 py-4">Company</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">{t('common.id')}</th>
+                  <th className="px-6 py-4">{t('adminCars.car')}</th>
+                  <th className="px-6 py-4">{t('vehicle.year')}</th>
+                  <th className="px-6 py-4">{t('adminCars.pricePerDay')}</th>
+                  <th className="px-6 py-4">{t('adminCars.company')}</th>
+                  <th className="px-6 py-4 text-right">{t('adminCars.actions')}</th>
                 </tr>
               </thead>
 
@@ -165,7 +167,7 @@ export default function AdminCars() {
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-400">
-                              No image
+                              {t('adminCars.noImage')}
                             </div>
                           )}
                         </div>
@@ -186,9 +188,9 @@ export default function AdminCars() {
                       {car.pricePerDay ? (
                         <span className="inline-flex items-baseline rounded-xl bg-emerald-50 px-3 py-2 font-semibold text-emerald-700">
                           ${car.pricePerDay}
-                          <span className="ml-1 text-sm font-medium text-emerald-600/80">
-                            / day
-                          </span>
+                            <span className="ml-1 text-sm font-medium text-emerald-600/80">
+                             {t('adminCars.perDay')}
+                            </span>
                         </span>
                       ) : (
                         <span className="text-sm text-slate-400">—</span>
@@ -209,7 +211,7 @@ export default function AdminCars() {
                           }
                           className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-100"
                         >
-                          Delete
+                          {t('adminCars.delete')}
                         </button>
                       </div>
                     </td>

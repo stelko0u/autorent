@@ -10,6 +10,12 @@ import {
   CompanyPanelPageHeader,
 } from './CompanyPanelUI';
 import { createCompanyCar, getCompanyOffices } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
+import {
+  carTypeKey,
+  fuelTypeKey,
+  transmissionKey,
+} from '@/lib/utils/vehicleLocalization';
 
 type FileWithPreview = File & { __preview: string };
 
@@ -31,6 +37,7 @@ function currentYear() {
 }
 
 export default function AddCarForm({ onCreated }: AddCarFormProps) {
+  const { t } = useTranslation();
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState<number | ''>('');
@@ -123,13 +130,13 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
     setError(null);
 
     if (rejected.length > 0) {
-      setError('Some files were rejected. Allowed types: PNG and JPEG.');
+      setError(t('companyAddCar.rejectedFiles'));
     }
 
     const valid = accepted.filter((file) => ALLOWED_TYPES.includes(file.type));
 
     if (files.length + valid.length > MAX_FILES) {
-      setError(`Maximum ${MAX_FILES} images are allowed.`);
+      setError(t('companyAddCar.maxImages', { count: MAX_FILES }));
       return;
     }
 
@@ -209,11 +216,13 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
         !transmission ||
         !fuelType
       ) {
-        throw new Error('Please complete all required car fields.');
+        throw new Error(t('companyAddCar.requiredFields'));
       }
 
       if (typeof year === 'number' && (year < 1980 || year > currentYear())) {
-        throw new Error(`Year must be between 1980 and ${currentYear()}.`);
+        throw new Error(
+          t('companyAddCar.yearRange', { year: currentYear() }),
+        );
       }
 
       if (
@@ -223,7 +232,7 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
         (pricePerDay <= 0 || power <= 0 || displacement <= 0)
       ) {
         throw new Error(
-          'Price, power and displacement must be positive values.',
+          t('companyAddCar.positiveValues'),
         );
       }
 
@@ -262,7 +271,9 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
 
       onCreated?.(createdCar);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create car');
+      setError(
+        err instanceof Error ? err.message : t('companyAddCar.failedCreateCar'),
+      );
     } finally {
       setBusy(false);
     }
@@ -271,20 +282,22 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
   return (
     <div className="space-y-6">
       <CompanyPanelPageHeader
-        eyebrow="Add car"
-        title="Create vehicle listing"
-        description="The add form now follows the same premium visual system as the dashboard and the rest of the company panel."
+        eyebrow={t('companyAddCar.eyebrow')}
+        title={t('companyAddCar.title')}
+        description={t('companyAddCar.description')}
         rightSlot={
           <div className="grid gap-3 sm:grid-cols-2">
             <CompanyPanelInfoCard
-              label="Form completion"
+              label={t('companyAddCar.formCompletion')}
               value={`${completion}%`}
-              description="Progress based on required fields."
+              description={t('companyAddCar.formCompletionDescription')}
             />
             <CompanyPanelInfoCard
-              label="Images selected"
+              label={t('companyAddCar.imagesSelected')}
               value={String(files.length)}
-              description={`Up to ${MAX_FILES} images can be uploaded.`}
+              description={t('companyAddCar.imagesDescription', {
+                count: MAX_FILES,
+              })}
               tone="success"
             />
           </div>
@@ -299,20 +312,20 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <CompanyPanelCard
-          title="Vehicle details"
-          description="Core listing information with a consistent input style."
+          title={t('companyAddCar.vehicleDetails')}
+          description={t('companyAddCar.vehicleDetailsDescription')}
         >
           <div className="grid gap-4 px-6 py-6 md:grid-cols-2 xl:grid-cols-3 sm:px-8">
-            <InputField label="Make" value={make} onChange={setMake} />
-            <InputField label="Model" value={model} onChange={setModel} />
+            <InputField label={t('vehicle.brand')} value={make} onChange={setMake} />
+            <InputField label={t('vehicle.model')} value={model} onChange={setModel} />
             <InputField
-              label="Year"
+              label={t('vehicle.year')}
               type="number"
               value={year}
               onChange={(value) => setYear(value === '' ? '' : Number(value))}
             />
             <InputField
-              label="Price per day (€)"
+              label={t('companyAddCar.pricePerDay')}
               type="number"
               value={pricePerDay}
               onChange={(value) =>
@@ -320,13 +333,13 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
               }
             />
             <InputField
-              label="Power (HP)"
+              label={t('companyAddCar.power')}
               type="number"
               value={power}
               onChange={(value) => setPower(value === '' ? '' : Number(value))}
             />
             <InputField
-              label="Displacement (cc)"
+              label={t('companyAddCar.displacement')}
               type="number"
               value={displacement}
               onChange={(value) =>
@@ -335,9 +348,14 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
             />
 
             <SelectField
-              label="Car type"
+              label={t('vehicle.bodyType')}
               value={carType}
               onChange={setCarType}
+              placeholder={t('companyAddCar.select')}
+              getOptionLabel={(option) => {
+                const key = carTypeKey(option);
+                return key ? t(`vehicle.bodyTypes.${key}`) : option;
+              }}
               options={[
                 'SEDAN',
                 'HATCHBACK',
@@ -354,22 +372,32 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
             />
 
             <SelectField
-              label="Transmission"
+              label={t('vehicle.transmission')}
               value={transmission}
               onChange={setTransmission}
+              placeholder={t('companyAddCar.select')}
+              getOptionLabel={(option) => {
+                const key = transmissionKey(option);
+                return key ? t(`vehicle.transmissions.${key}`) : option;
+              }}
               options={['MANUAL', 'AUTOMATIC', 'SEMI_AUTOMATIC', 'OTHER']}
             />
 
             <SelectField
-              label="Fuel type"
+              label={t('vehicle.fuelType')}
               value={fuelType}
               onChange={setFuelType}
+              placeholder={t('companyAddCar.select')}
+              getOptionLabel={(option) => {
+                const key = fuelTypeKey(option);
+                return key ? t(`vehicle.fuelTypes.${key}`) : option;
+              }}
               options={['PETROL', 'DIESEL', 'ELECTRICITY']}
             />
 
             <div className="md:col-span-2 xl:col-span-3">
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Office
+                {t('companySidebar.offices')}
               </label>
               <select
                 value={officeId}
@@ -380,10 +408,10 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
                 }
                 className="h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm text-gray-700 outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
               >
-                <option value="">Select office (optional)</option>
+                <option value="">{t('companyAddCar.selectOfficeOptional')}</option>
                 {offices.map((office) => (
                   <option key={office.id} value={office.id}>
-                    {office.name || office.address || `Office #${office.id}`}
+                    {office.name || office.address || t('companyAddCar.officeFallback', { id: office.id })}
                   </option>
                 ))}
               </select>
@@ -392,8 +420,8 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
         </CompanyPanelCard>
 
         <CompanyPanelCard
-          title="Vehicle gallery"
-          description="Upload, crop and organize listing images with the same clean surface styling."
+          title={t('companyAddCar.gallery')}
+          description={t('companyAddCar.galleryDescription')}
         >
           <div className="px-6 py-6 sm:px-8">
             <div
@@ -405,10 +433,10 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
                 <Images className="h-7 w-7" />
               </div>
               <h4 className="mt-4 text-lg font-semibold text-gray-900">
-                Drag & drop images here
+                {t('companyAddCar.dropImages')}
               </h4>
               <p className="mt-2 text-sm text-gray-500">
-                PNG or JPEG only. Click to select files.
+                {t('companyAddCar.pngJpegOnly')}
               </p>
             </div>
 
@@ -434,7 +462,7 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
                         onClick={() => removeImage(index)}
                         className="mt-3 inline-flex h-10 items-center rounded-xl bg-red-50 px-3 text-sm font-medium text-red-700 transition hover:bg-red-100"
                       >
-                        Remove
+                        {t('companyAddCar.remove')}
                       </button>
                     </div>
                   </div>
@@ -451,7 +479,7 @@ export default function AddCarForm({ onCreated }: AddCarFormProps) {
             className="inline-flex h-12 items-center justify-center rounded-2xl bg-indigo-600 px-5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
           >
             <Plus className="mr-2 h-4 w-4" />
-            {busy ? 'Creating…' : 'Create listing'}
+            {busy ? t('companyAddCar.creating') : t('companyAddCar.createListing')}
           </button>
         </div>
       </form>
@@ -498,9 +526,18 @@ interface SelectFieldProps {
   value: string;
   onChange: (value: string) => void;
   options: string[];
+  placeholder: string;
+  getOptionLabel?: (option: string) => string;
 }
 
-function SelectField({ label, value, onChange, options }: SelectFieldProps) {
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  getOptionLabel,
+}: SelectFieldProps) {
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -511,10 +548,10 @@ function SelectField({ label, value, onChange, options }: SelectFieldProps) {
         onChange={(event) => onChange(event.target.value)}
         className="h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm text-gray-700 outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
       >
-        <option value="">Select</option>
+        <option value="">{placeholder}</option>
         {options.map((option) => (
           <option key={option} value={option}>
-            {option.replaceAll('_', ' ')}
+            {getOptionLabel ? getOptionLabel(option) : option.replaceAll('_', ' ')}
           </option>
         ))}
       </select>

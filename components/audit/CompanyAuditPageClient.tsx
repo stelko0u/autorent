@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { CompanyAuditTable } from '@/components/audit/CompanyAuditTable';
 import { getCompanyAuditLogs } from '@/lib/api/auditApi';
 import type { AuditLogListFilters, AuditLogListResult } from '@/types/audit';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 const INITIAL_FILTERS: AuditLogListFilters = {
   page: 1,
@@ -17,6 +18,7 @@ const INITIAL_FILTERS: AuditLogListFilters = {
 };
 
 export function CompanyAuditPageClient() {
+  const { t } = useTranslation();
   const [data, setData] = useState<AuditLogListResult>({
     logs: [],
     total: 0,
@@ -36,11 +38,11 @@ export function CompanyAuditPageClient() {
       setData(nextData);
     } catch (err) {
       console.error('Failed to load company audit logs:', err);
-      setError('Неуспешно зареждане на одит записите.');
+      setError(t('audit.failedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void loadLogs();
@@ -51,10 +53,10 @@ export function CompanyAuditPageClient() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Одитни записи
+            {t('audit.companyAuditLogs')}
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            Преглед на действията, извършени за твоята компания.
+            {t('audit.companyAuditSubtitle')}
           </p>
         </div>
 
@@ -63,13 +65,13 @@ export function CompanyAuditPageClient() {
           onClick={() => void loadLogs()}
           className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:opacity-90"
         >
-          Обнови
+          {t('audit.refresh')}
         </button>
       </div>
 
       {loading ? (
         <div className="rounded-[24px] border border-slate-200 bg-white p-10 text-center text-sm text-slate-500 shadow-sm">
-          Зареждане...
+          {t('audit.loading')}
         </div>
       ) : null}
 

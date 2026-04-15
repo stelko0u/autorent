@@ -5,8 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import Successfully from '../../../components/icons/Check';
 import { TriangleExclamation } from '@/components/icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 function ReservationSuccessContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -26,20 +28,19 @@ function ReservationSuccessContent() {
 
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
           {isConfirmed
-            ? 'Reservation Confirmed!'
+            ? t('reservationSuccess.confirmedTitle')
             : isCheckEmail
-              ? 'Reservation Created!'
-              : 'Reservation Sent!'}
+              ? t('reservationSuccess.createdTitle')
+              : t('reservationSuccess.sentTitle')}
         </h1>
 
         {isCheckEmail && (
           <div className="mb-6">
             <p className="text-gray-700 text-lg mb-2">
-              Your reservation was created successfully.
+              {t('reservationSuccess.checkEmailLine1')}
             </p>
             <p className="text-gray-600 text-sm">
-              We sent you an email with a link. Open it to continue to the
-              payment page.
+              {t('reservationSuccess.checkEmailLine2')}
             </p>
           </div>
         )}
@@ -47,10 +48,10 @@ function ReservationSuccessContent() {
         {isCreated && (
           <div className="mb-6">
             <p className="text-gray-700 text-lg mb-2">
-              Your reservation request was created successfully.
+              {t('reservationSuccess.createdLine1')}
             </p>
             <p className="text-gray-600 text-sm">
-              You can now view your reservation details in your profile.
+              {t('reservationSuccess.createdLine2')}
             </p>
           </div>
         )}
@@ -58,17 +59,19 @@ function ReservationSuccessContent() {
         {isConfirmed && (
           <div className="mb-6">
             <p className="text-gray-700 text-lg mb-2">
-              Your reservation has been successfully confirmed and completed.
+              {t('reservationSuccess.confirmedLine1')}
             </p>
             <p className="text-gray-600 text-sm">
-              You can now view your reservation details in your profile.
+              {t('reservationSuccess.confirmedLine2')}
             </p>
           </div>
         )}
 
         {reservationId && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600 mb-1">Reservation Number</p>
+            <p className="text-sm text-gray-600 mb-1">
+              {t('reservationSuccess.reservationNumber')}
+            </p>
             <p className="text-2xl font-bold text-indigo-600">
               #{reservationId}
             </p>
@@ -87,8 +90,8 @@ function ReservationSuccessContent() {
 
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  <strong>Important:</strong> Check your email and use the link
-                  inside to continue to payment.
+                  <strong>{t('reservationSuccess.important')}</strong>{' '}
+                  {t('reservationSuccess.importantText')}
                 </p>
               </div>
             </div>
@@ -100,20 +103,20 @@ function ReservationSuccessContent() {
             onClick={() => router.push('/profile')}
             className="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md hover:shadow-lg cursor-pointer"
           >
-            Go to Profile
+            {t('reservationSuccess.goToProfile')}
           </button>
 
           <button
             onClick={() => router.push('/')}
             className="w-full px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition cursor-pointer"
           >
-            Back to Home
+            {t('reservationSuccess.backHome')}
           </button>
         </div>
 
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-xs text-gray-500">
-            Need help? Contact us at{' '}
+            {t('reservationSuccess.needHelp')}{' '}
             <a
               href="mailto:smartrentalpro@abv.bg"
               className="text-indigo-600 hover:underline"
@@ -132,11 +135,17 @@ export default function ReservationSuccessPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-lg">Loading...</div>
+          <ReservationSuccessLoading />
         </div>
       }
     >
       <ReservationSuccessContent />
     </Suspense>
   );
+}
+
+function ReservationSuccessLoading() {
+  const { t } = useTranslation();
+
+  return <div className="text-lg">{t('reservationSuccess.loading')}</div>;
 }

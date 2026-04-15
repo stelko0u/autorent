@@ -10,7 +10,6 @@ import {
   BadgeDollar,
   Car as CarIcon,
   Cars,
-  CircleInfo,
   PenCircle,
   CircleTrash,
   Plus,
@@ -29,6 +28,12 @@ import {
   CompanyPanelToolbar,
 } from './CompanyPanelUI';
 import { deleteCompanyCar } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
+import {
+  localizeCarType,
+  localizeFuelType,
+  localizeTransmission,
+} from '@/lib/utils/vehicleLocalization';
 
 type CarsViewMode = 'grid' | 'list';
 
@@ -48,13 +53,21 @@ function buildCarTitle(car: Car) {
   return `${car.make} ${car.model}`.trim();
 }
 
-function buildCarSubtitle(car: Car) {
-  return [car.carType, car.fuelType, car.transmissionType]
+function buildCarSubtitle(
+  car: Car,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  return [
+    localizeCarType(t, car.carType),
+    localizeFuelType(t, car.fuelType),
+    localizeTransmission(t, car.transmissionType),
+  ]
     .filter(Boolean)
     .join(' • ');
 }
 
 export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<CarsViewMode>('grid');
   const [search, setSearch] = useState('');
@@ -92,17 +105,17 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
 
     try {
       await deleteCompanyCar(deleteCarId);
-      toast.success('Car deleted successfully');
+      toast.success(t('companyManageCars.deletedSuccess'));
       setDeleteCarId(null);
       onRefresh?.();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete car');
+      toast.error(err instanceof Error ? err.message : t('companyManageCars.deleteFailed'));
       setDeleteCarId(null);
     }
   }
 
   function handleEditSuccess() {
-    toast.success('Car updated successfully');
+    toast.success(t('companyManageCars.updatedSuccess'));
     setEditCarId(null);
     onRefresh?.();
   }
@@ -114,20 +127,24 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
   return (
     <div className="space-y-6">
       <CompanyPanelPageHeader
-        eyebrow="Manage cars"
-        title="Fleet inventory"
-        description="Manage all vehicle listings from a cleaner inventory layout with shared company panel components."
+        eyebrow={t('companyManageCars.eyebrow')}
+        title={t('companyManageCars.title')}
+        description={t('companyManageCars.description')}
         rightSlot={
           <div className="grid gap-3 sm:grid-cols-2">
             <CompanyPanelInfoCard
-              label="Visible cars"
+              label={t('companyManageCars.visibleCars')}
               value={String(filteredCars.length)}
-              description="Results after the active search filter."
+              description={t('companyManageCars.visibleCarsDescription')}
             />
             <CompanyPanelInfoCard
-              label="Layout"
-              value={viewMode === 'grid' ? 'Compact grid' : 'Detailed list'}
-              description="Switch the inventory presentation instantly."
+              label={t('companyManageCars.layout')}
+              value={
+                viewMode === 'grid'
+                  ? t('companyManageCars.compactGrid')
+                  : t('companyManageCars.detailedList')
+              }
+              description={t('companyManageCars.layoutDescription')}
               tone="success"
             />
           </div>
@@ -136,19 +153,19 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <CompanyPanelMetricCard
-          title="Total vehicles"
+          title={t('companyManageCars.totalVehicles')}
           value={cars.length}
           icon={<Cars className="h-5 w-5 text-indigo-600" />}
           accentClassName="bg-indigo-50"
         />
         <CompanyPanelMetricCard
-          title="SUV listings"
+          title={t('companyManageCars.suvListings')}
           value={cars.filter((car) => car.carType === 'SUV').length}
           icon={<CarIcon className="h-5 w-5 text-blue-600" />}
           accentClassName="bg-blue-50"
         />
         <CompanyPanelMetricCard
-          title="Automatic"
+          title={t('companyManageCars.automatic')}
           value={
             cars.filter((car) => car.transmissionType === 'AUTOMATIC').length
           }
@@ -156,7 +173,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
           accentClassName="bg-amber-50"
         />
         <CompanyPanelMetricCard
-          title="Avg daily price"
+          title={t('companyManageCars.avgDailyPrice')}
           value={
             cars.length > 0
               ? formatPrice(
@@ -173,18 +190,18 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
       </section>
 
       <CompanyPanelCard
-        title="Car inventory"
-        description="Use the compact grid for browsing or the detailed list for richer management controls."
+        title={t('companyManageCars.inventoryTitle')}
+        description={t('companyManageCars.inventoryDescription')}
         rightSlot={
           <button
             type="button"
             onClick={handleAddCar}
             className="inline-flex h-11 items-center rounded-2xl bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Add car
-          </button>
-        }
+              <Plus className="mr-2 h-4 w-4" />
+              {t('companyManageCars.addCar')}
+            </button>
+          }
       >
         <CompanyPanelToolbar
           leftSlot={
@@ -192,8 +209,8 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
               value={viewMode}
               onChange={setViewMode}
               options={[
-                { value: 'grid', label: 'Compact grid' },
-                { value: 'list', label: 'Detailed list' },
+                { value: 'grid', label: t('companyManageCars.compactGrid') },
+                { value: 'list', label: t('companyManageCars.detailedList') },
               ]}
             />
           }
@@ -201,15 +218,15 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
             <CompanyPanelSearch
               value={search}
               onChange={setSearch}
-              placeholder="Search by make, model, year, fuel or transmission"
+              placeholder={t('companyManageCars.searchPlaceholder')}
             />
           }
         />
 
         {filteredCars.length === 0 ? (
           <CompanyPanelEmptyState
-            title="No cars found"
-            description="Try another search query or add your first vehicle."
+            title={t('companyManageCars.noCars')}
+            description={t('companyManageCars.noCarsDescription')}
           />
         ) : viewMode === 'grid' ? (
           <div className="grid gap-6 px-6 pb-6 sm:px-8 xl:grid-cols-3">
@@ -228,7 +245,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-sm text-gray-400">
-                      No image available
+                      {t('companyManageCars.noImage')}
                     </div>
                   )}
 
@@ -240,7 +257,9 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
 
                   <div className="absolute right-4 top-4 rounded-full bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white shadow-sm">
                     {formatPrice(car.pricePerDay)}
-                    <span className="ml-1 text-white/70">/ day</span>
+                    <span className="ml-1 text-white/70">
+                      {t('companyManageCars.perDay')}
+                    </span>
                   </div>
                 </div>
 
@@ -249,9 +268,9 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                     <h3 className="text-xl font-semibold text-gray-900">
                       {buildCarTitle(car)}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {buildCarSubtitle(car) || 'Professional listing overview'}
-                    </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {buildCarSubtitle(car, t) || t('companyManageCars.listingOverview')}
+                      </p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
@@ -260,10 +279,10 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <CarIcon className="h-4 w-4" />
                       </div>
                       <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Type
+                        {t('companyManageCars.type')}
                       </p>
                       <p className="mt-1 text-sm font-semibold text-gray-800">
-                        {car.carType}
+                        {localizeCarType(t, car.carType)}
                       </p>
                     </div>
 
@@ -272,10 +291,10 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <Transmission className="h-4 w-4" />
                       </div>
                       <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Gearbox
+                        {t('companyManageCars.gearbox')}
                       </p>
                       <p className="mt-1 text-sm font-semibold text-gray-800">
-                        {car.transmissionType}
+                        {localizeTransmission(t, car.transmissionType)}
                       </p>
                     </div>
 
@@ -284,10 +303,10 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <GasPump className="h-4 w-4" />
                       </div>
                       <p className="mt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Fuel
+                        {t('companyManageCars.fuel')}
                       </p>
                       <p className="mt-1 text-sm font-semibold text-gray-800">
-                        {car.fuelType}
+                        {localizeFuelType(t, car.fuelType)}
                       </p>
                     </div>
                   </div>
@@ -299,7 +318,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                     >
                       {/* <Eye className="h-4 w-4" /> */}
-                      View
+                      {t('companyManageCars.view')}
                     </button>
 
                     <button
@@ -308,7 +327,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-amber-600"
                     >
                       <PenCircle className="h-4 w-4" />
-                      Edit
+                      {t('companyManageCars.edit')}
                     </button>
 
                     <button
@@ -317,7 +336,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-700"
                     >
                       <CircleTrash className="h-4 w-4" />
-                      Delete
+                      {t('companyManageCars.delete')}
                     </button>
                   </div>
                 </div>
@@ -342,7 +361,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-gray-400">
-                        No image available
+                        {t('companyManageCars.noImage')}
                       </div>
                     )}
 
@@ -361,19 +380,19 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                             {buildCarTitle(car)}
                           </h3>
                           <CompanyPanelBadge tone="blue">
-                            {car.carType}
+                            {localizeCarType(t, car.carType)}
                           </CompanyPanelBadge>
                         </div>
 
                         <p className="mt-2 text-sm text-gray-500">
-                          {buildCarSubtitle(car) ||
-                            'Professional listing overview'}
+                          {buildCarSubtitle(car, t) ||
+                            t('companyManageCars.listingOverview')}
                         </p>
                       </div>
 
                       <div className="rounded-2xl bg-gray-900 px-4 py-3 text-white shadow-sm">
                         <p className="text-xs uppercase tracking-[0.14em] text-white/70">
-                          Daily price
+                          {t('companyManageCars.dailyPrice')}
                         </p>
                         <p className="mt-1 text-xl font-semibold">
                           {formatPrice(car.pricePerDay)}
@@ -386,7 +405,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <div className="flex items-center gap-2 text-gray-500">
                           {/* <Calendar className="h-4 w-4" /> */}
                           <span className="text-xs font-semibold uppercase tracking-wide">
-                            Year
+                            {t('companyManageCars.year')}
                           </span>
                         </div>
                         <p className="mt-2 text-base font-semibold text-gray-900">
@@ -398,11 +417,11 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <div className="flex items-center gap-2 text-gray-500">
                           <Transmission className="h-4 w-4" />
                           <span className="text-xs font-semibold uppercase tracking-wide">
-                            Transmission
+                            {t('companyManageCars.transmission')}
                           </span>
                         </div>
                         <p className="mt-2 text-base font-semibold text-gray-900">
-                          {car.transmissionType}
+                          {localizeTransmission(t, car.transmissionType)}
                         </p>
                       </div>
 
@@ -410,11 +429,11 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <div className="flex items-center gap-2 text-gray-500">
                           <GasPump className="h-4 w-4" />
                           <span className="text-xs font-semibold uppercase tracking-wide">
-                            Fuel
+                            {t('companyManageCars.fuel')}
                           </span>
                         </div>
                         <p className="mt-2 text-base font-semibold text-gray-900">
-                          {car.fuelType}
+                          {localizeFuelType(t, car.fuelType)}
                         </p>
                       </div>
 
@@ -422,7 +441,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         <div className="flex items-center gap-2 text-gray-500">
                           <BadgeDollar className="h-4 w-4" />
                           <span className="text-xs font-semibold uppercase tracking-wide">
-                            Price / day
+                            {t('companyManageCars.pricePerDay')}
                           </span>
                         </div>
                         <p className="mt-2 text-base font-semibold text-gray-900">
@@ -438,7 +457,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                       >
                         {/* <Eye className="h-4 w-4" /> */}
-                        View details
+                        {t('companyManageCars.viewDetails')}
                       </button>
 
                       <button
@@ -447,7 +466,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-amber-600"
                       >
                         <PenCircle className="h-4 w-4" />
-                        Edit listing
+                        {t('companyManageCars.editListing')}
                       </button>
 
                       <button
@@ -456,7 +475,7 @@ export default function ManageCars({ cars, onRefresh }: ManageCarsProps) {
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-red-700"
                       >
                         <CircleTrash className="h-4 w-4" />
-                        Delete
+                        {t('companyManageCars.delete')}
                       </button>
                     </div>
                   </div>

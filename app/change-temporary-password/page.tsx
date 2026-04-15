@@ -6,8 +6,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { completeOnboarding } from '@/lib/api/authApi';
 import authbg from 'public/authbg.jpg';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 function ChangeTemporaryPasswordForm() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -21,9 +23,9 @@ function ChangeTemporaryPasswordForm() {
 
   useEffect(() => {
     if (!userId) {
-      setError('Invalid or missing user ID.');
+      setError(t('changeTemporaryPassword.invalidOrMissingUserId'));
     }
-  }, [userId]);
+  }, [userId, t]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,17 +33,17 @@ function ChangeTemporaryPasswordForm() {
     setSuccess('');
 
     if (!userId) {
-      setError('Invalid or missing user ID.');
+      setError(t('changeTemporaryPassword.invalidOrMissingUserId'));
       return;
     }
 
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('changeTemporaryPassword.passwordsDoNotMatch'));
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(t('changeTemporaryPassword.passwordMin'));
       return;
     }
 
@@ -53,13 +55,15 @@ function ChangeTemporaryPasswordForm() {
         password,
       });
 
-      setSuccess('Password has been successfully changed!');
+      setSuccess(t('changeTemporaryPassword.success'));
 
       setTimeout(() => {
         router.push('/signin');
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error changing password.');
+      setError(
+        err instanceof Error ? err.message : t('changeTemporaryPassword.genericError'),
+      );
     } finally {
       setLoading(false);
     }
@@ -81,19 +85,21 @@ function ChangeTemporaryPasswordForm() {
       {!userId ? (
         <div className="mx-auto w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-red-600">Invalid link</h1>
+            <h1 className="text-2xl font-bold text-red-600">
+              {t('changeTemporaryPassword.invalidLink')}
+            </h1>
             <p className="mt-2 text-sm text-gray-600">
-              The link is invalid or expired.
+              {t('changeTemporaryPassword.invalidLinkDescription')}
             </p>
           </div>
 
           <div className="mt-4 text-sm text-gray-600">
-            Go back to{' '}
+            {t('changeTemporaryPassword.goBackTo')}{' '}
             <Link
               href="/signin"
               className="font-medium text-blue-600 hover:underline"
             >
-              Sign In
+              {t('changeTemporaryPassword.signIn')}
             </Link>
           </div>
         </div>
@@ -101,17 +107,17 @@ function ChangeTemporaryPasswordForm() {
         <div className="mx-auto w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
-              Change Temporary Password
+              {t('changeTemporaryPassword.title')}
             </h1>
             <p className="mt-2 text-sm text-gray-600">
-              Enter your new password below to complete your account setup.
+              {t('changeTemporaryPassword.subtitle')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                New Password
+                {t('changeTemporaryPassword.newPassword')}
               </label>
               <input
                 type="password"
@@ -119,14 +125,14 @@ function ChangeTemporaryPasswordForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-black outline-none transition focus:border-black"
-                placeholder="Enter new password"
+                placeholder={t('changeTemporaryPassword.newPasswordPlaceholder')}
                 required
               />
             </div>
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Confirm Password
+                {t('changeTemporaryPassword.confirmPassword')}
               </label>
               <input
                 type="password"
@@ -134,7 +140,7 @@ function ChangeTemporaryPasswordForm() {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-black outline-none transition focus:border-black"
-                placeholder="Confirm new password"
+                placeholder={t('changeTemporaryPassword.confirmPasswordPlaceholder')}
                 required
               />
             </div>
@@ -156,7 +162,9 @@ function ChangeTemporaryPasswordForm() {
               disabled={loading}
               className="h-11 w-full rounded-xl bg-black text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? 'Submitting...' : 'Save New Password'}
+              {loading
+                ? t('changeTemporaryPassword.submitting')
+                : t('changeTemporaryPassword.saveNewPassword')}
             </button>
           </form>
         </div>

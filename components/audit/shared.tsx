@@ -5,6 +5,8 @@ import type {
   AuditStatus,
 } from '@/types/audit';
 
+type Translator = (key: string, params?: Record<string, string | number>) => string;
+
 export function formatDateTime(value: string): string {
   const date = new Date(value);
 
@@ -22,46 +24,46 @@ export function formatDateTime(value: string): string {
   });
 }
 
-export function getOperationLabel(value: AuditOperation): string {
+export function getOperationLabel(value: AuditOperation, t?: Translator): string {
   switch (value) {
     case 'CREATE':
-      return 'Добавяне';
+      return t ? t('audit.create') : 'Добавяне';
     case 'UPDATE':
-      return 'Редакция';
+      return t ? t('audit.update') : 'Редакция';
     case 'DELETE':
-      return 'Изтриване';
+      return t ? t('audit.delete') : 'Изтриване';
     case 'BAN':
-      return 'Бан';
+      return t ? t('audit.ban') : 'Бан';
     case 'UNBAN':
-      return 'Ънбан';
+      return t ? t('audit.unban') : 'Ънбан';
     case 'PROFILE_UPDATE':
-      return 'Промяна на профил';
+      return t ? t('audit.profileUpdate') : 'Промяна на профил';
     default:
       return value;
   }
 }
 
-export function getEntityLabel(value: AuditEntityType): string {
+export function getEntityLabel(value: AuditEntityType, t?: Translator): string {
   switch (value) {
     case 'USER':
-      return 'Потребител';
+      return t ? t('audit.user') : 'Потребител';
     case 'CAR':
-      return 'Кола';
+      return t ? t('audit.cars') : 'Кола';
     case 'COMPANY':
-      return 'Компания';
+      return t ? t('audit.company') : 'Компания';
     case 'OFFICE':
-      return 'Офис';
+      return t ? t('audit.offices') : 'Офис';
     default:
       return value;
   }
 }
 
-export function getStatusLabel(value: AuditStatus): string {
+export function getStatusLabel(value: AuditStatus, t?: Translator): string {
   switch (value) {
     case 'SUCCESS':
-      return 'Успешно';
+      return t ? t('audit.success') : 'Успешно';
     case 'FAILURE':
-      return 'Неуспешно';
+      return t ? t('audit.failure') : 'Неуспешно';
     default:
       return value;
   }
@@ -93,7 +95,7 @@ export function getOperationClasses(value: AuditOperation): string {
   }
 }
 
-export function getActorLabel(log: AuditLogRecord): string {
+export function getActorLabel(log: AuditLogRecord, t?: Translator): string {
   if (log.actorDisplayName && log.actorEmail) {
     return `${log.actorDisplayName} (${log.actorEmail})`;
   }
@@ -110,23 +112,24 @@ export function getActorLabel(log: AuditLogRecord): string {
     return `User #${log.actorUserId}`;
   }
 
-  return 'Система / неизвестен';
+  return t ? t('audit.systemUnknown') : 'Система / неизвестен';
 }
 
-export function getLocationLabel(log: AuditLogRecord): string {
+export function getLocationLabel(log: AuditLogRecord, t?: Translator): string {
   const parts = [log.city, log.region, log.country].filter(
     (value): value is string => Boolean(value),
   );
 
   if (parts.length === 0) {
-    return 'Няма данни';
+    return t ? t('audit.noData') : 'Няма данни';
   }
 
   return parts.join(', ');
 }
 
-export function buildModalTitle(log: AuditLogRecord): string {
-  return `${getOperationLabel(log.operation)} • ${getEntityLabel(
+export function buildModalTitle(log: AuditLogRecord, t?: Translator): string {
+  return `${getOperationLabel(log.operation, t)} • ${getEntityLabel(
     log.entityType,
+    t,
   )} #${log.targetEntityId ?? '-'}`;
 }

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { createReservation } from '@/lib/api/reservationApi';
 import { Xmark } from '../icons';
 import LoadingCircle from '../icons/LoadingCircle';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface ReservationModalProps {
   carId: number;
@@ -32,6 +33,7 @@ export default function ReservationModal({
   onClose,
   onSuccess,
 }: ReservationModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<ReservationFormData>({
     startDate: '',
     endDate: '',
@@ -59,12 +61,12 @@ export default function ReservationModal({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.startDate) newErrors.startDate = 'Start date is required';
-    if (!formData.endDate) newErrors.endDate = 'End date is required';
-    if (!formData.firstName) newErrors.firstName = 'First name is required';
-    if (!formData.lastName) newErrors.lastName = 'Last name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!formData.phone) newErrors.phone = 'Phone is required';
+    if (!formData.startDate) newErrors.startDate = t('reservationModal.startDateRequired');
+    if (!formData.endDate) newErrors.endDate = t('reservationModal.endDateRequired');
+    if (!formData.firstName) newErrors.firstName = t('reservationModal.firstNameRequired');
+    if (!formData.lastName) newErrors.lastName = t('reservationModal.lastNameRequired');
+    if (!formData.email) newErrors.email = t('reservationModal.emailRequired');
+    if (!formData.phone) newErrors.phone = t('reservationModal.phoneRequired');
 
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate);
@@ -73,16 +75,16 @@ export default function ReservationModal({
       today.setHours(0, 0, 0, 0);
 
       if (start < today) {
-        newErrors.startDate = 'Start date cannot be in the past';
+        newErrors.startDate = t('reservationModal.startDatePast');
       }
 
       if (end <= start) {
-        newErrors.endDate = 'End date must be after start date';
+        newErrors.endDate = t('reservationModal.endDateAfterStart');
       }
     }
 
     if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = t('validation.invalidEmail');
     }
 
     setErrors(newErrors);
@@ -113,8 +115,8 @@ export default function ReservationModal({
 
       toast.success(
         result.flow?.nextStep === 'payment'
-          ? 'Reservation created successfully. Continue to payment.'
-          : 'Reservation confirmed successfully.',
+          ? t('reservationModal.createdContinuePayment')
+          : t('reservationModal.confirmedSuccessfully'),
       );
 
       onSuccess();
@@ -133,7 +135,7 @@ export default function ReservationModal({
     } catch (error: unknown) {
       console.error('Reservation error:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to create reservation',
+        error instanceof Error ? error.message : t('reservationPage.failedCreate'),
       );
     } finally {
       setLoading(false);
@@ -159,9 +161,11 @@ export default function ReservationModal({
           <div className="mb-4 flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                Reserve {carName}
+                {t('reservationModal.reserve')} {carName}
               </h2>
-              <p className="mt-1 text-gray-600">{pricePerDay} EUR per day</p>
+              <p className="mt-1 text-gray-600">
+                {pricePerDay} EUR {t('vehicle.pricePerDay').toLowerCase()}
+              </p>
             </div>
 
             <button
@@ -304,8 +308,8 @@ export default function ReservationModal({
                 }
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="ON_SPOT">Pay on spot</option>
-                <option value="CARD">Card</option>
+                <option value="ON_SPOT">{t('reservationPage.onSite')}</option>
+                <option value="CARD">{t('reservationPage.onlineCard')}</option>
               </select>
             </div>
 
@@ -318,14 +322,14 @@ export default function ReservationModal({
                 onChange={(e) => updateFormData('notes', e.target.value)}
                 rows={3}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Any special requests or notes..."
+                placeholder={t('reservationModal.notesPlaceholder')}
               />
             </div>
 
             {calculateTotalPrice() > 0 ? (
               <div className="rounded-lg bg-gray-50 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold">Total Price:</span>
+                  <span className="text-lg font-semibold">{t('reservationModal.totalPrice')}:</span>
                   <span className="text-2xl font-bold text-indigo-600">
                     {calculateTotalPrice()} EUR
                   </span>
@@ -338,7 +342,7 @@ export default function ReservationModal({
                       (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
                     );
 
-                    return `${days} day${days === 1 ? '' : 's'} × ${pricePerDay} EUR/day`;
+                    return `${days} ${days === 1 ? t('reservationPage.day') : t('reservationPage.days')} × ${pricePerDay} EUR/${t('reservationPage.day')}`;
                   })()}
                 </div>
               </div>
@@ -350,7 +354,7 @@ export default function ReservationModal({
                 onClick={onClose}
                 className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
 
               <button
@@ -361,10 +365,10 @@ export default function ReservationModal({
                 {loading ? (
                   <div className="flex items-center">
                     <LoadingCircle className="mr-2 h-5 w-5 animate-spin" />
-                    Processing...
+                    {t('reservationPage.processing')}
                   </div>
                 ) : (
-                  'Reserve Now'
+                  t('carDetails.reserveNow')
                 )}
               </button>
             </div>

@@ -19,6 +19,7 @@ import type {
   AuditOperation,
   AuditStatus,
 } from '@/types/audit';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface CompanyAuditTableProps {
   logs: AuditLogRecord[];
@@ -52,6 +53,7 @@ function InfoItem({ label, value }: InfoItemProps) {
 }
 
 export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [entityFilter, setEntityFilter] = useState<EntityFilter>('ALL');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
@@ -111,29 +113,29 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div className="min-w-0">
                 <h2 className="text-xl font-bold tracking-tight text-slate-900">
-                  Company Audit
+                  {t('audit.companyAudit')}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Филтрирай и преглеждай audit записите за компанията.
+                  {t('audit.companyAuditFilterSubtitle')}
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <label className="flex min-w-[180px] flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Търсене
+                    {t('audit.search')}
                   </span>
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="IP, user, action..."
+                    placeholder={t('audit.auditSearchPlaceholder')}
                     className="h-10 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-slate-400"
                   />
                 </label>
 
                 <label className="flex min-w-[160px] flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Entity
+                    {t('audit.entity')}
                   </span>
                   <select
                     value={entityFilter}
@@ -142,17 +144,17 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                     }
                     className="h-10 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-slate-400"
                   >
-                    <option value="ALL">Всички</option>
-                    <option value="USER">Потребители</option>
-                    <option value="CAR">Коли</option>
-                    <option value="COMPANY">Компании</option>
-                    <option value="OFFICE">Офиси</option>
+                    <option value="ALL">{t('audit.all')}</option>
+                    <option value="USER">{t('audit.users')}</option>
+                    <option value="CAR">{t('audit.cars')}</option>
+                    <option value="COMPANY">{t('audit.companies')}</option>
+                    <option value="OFFICE">{t('audit.offices')}</option>
                   </select>
                 </label>
 
                 <label className="flex min-w-[160px] flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Тип действие
+                    {t('audit.operationType')}
                   </span>
                   <select
                     value={operationFilter}
@@ -161,19 +163,19 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                     }
                     className="h-10 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-slate-400"
                   >
-                    <option value="ALL">Всички</option>
-                    <option value="CREATE">Добавяне</option>
-                    <option value="UPDATE">Редакция</option>
-                    <option value="DELETE">Изтриване</option>
-                    <option value="BAN">Бан</option>
-                    <option value="UNBAN">Ънбан</option>
-                    <option value="PROFILE_UPDATE">Промяна на профил</option>
+                    <option value="ALL">{t('audit.all')}</option>
+                    <option value="CREATE">{t('audit.create')}</option>
+                    <option value="UPDATE">{t('audit.update')}</option>
+                    <option value="DELETE">{t('audit.delete')}</option>
+                    <option value="BAN">{t('audit.ban')}</option>
+                    <option value="UNBAN">{t('audit.unban')}</option>
+                    <option value="PROFILE_UPDATE">{t('audit.profileUpdate')}</option>
                   </select>
                 </label>
 
                 <label className="flex min-w-[160px] flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Статус
+                    {t('audit.status')}
                   </span>
                   <select
                     value={statusFilter}
@@ -182,9 +184,9 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                     }
                     className="h-10 rounded-2xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 outline-none transition focus:border-slate-400"
                   >
-                    <option value="ALL">Всички</option>
-                    <option value="SUCCESS">Успешно</option>
-                    <option value="FAILURE">Неуспешно</option>
+                    <option value="ALL">{t('audit.all')}</option>
+                    <option value="SUCCESS">{t('audit.success')}</option>
+                    <option value="FAILURE">{t('audit.failure')}</option>
                   </select>
                 </label>
               </div>
@@ -192,12 +194,10 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600">
               <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-                Общо записи:{' '}
-                <span className="font-semibold">{logs.length}</span>
+                {t('audit.totalRecords', { count: logs.length })}
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-                След филтър:{' '}
-                <span className="font-semibold">{filteredLogs.length}</span>
+                {t('audit.filteredRecords', { count: filteredLogs.length })}
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
           <div className="p-4 md:p-5">
             {filteredLogs.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-4 py-12 text-center text-sm text-slate-500">
-                Няма намерени записи.
+                {t('audit.noRecords')}
               </div>
             ) : (
               <div className="grid gap-4">
@@ -222,11 +222,11 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                               log.operation,
                             )}`}
                           >
-                            {getOperationLabel(log.operation)}
+                            {getOperationLabel(log.operation, t)}
                           </span>
 
                           <span className="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
-                            {getEntityLabel(log.entityType)}
+                            {getEntityLabel(log.entityType, t)}
                           </span>
 
                           <span
@@ -234,7 +234,7 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                               log.status,
                             )}`}
                           >
-                            {getStatusLabel(log.status)}
+                            {getStatusLabel(log.status, t)}
                           </span>
                         </div>
 
@@ -251,46 +251,46 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                       <button
                         type="button"
                         onClick={() =>
-                          setSelectedLog({
-                            id: log.id,
-                            title: buildModalTitle(log),
-                            metadata: log.metadata,
-                            errorMessage: log.errorMessage,
-                          })
+                            setSelectedLog({
+                              id: log.id,
+                              title: buildModalTitle(log, t),
+                              metadata: log.metadata,
+                              errorMessage: log.errorMessage,
+                            })
                         }
                         className="inline-flex h-10 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-violet-700 transition hover:border-violet-300 hover:bg-violet-100"
                       >
-                        Детайли
+                        {t('audit.details')}
                       </button>
                     </div>
 
                     <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       <InfoItem
-                        label="Entity"
+                        label={t('audit.entity')}
                         value={
                           <div className="space-y-1">
                             <div className="font-semibold text-slate-900">
-                              {getEntityLabel(log.entityType)}
+                              {getEntityLabel(log.entityType, t)}
                             </div>
                             <div className="text-xs text-slate-500">
-                              ID: {log.targetEntityId ?? '-'}
+                              {t('audit.id')}: {log.targetEntityId ?? '-'}
                             </div>
                           </div>
                         }
                       />
 
                       <InfoItem
-                        label="Потребител"
+                        label={t('audit.user')}
                         value={
                           <div className="space-y-1">
                             <div className="font-semibold text-slate-900">
-                              {getActorLabel(log)}
+                              {getActorLabel(log, t)}
                             </div>
                             <div className="text-xs text-slate-500">
-                              Role: {log.actorRole ?? '-'}
+                              {t('audit.role')}: {log.actorRole ?? '-'}
                             </div>
                             <div className="text-xs text-slate-500">
-                              User ID: {log.actorUserId ?? '-'}
+                              {t('audit.userId')}: {log.actorUserId ?? '-'}
                             </div>
                           </div>
                         }
@@ -300,47 +300,47 @@ export function CompanyAuditTable({ logs }: CompanyAuditTableProps) {
                         label="IP"
                         value={
                           <div className="inline-flex rounded-xl bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700">
-                            {log.ipAddress || 'Няма данни'}
+                            {log.ipAddress || t('audit.noData')}
                           </div>
                         }
                       />
 
                       <InfoItem
-                        label="Геолокация"
+                        label={t('audit.geolocation')}
                         value={
                           <div className="space-y-1">
                             <div className="font-medium text-slate-900">
-                              {getLocationLabel(log)}
+                              {getLocationLabel(log, t)}
                             </div>
                             <div className="text-xs text-slate-500">
-                              Provider: {log.locationProvider ?? '-'}
+                              {t('audit.provider')}: {log.locationProvider ?? '-'}
                             </div>
                           </div>
                         }
                       />
 
                       <InfoItem
-                        label="Тип евент"
+                        label={t('audit.eventType')}
                         value={
                           <span
                             className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${getOperationClasses(
                               log.operation,
                             )}`}
                           >
-                            {getOperationLabel(log.operation)}
+                            {getOperationLabel(log.operation, t)}
                           </span>
                         }
                       />
 
                       <InfoItem
-                        label="Статус"
+                        label={t('audit.status')}
                         value={
                           <span
                             className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusClasses(
                               log.status,
                             )}`}
                           >
-                            {getStatusLabel(log.status)}
+                            {getStatusLabel(log.status, t)}
                           </span>
                         }
                       />

@@ -9,6 +9,7 @@ import {
   User,
 } from '../icons';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface UserProfileSummary {
   id: number;
@@ -35,6 +36,7 @@ export default function ProfileSidebar({
   user,
   activeTab,
 }: ProfileSidebarProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,22 +62,22 @@ export default function ProfileSidebar({
   const menuItems: MenuItem[] = [
     {
       id: 'profile',
-      label: 'Profile Settings',
+      label: t('profileSidebar.profileSettings'),
       icon: <User className="h-5 w-5" />,
     },
     {
       id: 'rentals',
-      label: 'My Rentals',
+      label: t('profileSidebar.myRentals'),
       icon: <Clipboard className="h-5 w-5" />,
     },
     {
       id: 'reviews',
-      label: 'My Reviews',
+      label: t('profileSidebar.myReviews'),
       icon: <EmptyStar className="h-5 w-5" />,
     },
     {
       id: 'favorites',
-      label: 'Liked Cars',
+      label: t('profileSidebar.likedCars'),
       icon: <Heart className="h-5 w-5" />,
     },
   ];
@@ -88,7 +90,7 @@ export default function ProfileSidebar({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.avatar}
-              alt={user.name || 'User'}
+              alt={user.name || t('profileSidebar.userFallback')}
               className="h-16 w-16 rounded-full border-4 border-white shadow-lg"
             />
           ) : (
@@ -101,7 +103,7 @@ export default function ProfileSidebar({
 
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-lg font-semibold">
-              {user.name || 'User'}
+              {user.name || t('profileSidebar.userFallback')}
             </h3>
             <p className="truncate text-sm text-white/80">{user.email}</p>
             <span className="mt-1 inline-block rounded bg-white/20 px-2 py-0.5 text-xs">
@@ -134,7 +136,7 @@ export default function ProfileSidebar({
           className="mt-2 flex w-full cursor-pointer items-center gap-3 border-t border-amber-600 px-4 py-3 pt-3 text-gray-700 transition hover:bg-gray-50"
         >
           <ArrowLeftFromBracket className="h-5 w-5" />
-          <span>Back to Home</span>
+          <span>{t('profileSidebar.backHome')}</span>
         </button>
       </nav>
     </div>

@@ -10,8 +10,8 @@ import {
   Cars,
   ChartLine,
   Clipboard,
-  Plus,
 } from '../icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type Props = {
   company: { id?: number; name?: string; email?: string } | null;
@@ -21,6 +21,7 @@ type Props = {
 };
 
 export default function CompanySidebar({ company, locked }: Props) {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentTab = searchParams.get('tab') || 'dashboard';
@@ -28,32 +29,32 @@ export default function CompanySidebar({ company, locked }: Props) {
   const menuItems = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: t('companySidebar.dashboard'),
       icon: <ChartLine className="w-5 h-5" />,
     },
     {
       id: 'reservations',
-      label: 'Reservations',
+      label: t('companySidebar.reservations'),
       icon: <Clipboard className="w-5 h-5" />,
     },
     {
       id: 'payments',
-      label: 'Payments',
+      label: t('companySidebar.payments'),
       icon: <BadgeDollar className="w-5 h-5" />,
     },
     {
       id: 'invoices',
-      label: 'Invoices',
+      label: t('companySidebar.invoices'),
       icon: <Clipboard className="w-5 h-5" />,
     },
     {
       id: 'reports',
-      label: 'Reports',
+      label: t('companySidebar.reports'),
       icon: <ChartLine className="w-5 h-5" />,
     },
     {
       id: 'manage-cars',
-      label: 'Manage Cars',
+      label: t('companySidebar.manageCars'),
       icon: <Cars className="w-5 h-5" />,
     },
     // {
@@ -63,12 +64,12 @@ export default function CompanySidebar({ company, locked }: Props) {
     // },
     {
       id: 'offices',
-      label: 'Offices',
+      label: t('companySidebar.offices'),
       icon: <Building className="w-5 h-5" />,
     },
     {
       id: 'audit',
-      label: 'Audit Logs',
+      label: t('companySidebar.auditLogs'),
       icon: <Clipboard className="w-5 h-5" />,
     }
   ];
@@ -91,13 +92,13 @@ export default function CompanySidebar({ company, locked }: Props) {
 
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
-              Company account
+              {t('companySidebar.companyAccount')}
             </p>
             <h3 className="mt-1 truncate text-xl font-semibold">
-              {company?.name || 'Company Panel'}
+              {company?.name || t('companySidebar.companyPanel')}
             </h3>
             <p className="mt-1 truncate text-sm text-white/75">
-              {company?.email || 'No email available'}
+              {company?.email || t('companySidebar.noEmail')}
             </p>
           </div>
         </div>
@@ -144,7 +145,7 @@ export default function CompanySidebar({ company, locked }: Props) {
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-500">
             <ArrowLeftFromBracket className="w-5 h-5" />
           </span>
-          <span>Back to site</span>
+          <span>{t('companySidebar.backToSite')}</span>
         </Link>
       </div>
     </aside>

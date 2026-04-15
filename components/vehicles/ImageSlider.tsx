@@ -5,6 +5,7 @@ import { useState } from 'react';
 import AngleLeft from '../icons/AngleLeft';
 import AngleRight from '../icons/AngleRight';
 import ReactModal from 'react-modal';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface ImageSliderProps {
   images: string[];
@@ -12,13 +13,14 @@ interface ImageSliderProps {
 }
 
 export default function ImageSlider({ images, carName }: ImageSliderProps) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fullScreen, setFullScreen] = useState(false);
 
   if (!images || images.length === 0) {
     return (
       <div className="w-full h-96 bg-gray-200 rounded-2xl flex items-center justify-center">
-        <span className="text-gray-500">No images available</span>
+        <span className="text-gray-500">{t('imageSlider.noImages')}</span>
       </div>
     );
   }
@@ -74,11 +76,11 @@ export default function ImageSlider({ images, carName }: ImageSliderProps) {
                   : 'opacity-70 hover:opacity-100'
               }`}
             >
-              <img
-                src={img}
-                alt={`Thumb ${i + 1}`}
-                className="w-full h-full object-cover"
-              />
+               <img
+                 src={img}
+                 alt={`${t('imageSlider.thumbnail')} ${i + 1}`}
+                 className="w-full h-full object-cover"
+               />
             </button>
           ))}
         </div>
@@ -123,11 +125,11 @@ export default function ImageSlider({ images, carName }: ImageSliderProps) {
                     : 'opacity-60 hover:opacity-100'
                 }`}
               >
-                <img
-                  src={img}
-                  alt={`Thumb ${i + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                 <img
+                   src={img}
+                   alt={`${t('imageSlider.thumbnail')} ${i + 1}`}
+                   className="w-full h-full object-cover"
+                 />
               </button>
             ))}
           </div>

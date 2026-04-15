@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation'; // Импортиране на useRouter
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Building, Cars, ChartLine, Plus, UsersGear } from '../icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AdminSidebar({
   active,
@@ -12,40 +13,45 @@ export default function AdminSidebar({
   active: string;
   setActive: (s: string) => void;
 }) {
-  const router = useRouter(); // Инициализиране на useRouter
+  const router = useRouter();
+  const { t } = useTranslation();
 
   const items = [
     {
       key: 'dashboard',
-      label: 'Dashboard',
+      label: t('adminSidebar.dashboard'),
       icon: <ChartLine className="w-5 h-5" />,
     },
     {
       key: 'companies',
-      label: 'Manage Companies',
+      label: t('adminSidebar.manageCompanies'),
       icon: <Building className="w-5 h-5" />,
     },
     {
       key: 'add-company',
-      label: 'Add Company',
+      label: t('adminSidebar.addCompany'),
       icon: <Plus className="w-5 h-5" />,
     },
-    { key: 'cars', label: 'Manage Cars', icon: <Cars className="w-5 h-5" /> },
+    {
+      key: 'cars',
+      label: t('adminSidebar.manageCars'),
+      icon: <Cars className="w-5 h-5" />,
+    },
     {
       key: 'users',
-      label: 'Manage Users',
+      label: t('adminSidebar.manageUsers'),
       icon: <UsersGear className="w-5 h-5" />,
     },
     {
       key: 'audit',
-      label: 'Audit Logs',
+      label: t('adminSidebar.auditLogs'),
       icon: <UsersGear className="w-5 h-5" />,
     }
   ];
 
   const handleTabChange = (key: string) => {
-    setActive(key); // Промяна на локалното състояние
-    router.push(`/admin?tab=${key}`); // Актуализиране на URL-а
+    setActive(key);
+    router.push(`/admin?tab=${key}`);
   };
 
   return (
@@ -55,8 +61,8 @@ export default function AdminSidebar({
           AD
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Admin Panel</h3>
-          <p className="text-sm text-gray-500">Site administration</p>
+          <h3 className="text-lg font-semibold">{t('adminSidebar.panelTitle')}</h3>
+          <p className="text-sm text-gray-500">{t('adminSidebar.panelSubtitle')}</p>
         </div>
       </div>
 
@@ -64,7 +70,7 @@ export default function AdminSidebar({
         {items.map((it) => (
           <button
             key={it.key}
-            onClick={() => handleTabChange(it.key)} // Използваме handleTabChange
+            onClick={() => handleTabChange(it.key)}
             className={
               'w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ' +
               (active === it.key ? 'bg-indigo-50 border border-indigo-200' : '')
@@ -83,7 +89,7 @@ export default function AdminSidebar({
           href="/"
           className="block px-3 py-2 text-sm text-gray-600 hover:text-gray-800"
         >
-          Back to site
+          {t('adminSidebar.backToSite')}
         </Link>
       </div>
     </aside>

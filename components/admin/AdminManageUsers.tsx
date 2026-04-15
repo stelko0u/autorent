@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import UserBanModal from '../modals/UserBanModal';
 import UserDeleteModal from '../modals/UserDeleteModal';
 import { banUser, deleteUser, fetchUsers, unbanUser } from '@/lib/api/adminApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type User = {
   id: string | number;
@@ -17,6 +18,7 @@ type User = {
 };
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function AdminUsersPage() {
       const data = await fetchUsers();
       setUsers(data.users);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load users');
+      setError(err instanceof Error ? err.message : t('adminUsers.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,7 @@ export default function AdminUsersPage() {
       await deleteUser(deleteUserId);
       await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete user');
+      setError(err instanceof Error ? err.message : t('adminUsers.failedDelete'));
     } finally {
       setActionLoading(null);
       setDeleteUserId(null);
@@ -95,7 +97,7 @@ export default function AdminUsersPage() {
 
   async function confirmBan() {
     if (banReason.length < 0 || banReason.length > 500) {
-      setError('Ban reason must be between 0 and 500 characters');
+      setError(t('adminUsers.invalidBanReason'));
       setActionLoading(null);
       return;
     }
@@ -108,7 +110,7 @@ export default function AdminUsersPage() {
       await banUser(banUserId, banReason);
       await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to ban user');
+      setError(err instanceof Error ? err.message : t('adminUsers.failedBan'));
     } finally {
       setActionLoading(null);
       setBanUserId(null);
@@ -124,7 +126,7 @@ export default function AdminUsersPage() {
       await unbanUser(id);
       await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to unban user');
+      setError(err instanceof Error ? err.message : t('adminUsers.failedUnban'));
     } finally {
       setActionLoading(null);
     }
@@ -135,18 +137,18 @@ export default function AdminUsersPage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Manage Users
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              View, manage, ban, and remove platform users.
-            </p>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                {t('adminUsers.title')}
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                {t('adminUsers.description')}
+              </p>
           </div>
 
           {!loading && users && (
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Total Users
+                {t('adminUsers.totalUsers')}
               </p>
               <p className="text-2xl font-semibold text-slate-900">
                 {users.length}
@@ -163,7 +165,7 @@ export default function AdminUsersPage() {
 
         {loading && (
           <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-            <p className="text-sm text-slate-500">Loading users…</p>
+            <p className="text-sm text-slate-500">{t('adminUsers.loading')}</p>
           </div>
         )}
 
@@ -175,12 +177,12 @@ export default function AdminUsersPage() {
                   <table className="min-w-full text-sm text-slate-700">
                     <thead className="bg-slate-50">
                       <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        <th className="px-6 py-4">ID</th>
-                        <th className="px-6 py-4">Name</th>
-                        <th className="px-6 py-4">Email</th>
-                        <th className="px-6 py-4">Role</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
+                        <th className="px-6 py-4">{t('common.id')}</th>
+                        <th className="px-6 py-4">{t('common.firstName')}</th>
+                        <th className="px-6 py-4">{t('common.email')}</th>
+                        <th className="px-6 py-4">{t('adminUsers.role')}</th>
+                        <th className="px-6 py-4">{t('adminUsers.status')}</th>
+                        <th className="px-6 py-4 text-right">{t('adminUsers.actions')}</th>
                       </tr>
                     </thead>
 
@@ -207,10 +209,10 @@ export default function AdminUsersPage() {
                               </div>
                               <div>
                                 <p className="font-medium text-slate-900">
-                                  {u.name || 'Unnamed User'}
+                                  {u.name || t('adminUsers.unnamedUser')}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  User account
+                                  {t('adminUsers.userAccount')}
                                 </p>
                               </div>
                             </div>
@@ -222,7 +224,7 @@ export default function AdminUsersPage() {
                             </div>
                             {u.emailVerified === false && (
                               <div className="mt-1 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
-                                Unverified
+                                {t('adminUsers.unverified')}
                               </div>
                             )}
                           </td>
@@ -245,13 +247,13 @@ export default function AdminUsersPage() {
                             {u.banned ? (
                               <div className="space-y-1">
                                 <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                                  Banned
+                                   {t('adminUsers.banned')}
                                 </span>
 
                                 {u.banReason && (
                                   <p className="max-w-xs text-xs text-slate-600">
                                     <span className="font-medium text-slate-700">
-                                      Reason:
+                                      {t('bannedPage.reason')}
                                     </span>{' '}
                                     {u.banReason}
                                   </p>
@@ -265,7 +267,7 @@ export default function AdminUsersPage() {
                               </div>
                             ) : (
                               <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                Active
+                                 {t('adminUsers.active')}
                               </span>
                             )}
                           </td>
@@ -287,11 +289,11 @@ export default function AdminUsersPage() {
                                         : 'bg-amber-500 text-white hover:bg-amber-600'
                                     } disabled:cursor-not-allowed disabled:bg-slate-300`}
                                   >
-                                    {actionLoading === u.id
-                                      ? 'Processing...'
+                                      {actionLoading === u.id
+                                      ? t('adminUsers.processing')
                                       : u.banned
-                                        ? 'Unban'
-                                        : 'Ban'}
+                                        ? t('adminUsers.unban')
+                                        : t('adminUsers.ban')}
                                   </button>
 
                                   <button
@@ -302,13 +304,13 @@ export default function AdminUsersPage() {
                                     className="inline-flex items-center rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                                   >
                                     {actionLoading === u.id
-                                      ? 'Processing...'
-                                      : 'Delete'}
+                                      ? t('adminUsers.processing')
+                                      : t('adminUsers.delete')}
                                   </button>
                                 </>
                               ) : (
                                 <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium italic text-slate-500">
-                                  Protected
+                                  {t('adminUsers.protected')}
                                 </span>
                               )}
                             </div>
@@ -322,10 +324,10 @@ export default function AdminUsersPage() {
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
                 <p className="text-lg font-medium text-slate-700">
-                  No users found
+                  {t('adminUsers.noUsers')}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
-                  There are currently no users to display.
+                  {t('adminUsers.noUsersDescription')}
                 </p>
               </div>
             )}

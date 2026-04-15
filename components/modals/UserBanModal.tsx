@@ -2,6 +2,7 @@
 
 import React from 'react';
 import ReactModal from 'react-modal';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type UserBanModalProps = {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function UserBanModal({
   banReason,
   setBanReason,
 }: UserBanModalProps) {
+  const { t } = useTranslation();
   return (
     <ReactModal
       isOpen={isOpen}
@@ -29,10 +31,9 @@ export default function UserBanModal({
     >
       <div className="overflow-hidden rounded-3xl">
         <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
-          <h2 className="text-xl font-semibold text-slate-900">Ban User</h2>
+          <h2 className="text-xl font-semibold text-slate-900">{t('userBanModal.title')}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            This action will restrict the selected user from accessing the
-            platform.
+            {t('userBanModal.description')}
           </p>
         </div>
 
@@ -41,7 +42,7 @@ export default function UserBanModal({
             htmlFor="banReason"
             className="mb-2 block text-sm font-medium text-slate-700"
           >
-            Ban Reason
+            {t('userBanModal.reason')}
           </label>
 
           <textarea
@@ -49,12 +50,12 @@ export default function UserBanModal({
             value={banReason}
             onChange={(e) => setBanReason(e.target.value)}
             rows={4}
-            placeholder="Enter reason for banning this user..."
+            placeholder={t('userBanModal.reasonPlaceholder')}
             className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
           />
 
           <div className="mt-2 flex justify-between text-xs">
-            <span className="text-slate-400">Maximum 500 characters</span>
+            <span className="text-slate-400">{t('userBanModal.maxChars')}</span>
             <span
               className={`${
                 banReason.length > 500 ? 'text-red-500' : 'text-slate-400'
@@ -70,7 +71,7 @@ export default function UserBanModal({
             onClick={onRequestClose}
             className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
 
           <button
@@ -78,7 +79,7 @@ export default function UserBanModal({
             disabled={banReason.length <= 0 || banReason.length > 500}
             className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            Ban User
+            {t('userBanModal.confirm')}
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import RentedCars from '../../components/profile/RentedCars';
 import UserReviews from '../../components/profile/UserReviews';
 import LikedCars from '../../components/profile/LikedCars';
 import ProfileSidebar from '../../components/profile/ProfileSidebar';
+import ProfilePageHeader from '../../components/profile/ProfilePageHeader';
 import { getAuthUser } from '@/lib/auth';
 import { ReviewRepository } from '@/lib/repository/ReviewRepository';
 
@@ -155,12 +156,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="mt-1 text-gray-600">
-            Manage your account and preferences
-          </p>
-        </div>
+        <ProfilePageHeader />
 
         <div className="grid gap-6 lg:grid-cols-4">
           <div className="lg:col-span-1">

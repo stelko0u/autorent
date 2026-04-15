@@ -20,6 +20,7 @@ import {
   type CompanyAccessState,
 } from '@/lib/api/companyApi';
 import { CompanyAuditPageClient } from '../audit/CompanyAuditPageClient';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 async function parseJsonSafe(res: Response) {
   const text = await res.text();
@@ -38,6 +39,7 @@ async function parseJsonSafe(res: Response) {
 }
 
 export default function CompanyArea() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const [active, setActive] = useState<string>('dashboard');
   const [company, setCompany] = useState<
@@ -80,7 +82,7 @@ export default function CompanyArea() {
       setCompany(companyData);
       setAccess(accessData);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Loading failed');
+      setError(err instanceof Error ? err.message : t('companyArea.loadingFailed'));
     } finally {
       setCheckingAccess(false);
     }
@@ -92,7 +94,7 @@ export default function CompanyArea() {
       const nextCars = await getCompanyCars();
       setCars(nextCars);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load cars');
+      setError(err instanceof Error ? err.message : t('companyArea.failedLoadCars'));
     }
   }
 
@@ -111,7 +113,7 @@ export default function CompanyArea() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Failed to redirect to Stripe onboarding',
+          : t('companyArea.failedStripeRedirect'),
       );
     } finally {
       setCreatingOnboardingLink(false);
@@ -147,30 +149,29 @@ export default function CompanyArea() {
             {checkingAccess ? (
               <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-8">
                 <div className="text-lg text-gray-600">
-                  Checking company access...
+                  {t('companyArea.checkingAccess')}
                 </div>
               </div>
             ) : isLocked ? (
               <div className="rounded-2xl border border-amber-200 bg-white shadow-sm overflow-hidden">
                 <div className="bg-amber-50 border-b border-amber-200 px-6 py-5">
                   <h2 className="text-2xl font-bold text-amber-900">
-                    Finish company activation
+                    {t('companyArea.finishActivation')}
                   </h2>
                   <p className="mt-2 text-amber-800">
-                    Your company account is created, but the panel is locked
-                    until you complete the required Stripe company details.
+                    {t('companyArea.lockedDescription')}
                   </p>
                 </div>
 
                 <div className="p-6 space-y-5">
                   <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                     <h3 className="font-semibold text-gray-900 mb-3">
-                      Activation checklist
+                      {t('companyArea.activationChecklist')}
                     </h3>
 
                     <div className="space-y-2 text-sm text-gray-700">
                       <div className="flex items-center justify-between gap-4">
-                        <span>Stripe details submitted</span>
+                        <span>{t('companyArea.stripeDetailsSubmitted')}</span>
                         <span
                           className={`font-medium ${
                             access?.stripe?.detailsSubmitted
@@ -179,13 +180,13 @@ export default function CompanyArea() {
                           }`}
                         >
                           {access?.stripe?.detailsSubmitted
-                            ? 'Done'
-                            : 'Missing'}
+                            ? t('companyArea.done')
+                            : t('companyArea.missing')}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between gap-4">
-                        <span>Charges enabled</span>
+                        <span>{t('companyArea.chargesEnabled')}</span>
                         <span
                           className={`font-medium ${
                             access?.stripe?.chargesEnabled
@@ -194,13 +195,13 @@ export default function CompanyArea() {
                           }`}
                         >
                           {access?.stripe?.chargesEnabled
-                            ? 'Enabled'
-                            : 'Not enabled'}
+                            ? t('companyArea.enabled')
+                            : t('companyArea.notEnabled')}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between gap-4">
-                        <span>Payouts enabled</span>
+                        <span>{t('companyArea.payoutsEnabled')}</span>
                         <span
                           className={`font-medium ${
                             access?.stripe?.payoutsEnabled
@@ -209,8 +210,8 @@ export default function CompanyArea() {
                           }`}
                         >
                           {access?.stripe?.payoutsEnabled
-                            ? 'Enabled'
-                            : 'Not enabled'}
+                            ? t('companyArea.enabled')
+                            : t('companyArea.notEnabled')}
                         </span>
                       </div>
                     </div>
@@ -218,7 +219,7 @@ export default function CompanyArea() {
 
                   {access?.stripe?.disabledReason && (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                      Stripe status: {access.stripe.disabledReason}
+                      {t('companyArea.stripeStatus')}: {access.stripe.disabledReason}
                     </div>
                   )}
 
@@ -226,7 +227,7 @@ export default function CompanyArea() {
                     access!.stripe!.currentlyDue.length > 0 && (
                       <div className="rounded-xl border border-gray-200 bg-white p-4">
                         <h3 className="font-semibold text-gray-900 mb-2">
-                          Still required in Stripe
+                          {t('companyArea.stillRequired')}
                         </h3>
                         <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
                           {access!.stripe!.currentlyDue.map((item) => (
@@ -244,8 +245,8 @@ export default function CompanyArea() {
                       className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-white font-medium hover:bg-indigo-700 disabled:opacity-60"
                     >
                       {creatingOnboardingLink
-                        ? 'Redirecting...'
-                        : 'Fill company details'}
+                        ? t('companyArea.redirecting')
+                        : t('companyArea.fillCompanyDetails')}
                     </button>
 
                     <button
@@ -253,14 +254,12 @@ export default function CompanyArea() {
                       onClick={loadCompanyData}
                       className="inline-flex items-center justify-center rounded-xl bg-gray-200 px-5 py-3 text-gray-800 font-medium hover:bg-gray-300"
                     >
-                      Refresh status
+                      {t('companyArea.refreshStatus')}
                     </button>
                   </div>
 
                   <p className="text-sm text-gray-500">
-                    Until activation is completed, access to dashboard, cars,
-                    offices, reservations, payments, invoices and reports stays
-                    locked.
+                    {t('companyArea.lockedFooter')}
                   </p>
                 </div>
               </div>

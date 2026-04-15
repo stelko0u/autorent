@@ -2,8 +2,10 @@
 
 import { createCompany } from '@/lib/api/adminApi';
 import React, { useState } from 'react';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AdminAddCompany() {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [maintenancePercent, setMaintenancePercent] = useState<number | ''>(0);
@@ -28,14 +30,14 @@ export default function AdminAddCompany() {
 
       await createCompany(payload);
 
-      setOk('Company and owner user created successfully');
+      setOk(t('adminAddCompany.companyCreated'));
       setName('');
       setEmail('');
       setMaintenancePercent(0);
 
       window.dispatchEvent(new CustomEvent('company:created'));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Create failed');
+      setError(err instanceof Error ? err.message : t('adminAddCompany.failedCreate'));
     } finally {
       setBusy(false);
     }
@@ -46,19 +48,19 @@ export default function AdminAddCompany() {
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-10">
           <h2 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
-            Add Company
+            {t('adminAddCompany.title')}
           </h2>
 
           <p className="mt-2 text-slate-500">
-            Create a new company account and assign an owner user.
+            {t('adminAddCompany.subtitle')}
           </p>
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
           <div className="border-b border-slate-100 bg-linear-to-r from-indigo-600 to-violet-600 px-8 py-8 text-white">
-            <h3 className="text-xl font-semibold">New Company Details</h3>
+            <h3 className="text-xl font-semibold">{t('adminAddCompany.newCompanyDetails')}</h3>
             <p className="mt-1 text-indigo-100">
-              Fill in the information below to create the company.
+              {t('adminAddCompany.formDescription')}
             </p>
           </div>
 
@@ -82,10 +84,10 @@ export default function AdminAddCompany() {
               {/* Company Name */}
               <div className="xl:col-span-2">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Company Name
+                  {t('adminAddCompany.companyName')}
                 </label>
                 <input
-                  placeholder="Enter company name"
+                  placeholder={t('adminAddCompany.companyNamePlaceholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm transition focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-100"
@@ -96,7 +98,7 @@ export default function AdminAddCompany() {
               {/* Email */}
               <div className="xl:col-span-1">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Email
+                  {t('adminAddCompany.email')}
                 </label>
                 <input
                   placeholder="company@example.com"
@@ -111,7 +113,7 @@ export default function AdminAddCompany() {
               {/* Maintenance Percent */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Maintenance Percent
+                  {t('adminAddCompany.maintenancePercent')}
                 </label>
 
                 <div className="relative">
@@ -140,7 +142,7 @@ export default function AdminAddCompany() {
                 </div>
 
                 <p className="mt-2 text-xs text-slate-500">
-                  Value between 0 and 100.
+                  {t('adminAddCompany.maintenanceHint')}
                 </p>
               </div>
 
@@ -172,7 +174,7 @@ export default function AdminAddCompany() {
                   disabled={busy}
                   className="inline-flex items-center justify-center rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 px-8 py-3 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:scale-[1.02] hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {busy ? 'Creating…' : 'Create Company'}
+                  {busy ? t('adminAddCompany.creating') : t('adminAddCompany.createCompany')}
                 </button>
               </div>
             </form>

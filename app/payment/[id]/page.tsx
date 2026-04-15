@@ -11,12 +11,14 @@ import {
   fetchReservationById,
   type ReservationData,
 } from '@/lib/api/reservationApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
 );
 
 export default function PaymentPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const reservationId = params.id as string;
@@ -47,7 +49,7 @@ export default function PaymentPage() {
         setError(
           err instanceof Error
             ? err.message
-            : 'Error connecting to the server. Please try again.',
+            : t('paymentPage.serverError'),
         );
       } finally {
         if (mounted) {
@@ -61,7 +63,7 @@ export default function PaymentPage() {
     return () => {
       mounted = false;
     };
-  }, [reservationId]);
+  }, [reservationId, t]);
 
   if (loading) {
     return (
@@ -69,10 +71,10 @@ export default function PaymentPage() {
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
           <h2 className="text-lg font-semibold text-slate-900">
-            Preparing your checkout
+            {t('paymentPage.preparingTitle')}
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            Please wait while we load your payment details.
+            {t('paymentPage.preparingText')}
           </p>
         </div>
       </div>
@@ -87,14 +89,14 @@ export default function PaymentPage() {
             <span className="text-2xl">⚠</span>
           </div>
           <h2 className="mb-2 text-2xl font-bold text-slate-900">
-            Payment Error
+            {t('paymentPage.errorTitle')}
           </h2>
           <p className="mb-6 text-sm leading-6 text-slate-600">{error}</p>
           <button
             onClick={() => router.push('/profile')}
             className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
           >
-            Back to Profile
+            {t('paymentPage.backToProfile')}
           </button>
         </div>
       </div>
@@ -106,16 +108,16 @@ export default function PaymentPage() {
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-200/50">
           <h2 className="text-lg font-semibold text-slate-900">
-            No reservation found
+            {t('paymentPage.noReservationTitle')}
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            Unable to load reservation details.
+            {t('paymentPage.noReservationText')}
           </p>
           <button
             onClick={() => router.push('/profile')}
             className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Back to Profile
+            {t('paymentPage.backToProfile')}
           </button>
         </div>
       </div>
@@ -128,16 +130,16 @@ export default function PaymentPage() {
         <div className="order-2 lg:order-1">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/40 md:p-8">
             <div className="mb-8">
-              <div className="mb-3 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-                Secure Checkout
-              </div>
+                <div className="mb-3 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+                  {t('paymentPage.secureCheckout')}
+                </div>
 
               <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-                Complete Your Payment
+                {t('paymentPage.completePayment')}
               </h1>
 
               <p className="mt-2 text-sm text-slate-500">
-                Reservation #{reservationId}
+                {t('paymentPage.reservationNumber', { id: reservationId })}
               </p>
             </div>
 
@@ -149,9 +151,11 @@ export default function PaymentPage() {
 
         <div className="order-1 lg:order-2">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/40 md:p-8 lg:sticky lg:top-8">
-            <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              {t('paymentPage.orderSummary')}
+            </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Review your reservation before completing payment.
+              {t('paymentPage.reviewBeforePayment')}
             </p>
 
             <div className="mt-6 space-y-5">
@@ -167,21 +171,21 @@ export default function PaymentPage() {
 
               <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Reservation ID</span>
+                  <span className="text-slate-500">{t('paymentPage.reservationId')}</span>
                   <span className="font-semibold text-slate-900">
                     #{reservation.id}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Vehicle</span>
+                  <span className="text-slate-500">{t('paymentPage.vehicle')}</span>
                   <span className="font-semibold text-slate-900">
                     {reservation.carMake} {reservation.carModel}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Start Date</span>
+                  <span className="text-slate-500">{t('paymentPage.startDate')}</span>
                   <span className="font-semibold text-slate-900">
                     {new Date(reservation.startDate).toLocaleDateString(
                       'en-GB',
@@ -195,7 +199,7 @@ export default function PaymentPage() {
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">End Date</span>
+                  <span className="text-slate-500">{t('paymentPage.endDate')}</span>
                   <span className="font-semibold text-slate-900">
                     {new Date(reservation.endDate).toLocaleDateString('en-GB', {
                       day: '2-digit',
@@ -206,14 +210,17 @@ export default function PaymentPage() {
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Duration</span>
+                  <span className="text-slate-500">{t('paymentPage.duration')}</span>
                   <span className="font-semibold text-slate-900">
-                    {reservation.days} day{reservation.days !== 1 ? 's' : ''}
+                    {reservation.days}{' '}
+                    {reservation.days !== 1
+                      ? t('paymentPage.days')
+                      : t('paymentPage.day')}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Status</span>
+                  <span className="text-slate-500">{t('paymentPage.status')}</span>
                   <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
                     {reservation.status}
                   </span>
@@ -224,7 +231,9 @@ export default function PaymentPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">
                     €{reservation.pricePerDay.toFixed(2)} × {reservation.days}{' '}
-                    day{reservation.days !== 1 ? 's' : ''}
+                    {reservation.days !== 1
+                      ? t('paymentPage.days')
+                      : t('paymentPage.day')}
                   </span>
                   <span className="text-slate-900">
                     €{reservation.totalAmount.toFixed(2)}
@@ -233,7 +242,7 @@ export default function PaymentPage() {
 
                 <div className="flex items-center justify-between border-t border-slate-200 pt-3">
                   <span className="text-base font-semibold text-slate-900">
-                    Total Amount
+                    {t('paymentPage.totalAmount')}
                   </span>
                   <span className="text-2xl font-bold text-slate-900">
                     €{reservation.totalAmount.toFixed(2)}
@@ -242,12 +251,12 @@ export default function PaymentPage() {
               </div>
 
               <div className="rounded-xl bg-emerald-50 p-3 text-xs text-emerald-700">
-                🔒 Your payment is processed securely via Stripe
+                🔒 {t('paymentPage.secureStripe')}
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-3">
                 <p className="text-xs font-medium text-slate-900">
-                  Calculation:
+                  {t('paymentPage.calculation')}
                 </p>
                 <p className="mt-1 text-xs text-slate-600">
                   {reservation.days} days × €{reservation.pricePerDay} = €

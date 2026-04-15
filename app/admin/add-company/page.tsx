@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import { createCompany } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AddCompanyPage() {
+  const { t } = useTranslation();
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,13 +17,13 @@ export default function AddCompanyPage() {
     e.preventDefault();
 
     if (maintenance === '') {
-      setMsg('Maintenance percent is required');
+      setMsg(t('adminAddCompany.maintenanceRequired'));
       return;
     }
 
     try {
       setLoading(true);
-      setMsg('Creating...');
+      setMsg(t('adminAddCompany.creating'));
 
       await createCompany({
         name: companyName,
@@ -30,13 +32,13 @@ export default function AddCompanyPage() {
         maintenancePercent: Number(maintenance),
       });
 
-      setMsg('Company created');
+      setMsg(t('adminAddCompany.companyCreated'));
       setCompanyName('');
       setEmail('');
       setPassword('');
       setMaintenance('');
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : 'Failed to create company');
+      setMsg(err instanceof Error ? err.message : t('adminAddCompany.failedCreate'));
     } finally {
       setLoading(false);
     }
@@ -44,11 +46,11 @@ export default function AddCompanyPage() {
 
   return (
     <div className="p-6 max-w-lg">
-      <h2 className="text-xl font-semibold mb-4">Add Company</h2>
+      <h2 className="text-xl font-semibold mb-4">{t('adminAddCompany.title')}</h2>
 
       <form onSubmit={submit} className="space-y-3">
         <div>
-          <label className="block text-sm">Company Name</label>
+          <label className="block text-sm">{t('adminAddCompany.companyName')}</label>
           <input
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
@@ -59,7 +61,7 @@ export default function AddCompanyPage() {
         </div>
 
         <div>
-          <label className="block text-sm">Email</label>
+          <label className="block text-sm">{t('adminAddCompany.email')}</label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -70,7 +72,7 @@ export default function AddCompanyPage() {
         </div>
 
         <div>
-          <label className="block text-sm">Password</label>
+          <label className="block text-sm">{t('adminAddCompany.password')}</label>
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -81,7 +83,7 @@ export default function AddCompanyPage() {
         </div>
 
         <div>
-          <label className="block text-sm">% Maintenance</label>
+          <label className="block text-sm">{t('adminAddCompany.maintenancePercent')}</label>
           <input
             value={maintenance}
             onChange={(e) =>
@@ -103,7 +105,7 @@ export default function AddCompanyPage() {
             disabled={loading}
             className="bg-blue-600 text-white px-4 py-2 disabled:opacity-60"
           >
-            {loading ? 'Creating...' : 'Create Company'}
+            {loading ? t('adminAddCompany.creating') : t('adminAddCompany.createCompany')}
           </button>
         </div>
 

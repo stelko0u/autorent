@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { EmptyStar, FullStar } from '@/components/icons';
 import { useAlert } from '@/providers/AlertProvider';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface Review {
   id?: number;
@@ -36,6 +37,7 @@ export default function ReviewsList({
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { showAlert } = useAlert();
+  const { t, locale } = useTranslation();
 
   useEffect(() => {
     if (initialOpen && canAddReview) {
@@ -47,11 +49,11 @@ export default function ReviewsList({
     e.preventDefault();
 
     if (rating === 0 || !comment.trim()) {
-      showAlert({
-        type: 'warning',
-        title: 'Missing Information',
-        message: 'Please select a rating and write a comment',
-      });
+        showAlert({
+          type: 'warning',
+          title: t('reviewsList.missingTitle'),
+          message: t('reviewsList.missingMessage'),
+        });
       return;
     }
 
@@ -66,8 +68,9 @@ export default function ReviewsList({
         console.error('Error submitting review:', error);
         showAlert({
           type: 'error',
-          title: 'Error',
-          message: error instanceof Error ? error.message : 'Error submitting review',
+          title: t('reviewsList.errorTitle'),
+          message:
+            error instanceof Error ? error.message : t('reviewsList.submitError'),
         });
       } finally {
         setSubmitting(false);
@@ -78,7 +81,7 @@ export default function ReviewsList({
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Reviews</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('reviewsList.title')}</h2>
         <div className="text-center py-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
         </div>
@@ -89,14 +92,14 @@ export default function ReviewsList({
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Reviews</h2>
+        <h2 className="text-xl font-semibold text-gray-800">{t('reviewsList.title')}</h2>
 
         {canAddReview && !showReviewForm && (
           <button
             onClick={() => setShowReviewForm(true)}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
           >
-            Write Review
+            {t('reviewsList.writeReview')}
           </button>
         )}
       </div>
@@ -104,13 +107,13 @@ export default function ReviewsList({
       {showReviewForm && (
         <div className="mb-6 border border-gray-200 rounded-lg p-6 bg-gray-50">
           <h3 className="font-semibold text-gray-900 mb-4 text-lg">
-            Add Your Review
+            {t('reviewsList.addReview')}
           </h3>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rating <span className="text-red-500">*</span>
+                {t('reviewsList.rating')} <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-1">
                 {Array.from({ length: 5 }).map((_, index) => {
@@ -140,7 +143,7 @@ export default function ReviewsList({
                 htmlFor="comment"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Comment <span className="text-red-500">*</span>
+                {t('reviewsList.comment')} <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="comment"
@@ -148,7 +151,7 @@ export default function ReviewsList({
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                placeholder="Share your experience with this car..."
+                placeholder={t('reviewsList.commentPlaceholder')}
                 required
               />
             </div>
@@ -159,7 +162,7 @@ export default function ReviewsList({
                 disabled={submitting || rating === 0 || !comment.trim()}
                 className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                {submitting ? 'Submitting...' : 'Submit Review'}
+                {submitting ? t('reviewsList.submitting') : t('reviewsList.submit')}
               </button>
               <button
                 type="button"
@@ -171,7 +174,7 @@ export default function ReviewsList({
                 disabled={submitting}
                 className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -201,7 +204,7 @@ export default function ReviewsList({
                       <div className="text-sm text-gray-500">
                         {review.createdAt
                           ? new Date(review.createdAt).toLocaleDateString(
-                              'bg-BG',
+                              locale === 'bg' ? 'bg-BG' : 'en-US',
                               {
                                 year: 'numeric',
                                 month: 'long',
@@ -239,11 +242,11 @@ export default function ReviewsList({
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500 text-lg">
-            No reviews yet. Be the first to review!
-          </p>
-        </div>
-      )}
+            <p className="text-gray-500 text-lg">
+              {t('reviewsList.empty')}
+            </p>
+          </div>
+        )}
     </div>
   );
 }

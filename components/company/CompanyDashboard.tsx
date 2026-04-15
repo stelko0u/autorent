@@ -8,6 +8,7 @@ import {
   getCompanyPayments,
   getStripeLoginLink,
 } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 interface DashboardStats {
   totalRevenue: number;
   platformFee: number;
@@ -214,6 +215,7 @@ function StatCard({
 }
 
 export default function CompanyDashboard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentReservations, setRecentReservations] = useState<
     RecentReservation[]
@@ -238,7 +240,7 @@ export default function CompanyDashboard() {
         setPayments(paymentsData.payments);
       } catch (err: unknown) {
         setError(
-          err instanceof Error ? err.message : 'Failed to load dashboard',
+          err instanceof Error ? err.message : t('companyDashboard.failedLoad'),
         );
       } finally {
         setLoading(false);
@@ -284,7 +286,7 @@ export default function CompanyDashboard() {
   if (error) {
     return (
       <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">
-        <h3 className="text-lg font-semibold">Dashboard error</h3>
+        <h3 className="text-lg font-semibold">{t('companyDashboard.errorTitle')}</h3>
         <p className="mt-2 text-sm">{error}</p>
       </div>
     );
@@ -300,14 +302,13 @@ export default function CompanyDashboard() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-700">
-              Company overview
+              {t('companyDashboard.overview')}
             </div>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950">
-              Financial dashboard
+              {t('companyDashboard.financialDashboard')}
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">
-              Clean overview of earnings, reservations and payment health for
-              your company account.
+              {t('companyDashboard.financialDescription')}
             </p>
             <button
               type="button"
@@ -321,34 +322,36 @@ export default function CompanyDashboard() {
               }}
               className=" text-white hover:scale-101 left-0 bg-blue-500 px-3 py-2 rounded-full font-bold transition-all duration-200 cursor-pointer"
             >
-              View balance and payouts in Stripe
+              {t('companyDashboard.openStripe')}
             </button>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
-                Data source
+                {t('companyDashboard.dataSource')}
               </p>
               <p className="mt-2 text-lg font-semibold text-gray-900">
-                {stats.moneySource === 'stripe' ? 'Stripe' : 'Database'}
+                {stats.moneySource === 'stripe'
+                  ? t('companyDashboard.stripe')
+                  : t('companyDashboard.database')}
               </p>
               <p className="mt-1 text-sm text-gray-500">
                 {stats.moneySource === 'stripe'
-                  ? 'Live dashboard values synced from Stripe.'
-                  : 'Fallback values generated from local payment records.'}
+                  ? t('companyDashboard.liveStripe')
+                  : t('companyDashboard.fallbackRecords')}
               </p>
             </div>
 
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-                Collection rate
+                {t('companyDashboard.collectionRate')}
               </p>
               <p className="mt-2 text-lg font-semibold text-emerald-900">
-                {collectionRate}% completed
+                {t('companyDashboard.completedRate', { value: collectionRate })}
               </p>
               <p className="mt-1 text-sm text-emerald-700/80">
-                Based on confirmed reservations in your portfolio.
+                {t('companyDashboard.collectionRateDescription')}
               </p>
             </div>
           </div>
@@ -357,56 +360,60 @@ export default function CompanyDashboard() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          title="Total revenue"
+          title={t('companyDashboard.totalRevenue')}
           value={money(stats.totalRevenue)}
-          subtitle="Processed bookings and successful charges"
+          subtitle={t('companyDashboard.totalRevenueSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
           variant="accent"
         />
         <StatCard
-          title="Platform fee"
+          title={t('companyDashboard.platformFee')}
           value={money(stats.platformFee)}
-          subtitle="Automatically calculated maintenance fee"
+          subtitle={t('companyDashboard.platformFeeSubtitle')}
           icon={<Clipboard className="h-7 w-7" />}
           badge={`${stats.maintenancePercent.toFixed(2)}%`}
         />
         <StatCard
-          title="Net earnings"
+          title={t('companyDashboard.netEarnings')}
           value={money(stats.companyEarnings)}
-          subtitle="Expected earnings after platform deductions"
+          subtitle={t('companyDashboard.netEarningsSubtitle')}
           icon={<Check className="h-7 w-7" />}
           variant="success"
         />
         <StatCard
-          title="Withdrawable balance"
+          title={t('companyDashboard.withdrawableBalance')}
           value={money(stats.companyEarnings)}
-          subtitle="Professional summary for the company panel"
+          subtitle={t('companyDashboard.withdrawableBalanceSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
-          badge={stats.moneySource === 'stripe' ? 'Synced' : 'Internal'}
+          badge={
+            stats.moneySource === 'stripe'
+              ? t('companyDashboard.synced')
+              : t('companyDashboard.internal')
+          }
         />
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Online payments"
+          title={t('companyDashboard.onlinePayments')}
           value={`${paymentBreakdown.onlineRevenue.toFixed(2)} €`}
           icon={<BadgeDollar className="h-5 w-5 text-blue-600" />}
           accentClassName="bg-blue-50"
         />
         <MetricCard
-          title="Cash payments"
+          title={t('companyDashboard.cashPayments')}
           value={`${paymentBreakdown.cashRevenue.toFixed(2)} €`}
           icon={<BadgeDollar className="h-5 w-5 text-emerald-600" />}
           accentClassName="bg-emerald-50"
         />
         <MetricCard
-          title="Online paid count"
+          title={t('companyDashboard.onlinePaidCount')}
           value={paymentBreakdown.onlineCount}
           icon={<Check className="h-5 w-5 text-indigo-600" />}
           accentClassName="bg-indigo-50"
         />
         <MetricCard
-          title="Cash paid count"
+          title={t('companyDashboard.cashPaidCount')}
           value={paymentBreakdown.cashCount}
           icon={<Check className="h-5 w-5 text-amber-600" />}
           accentClassName="bg-amber-50"
@@ -415,25 +422,25 @@ export default function CompanyDashboard() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Total reservations"
+          title={t('companyDashboard.totalReservations')}
           value={stats.totalReservations}
           icon={<Clipboard className="h-5 w-5 text-blue-600" />}
           accentClassName="bg-blue-50"
         />
         <MetricCard
-          title="Pending reservations"
+          title={t('companyDashboard.pendingReservations')}
           value={stats.pendingReservations}
           icon={<Clock className="h-5 w-5 text-amber-600" />}
           accentClassName="bg-amber-50"
         />
         <MetricCard
-          title="Completed reservations"
+          title={t('companyDashboard.completedReservations')}
           value={stats.completedReservations}
           icon={<Check className="h-5 w-5 text-emerald-600" />}
           accentClassName="bg-emerald-50"
         />
         <MetricCard
-          title="Active cars"
+          title={t('companyDashboard.activeCars')}
           value={stats.totalCars}
           icon={<Cars className="h-5 w-5 text-violet-600" />}
           accentClassName="bg-violet-50"
@@ -444,10 +451,10 @@ export default function CompanyDashboard() {
         <div className="rounded-[28px] border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-col gap-2 border-b border-gray-200 px-6 py-5 sm:px-8">
             <h3 className="text-xl font-semibold text-gray-950">
-              Recent reservations
+              {t('companyDashboard.recentReservations')}
             </h3>
             <p className="text-sm text-gray-500">
-              Latest bookings made for your vehicles.
+              {t('companyDashboard.recentReservationsDescription')}
             </p>
           </div>
 
@@ -456,22 +463,22 @@ export default function CompanyDashboard() {
               <thead>
                 <tr className="bg-gray-50">
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
-                    Car
+                    {t('companyDashboard.car')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                    Customer
+                    {t('companyDashboard.customer')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                    Rental period
+                    {t('companyDashboard.rentalPeriod')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                    Amount
+                    {t('companyDashboard.amount')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                    Status
+                    {t('companyDashboard.status')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
-                    Payment
+                    {t('companyDashboard.payment')}
                   </th>
                 </tr>
               </thead>
@@ -483,7 +490,7 @@ export default function CompanyDashboard() {
                       colSpan={6}
                       className="px-6 py-12 text-center text-sm text-gray-500 sm:px-8"
                     >
-                      No reservations yet.
+                      {t('companyDashboard.noReservations')}
                     </td>
                   </tr>
                 ) : (
@@ -543,29 +550,29 @@ export default function CompanyDashboard() {
         <div className="space-y-4">
           <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-950">
-              Earnings summary
+              {t('companyDashboard.earningsSummary')}
             </h3>
             <div className="mt-5 space-y-4">
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-gray-500">Gross revenue</span>
+                <span className="text-sm text-gray-500">{t('companyDashboard.grossRevenue')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {money(stats.totalRevenue)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-gray-500">Online payments</span>
+                <span className="text-sm text-gray-500">{t('companyDashboard.onlinePayments')}</span>
                 <span className="text-sm font-semibold text-blue-700">
                   {money(paymentBreakdown.onlineRevenue)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-gray-500">Cash payments</span>
+                <span className="text-sm text-gray-500">{t('companyDashboard.cashPayments')}</span>
                 <span className="text-sm font-semibold text-emerald-700">
                   {money(paymentBreakdown.cashRevenue)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-gray-500">Platform fee</span>
+                <span className="text-sm text-gray-500">{t('companyDashboard.platformFee')}</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {money(stats.platformFee)}
                 </span>
@@ -573,7 +580,7 @@ export default function CompanyDashboard() {
               <div className="h-px bg-gray-200" />
               <div className="flex items-center justify-between gap-4">
                 <span className="text-sm font-medium text-gray-700">
-                  Company earnings
+                  {t('companyDashboard.companyEarnings')}
                 </span>
                 <span className="text-base font-bold text-gray-950">
                   {money(stats.companyEarnings)}
@@ -584,12 +591,12 @@ export default function CompanyDashboard() {
 
           <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-950">
-              Stripe status
+              {t('companyDashboard.stripeStatus')}
             </h3>
             <div className="mt-5 grid gap-3">
               <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Available in Stripe
+                  {t('companyDashboard.availableInStripe')}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-gray-950">
                   {money(stats.balanceAvailable)}
@@ -597,7 +604,7 @@ export default function CompanyDashboard() {
               </div>
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">
-                  Pending in Stripe
+                  {t('companyDashboard.pendingInStripe')}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-amber-900">
                   {money(stats.balancePending)}
@@ -605,9 +612,7 @@ export default function CompanyDashboard() {
               </div>
             </div>
             <p className="mt-4 text-sm leading-6 text-gray-500">
-              Stripe balances are displayed as a reference only. The primary
-              company dashboard uses your earnings data for a cleaner and more
-              reliable financial overview.
+              {t('companyDashboard.stripeReference')}
             </p>
             <p></p>
           </div>

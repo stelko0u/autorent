@@ -15,6 +15,7 @@ import {
   CompanyPanelToolbar,
 } from './CompanyPanelUI';
 import { getCompanyInvoices } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type InvoiceRow = {
   id: string;
@@ -73,6 +74,7 @@ function getStatusTone(
 }
 
 export default function CompanyInvoices() {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,7 +89,7 @@ export default function CompanyInvoices() {
       const nextInvoices = await getCompanyInvoices();
       setInvoices(nextInvoices);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load invoices');
+      setError(err instanceof Error ? err.message : t('companyInvoices.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -180,20 +182,20 @@ export default function CompanyInvoices() {
   return (
     <div className="space-y-6">
       <CompanyPanelPageHeader
-        eyebrow="Invoices"
-        title="Invoice center"
-        description="All invoice records follow the same structure as the dashboard and payments pages."
+        eyebrow={t('companyInvoices.invoices')}
+        title={t('companyInvoices.title')}
+        description={t('companyInvoices.description')}
         rightSlot={
           <div className="grid gap-3 sm:grid-cols-2">
             <CompanyPanelInfoCard
-              label="Total invoices"
+              label={t('companyInvoices.totalInvoices')}
               value={String(filteredInvoices.length)}
-              description="Count after active search filter."
+              description={t('companyInvoices.totalInvoicesDesc')}
             />
             <CompanyPanelInfoCard
-              label="Net amount"
+              label={t('companyInvoices.netAmount')}
               value={formatMoney(summary.net, 'EUR')}
-              description="Current visible invoice earnings."
+              description={t('companyInvoices.netAmountDesc')}
               tone="success"
             />
           </div>
@@ -208,43 +210,43 @@ export default function CompanyInvoices() {
 
       <section className="grid gap-4 xl:grid-cols-4">
         <CompanyPanelStatCard
-          title="Gross total"
+          title={t('companyInvoices.grossTotal')}
           value={formatMoney(summary.gross, 'EUR')}
-          subtitle="Invoice gross amount"
+          subtitle={t('companyInvoices.grossSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
           variant="accent"
         />
         <CompanyPanelStatCard
-          title="Platform fee"
+          title={t('companyInvoices.platformFee')}
           value={formatMoney(summary.fee, 'EUR')}
-          subtitle="Total fee across listed invoices"
+          subtitle={t('companyInvoices.platformFeeSubtitle')}
           icon={<Clipboard className="h-7 w-7" />}
         />
         <CompanyPanelStatCard
-          title="Net to company"
+          title={t('companyInvoices.netToCompany')}
           value={formatMoney(summary.net, 'EUR')}
-          subtitle="Company earnings from invoices"
+          subtitle={t('companyInvoices.netToCompanySubtitle')}
           icon={<Check className="h-7 w-7" />}
           variant="success"
         />
         <CompanyPanelStatCard
-          title="Paid invoices"
+          title={t('companyInvoices.paidInvoices')}
           value={String(summary.paid)}
-          subtitle="Successfully settled invoices"
+          subtitle={t('companyInvoices.paidInvoicesSubtitle')}
           icon={<Clock className="h-7 w-7" />}
         />
       </section>
 
       <CompanyPanelCard
-        title="Invoice list"
-        description="Same spacing, same borders and same pagination rhythm as the rest of the panel."
+        title={t('companyInvoices.invoiceList')}
+        description={t('companyInvoices.invoiceListDescription')}
         rightSlot={
           <button
             type="button"
             onClick={() => void loadInvoices()}
             className="inline-flex h-11 items-center rounded-2xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
-            Refresh
+            {t('companyInvoices.refresh')}
           </button>
         }
       >
@@ -253,7 +255,7 @@ export default function CompanyInvoices() {
             <CompanyPanelSearch
               value={search}
               onChange={setSearch}
-              placeholder="Search by invoice number, customer or reservation"
+              placeholder={t('companyInvoices.searchPlaceholder')}
             />
           }
         />
@@ -263,25 +265,25 @@ export default function CompanyInvoices() {
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
-                  Invoice
+                  {t('companyInvoices.invoice')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Reservation
+                  {t('companyInvoices.reservation')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Customer
+                  {t('companyInvoices.customer')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Status
+                  {t('companyInvoices.status')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Gross
+                  {t('companyInvoices.gross')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Fee / Net
+                  {t('companyInvoices.feeNet')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
-                  Actions
+                  {t('companyInvoices.actions')}
                 </th>
               </tr>
             </thead>
@@ -291,8 +293,8 @@ export default function CompanyInvoices() {
                 <tr>
                   <td colSpan={7}>
                     <CompanyPanelEmptyState
-                      title="No invoices found"
-                      description="No invoice matches the current criteria."
+                      title={t('companyInvoices.noInvoices')}
+                      description={t('companyInvoices.noInvoicesDescription')}
                     />
                   </td>
                 </tr>
@@ -307,10 +309,10 @@ export default function CompanyInvoices() {
                         {invoice.number || invoice.id}
                       </div>
                       <div className="mt-1 text-sm text-gray-500">
-                        Created {formatDate(invoice.created)}
+                        {t('companyInvoices.created')} {formatDate(invoice.created)}
                       </div>
                       <div className="mt-1 text-xs text-gray-400">
-                        Due {formatDate(invoice.due_date)}
+                        {t('companyInvoices.due')} {formatDate(invoice.due_date)}
                       </div>
                     </td>
 
@@ -319,17 +321,17 @@ export default function CompanyInvoices() {
                     </td>
 
                     <td className="px-6 py-5">
-                      <div className="text-sm font-medium text-gray-900">
-                        {invoice.customerName || '—'}
-                      </div>
-                      <div className="mt-1 text-sm text-gray-500">
-                        {invoice.customerEmail || 'No email'}
-                      </div>
-                    </td>
+                        <div className="text-sm font-medium text-gray-900">
+                          {invoice.customerName || '—'}
+                        </div>
+                        <div className="mt-1 text-sm text-gray-500">
+                          {invoice.customerEmail || t('companyInvoices.noEmail')}
+                        </div>
+                      </td>
 
                     <td className="px-6 py-5">
                       <CompanyPanelBadge tone={getStatusTone(invoice.status)}>
-                        {invoice.status || 'unknown'}
+                        {invoice.status || t('companyInvoices.unknownStatus')}
                       </CompanyPanelBadge>
                     </td>
 
@@ -342,14 +344,14 @@ export default function CompanyInvoices() {
 
                     <td className="px-6 py-5 text-sm">
                       <div className="font-medium text-red-600">
-                        Fee{' '}
+                        {t('companyInvoices.fee')}{' '}
                         {formatMoney(
                           invoice.platformFee || 0,
                           invoice.currency,
                         )}
                       </div>
                       <div className="mt-1 font-semibold text-emerald-600">
-                        Net{' '}
+                        {t('companyInvoices.net')}{' '}
                         {formatMoney(
                           invoice.companyEarnings || 0,
                           invoice.currency,
@@ -366,7 +368,7 @@ export default function CompanyInvoices() {
                             rel="noreferrer"
                             className="inline-flex h-10 items-center rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                           >
-                            Open
+                            {t('companyInvoices.open')}
                           </a>
                         ) : null}
 
@@ -377,7 +379,7 @@ export default function CompanyInvoices() {
                             rel="noreferrer"
                             className="inline-flex h-10 items-center rounded-xl bg-indigo-600 px-3 text-sm font-medium text-white transition hover:bg-indigo-700"
                           >
-                            PDF
+                            {t('companyInvoices.pdf')}
                           </a>
                         ) : null}
                       </div>

@@ -14,6 +14,7 @@ import {
   CompanyPanelToolbar,
 } from './CompanyPanelUI';
 import { getCompanyPayments } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface Payment {
   source?: 'stripe' | 'database';
@@ -83,22 +84,25 @@ function getPaymentTone(
   }
 }
 
-function normalizePaymentMethod(value: string) {
+function normalizePaymentMethod(
+  value: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
   const normalized = value.toUpperCase();
 
   if (normalized === 'CARD') {
-    return 'Online card';
+    return t('companyPayments.onlineCard');
   }
 
   if (normalized === 'CASH') {
-    return 'Cash';
+    return t('companyPayments.cash');
   }
 
   if (normalized === 'ON_SPOT') {
-    return 'Cash on spot';
+    return t('companyPayments.cashOnSpot');
   }
 
-  return value || '—';
+  return value || t('companyPayments.unknown');
 }
 
 function shortId(value?: string | null) {
@@ -129,6 +133,7 @@ function isCashPayment(paymentMethod: string) {
 }
 
 export default function CompanyPayments() {
+  const { t } = useTranslation();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [source, setSource] = useState<'stripe' | 'database'>('stripe');
   const [search, setSearch] = useState('');
@@ -147,7 +152,7 @@ export default function CompanyPayments() {
         setSource(data.source);
       } catch (err: unknown) {
         setError(
-          err instanceof Error ? err.message : 'Failed to load payments',
+          err instanceof Error ? err.message : t('companyPayments.failedLoad'),
         );
       } finally {
         setLoading(false);
@@ -155,7 +160,7 @@ export default function CompanyPayments() {
     }
 
     void loadPayments();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -262,20 +267,24 @@ export default function CompanyPayments() {
   return (
     <div className="space-y-6">
       <CompanyPanelPageHeader
-        eyebrow="Payments"
-        title="Payments overview"
-        description="Professional payment history with online and cash breakdown for the company."
+        eyebrow={t('companyPayments.payments')}
+        title={t('companyPayments.overviewTitle')}
+        description={t('companyPayments.overviewDescription')}
         rightSlot={
           <div className="grid gap-3 sm:grid-cols-2">
             <CompanyPanelInfoCard
-              label="Data source"
-              value={source === 'stripe' ? 'Stripe' : 'Database'}
-              description="Stripe-first with database fallback."
+              label={t('companyPayments.dataSource')}
+              value={
+                source === 'stripe'
+                  ? t('companyPayments.stripe')
+                  : t('companyPayments.database')
+              }
+              description={t('companyPayments.sourceDescription')}
             />
             <CompanyPanelInfoCard
-              label="Net earnings"
+              label={t('companyPayments.netEarnings')}
               value={money(totals.net)}
-              description="Calculated for the current results."
+              description={t('companyPayments.netDescription')}
               tone="success"
             />
           </div>
@@ -290,102 +299,102 @@ export default function CompanyPayments() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <CompanyPanelStatCard
-          title="Revenue"
+          title={t('companyPayments.revenue')}
           value={money(totals.revenue)}
-          subtitle="All listed payment totals"
+          subtitle={t('companyPayments.revenueSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
           variant="accent"
         />
         <CompanyPanelStatCard
-          title="Online payments"
+          title={t('companyPayments.onlinePayments')}
           value={money(totals.onlineRevenue)}
-          subtitle="Paid online card transactions"
+          subtitle={t('companyPayments.onlineSubtitle')}
           icon={<Check className="h-7 w-7" />}
-          badge={`${totals.onlineCount} paid`}
+          badge={`${totals.onlineCount}`}
         />
         <CompanyPanelStatCard
-          title="Cash payments"
+          title={t('companyPayments.cashPayments')}
           value={money(totals.cashRevenue)}
-          subtitle="Paid cash transactions"
+          subtitle={t('companyPayments.cashSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
           variant="success"
-          badge={`${totals.cashCount} paid`}
+          badge={`${totals.cashCount}`}
         />
         <CompanyPanelStatCard
-          title="Paid records"
+          title={t('companyPayments.paidRecords')}
           value={String(totals.paid)}
-          subtitle="Successful finalized payments"
+          subtitle={t('companyPayments.paidSubtitle')}
           icon={<Clock className="h-7 w-7" />}
-          badge={`${totals.pending} pending`}
+          badge={`${totals.pending}`}
         />
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <CompanyPanelStatCard
-          title="Platform fee"
+          title={t('companyPayments.platformFee')}
           value={money(totals.fee)}
-          subtitle="Total platform deduction"
+          subtitle={t('companyPayments.feeSubtitle')}
           icon={<Clipboard className="h-7 w-7" />}
         />
         <CompanyPanelStatCard
-          title="Net earnings"
+          title={t('companyPayments.netEarnings')}
           value={money(totals.net)}
-          subtitle="What belongs to the company"
+          subtitle={t('companyPayments.netDescription')}
           icon={<Check className="h-7 w-7" />}
           variant="success"
         />
         <CompanyPanelStatCard
-          title="Online share"
+          title={t('companyPayments.onlineShare')}
           value={
             totals.revenue > 0
               ? `${Math.round((totals.onlineRevenue / totals.revenue) * 100)}%`
               : '0%'
           }
-          subtitle="Share from all listed amounts"
+          subtitle={t('companyPayments.shareSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
         />
         <CompanyPanelStatCard
-          title="Cash share"
+          title={t('companyPayments.cashShare')}
           value={
             totals.revenue > 0
               ? `${Math.round((totals.cashRevenue / totals.revenue) * 100)}%`
               : '0%'
           }
-          subtitle="Share from all listed amounts"
+          subtitle={t('companyPayments.shareSubtitle')}
           icon={<BadgeDollar className="h-7 w-7" />}
         />
       </section>
 
       <CompanyPanelCard
-        title="Payment list"
-        description="Responsive list layout without horizontal scrollbar."
+        title={t('companyPayments.paymentList')}
+        description={t('companyPayments.paymentListDescription')}
       >
         <CompanyPanelToolbar
           rightSlot={
             <CompanyPanelSearch
               value={search}
               onChange={setSearch}
-              placeholder="Search by payment ID, customer, reservation or car"
+              placeholder={t('companyPayments.searchPlaceholder')}
             />
           }
         />
 
         {currentItems.length === 0 ? (
           <CompanyPanelEmptyState
-            title="No payments found"
-            description="Try a different search query."
+            title={t('companyPayments.noPayments')}
+            description={t('companyPayments.tryDifferentSearch')}
           />
         ) : (
           <div className="divide-y divide-gray-200">
             <div className="hidden gap-4 bg-gray-50 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 lg:grid lg:grid-cols-[1.8fr_0.8fr_1.2fr_1fr_0.9fr_1fr_0.8fr_0.9fr] sm:px-8">
-              <div>Payment</div>
-              <div>Reservation</div>
-              <div>Customer</div>
-              <div>Car</div>
-              <div>Gross</div>
-              <div>Fee / Net</div>
-              <div>Status</div>
-              <div>Date</div>
+              <div>{t('companyPayments.payments')}</div>
+              <div>{t('companyPayments.reservation')}</div>
+              <div>{t('companyPayments.customer')}</div>
+              <div>{t('companyPayments.car')}</div>
+              <div>{t('companyPayments.gross')}</div>
+              <div>{t('companyPayments.feeNet')}</div>
+              <div>{t('companyPayments.status')}</div>
+              <div>{t('companyPayments.date')}</div>
             </div>
 
             {currentItems.map((payment, index) => (
@@ -408,12 +417,12 @@ export default function CompanyPayments() {
                     </div>
                     <div
                       className="mt-1 truncate text-sm text-gray-500"
-                      title={payment.chargeId || 'No charge reference'}
+                      title={payment.chargeId || t('companyPayments.noChargeRef')}
                     >
-                      {shortId(payment.chargeId || 'No charge reference')}
+                      {shortId(payment.chargeId || t('companyPayments.noChargeRef'))}
                     </div>
                     <div className="mt-2 text-xs text-gray-400">
-                      {normalizePaymentMethod(payment.paymentMethod)}
+                      {normalizePaymentMethod(payment.paymentMethod, t)}
                     </div>
                   </div>
 
@@ -436,9 +445,9 @@ export default function CompanyPayments() {
                       {payment.customerName || '—'}
                     </div>
                     <div className="truncate text-sm text-gray-500">
-                      {payment.customerEmail || 'No email'}
-                    </div>
-                  </div>
+                          {payment.customerEmail || t('companyPayments.noEmail')}
+                        </div>
+                      </div>
 
                   <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">
@@ -463,12 +472,12 @@ export default function CompanyPayments() {
                       Fee / Net
                     </p>
                     <div className="text-sm font-medium text-red-600">
-                      Fee {money(payment.platformFee)}
+                        {t('companyPayments.fee')} {money(payment.platformFee)}
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-emerald-600">
+                        {t('companyPayments.net')} {money(payment.companyEarnings)}
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-emerald-600">
-                      Net {money(payment.companyEarnings)}
-                    </div>
-                  </div>
 
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 lg:hidden">

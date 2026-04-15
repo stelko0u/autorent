@@ -13,6 +13,7 @@ import {
   CompanyPanelToolbar,
 } from './CompanyPanelUI';
 import { getCompanyReport, getCompanyReportPdfUrl } from '@/lib/api/companyApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type ReportItem = {
   reservationId: number | null;
@@ -60,6 +61,7 @@ function defaultEnd() {
 }
 
 export default function CompanyReports() {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState(defaultStart());
   const [endDate, setEndDate] = useState(defaultEnd());
   const [summary, setSummary] = useState<ReportSummary | null>(null);
@@ -82,11 +84,11 @@ export default function CompanyReports() {
       setSummary(data.summary);
       setItems(data.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load report');
+      setError(err instanceof Error ? err.message : t('companyReports.failedLoad'));
     } finally {
       setLoading(false);
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, t]);
 
   useEffect(() => {
     void loadReport();
@@ -137,20 +139,20 @@ export default function CompanyReports() {
   return (
     <div className="space-y-6">
       <CompanyPanelPageHeader
-        eyebrow="Reports"
-        title="Financial reports"
-        description="Date-based reporting, export actions and the same premium panel look used everywhere else."
+        eyebrow={t('companyReports.reports')}
+        title={t('companyReports.title')}
+        description={t('companyReports.description')}
         rightSlot={
           <div className="grid gap-3 sm:grid-cols-2">
             <CompanyPanelInfoCard
-              label="Period start"
+              label={t('companyReports.periodStart')}
               value={startDate}
-              description="Current report range start date."
+              description={t('companyReports.startDate')}
             />
             <CompanyPanelInfoCard
-              label="Period end"
+              label={t('companyReports.periodEnd')}
               value={endDate}
-              description="Current report range end date."
+              description={t('companyReports.endDate')}
               tone="success"
             />
           </div>
@@ -158,13 +160,13 @@ export default function CompanyReports() {
       />
 
       <CompanyPanelCard
-        title="Report filters"
-        description="Choose a period and export the same results to PDF."
+        title={t('companyReports.reportFilters')}
+        description={t('companyReports.reportFiltersDescription')}
       >
         <div className="grid gap-4 px-6 py-5 md:grid-cols-4 md:items-end sm:px-8">
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Start date
+              {t('companyReports.startDate')}
             </label>
             <input
               type="date"
@@ -176,7 +178,7 @@ export default function CompanyReports() {
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              End date
+              {t('companyReports.endDate')}
             </label>
             <input
               type="date"
@@ -192,7 +194,7 @@ export default function CompanyReports() {
             disabled={loading}
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
           >
-            {loading ? 'Loading…' : 'Load report'}
+            {loading ? t('companyReports.loading') : t('companyReports.loadReport')}
           </button>
 
           <button
@@ -200,7 +202,7 @@ export default function CompanyReports() {
             onClick={downloadPdf}
             className="inline-flex h-11 items-center justify-center rounded-2xl bg-emerald-600 px-4 text-sm font-medium text-white transition hover:bg-emerald-700"
           >
-            Export PDF
+            {t('companyReports.exportPdf')}
           </button>
         </div>
 
@@ -216,28 +218,28 @@ export default function CompanyReports() {
       {summary ? (
         <section className="grid gap-4 xl:grid-cols-4">
           <CompanyPanelStatCard
-            title="Payments count"
+            title={t('companyReports.paymentsCount')}
             value={String(summary.paymentsCount)}
-            subtitle="Included transactions in range"
+            subtitle={t('companyReports.paymentsCountSubtitle')}
             icon={<ChartLine className="h-7 w-7" />}
             variant="accent"
           />
           <CompanyPanelStatCard
-            title="Gross revenue"
+            title={t('companyReports.grossRevenue')}
             value={money(summary.totalRevenue)}
-            subtitle="All payments in selected range"
+            subtitle={t('companyReports.grossRevenueSubtitle')}
             icon={<BadgeDollar className="h-7 w-7" />}
           />
           <CompanyPanelStatCard
-            title="Platform fee"
+            title={t('companyReports.platformFee')}
             value={money(summary.platformFee)}
-            subtitle="Fee calculation for the range"
+            subtitle={t('companyReports.platformFeeSubtitle')}
             icon={<Clipboard className="h-7 w-7" />}
           />
           <CompanyPanelStatCard
-            title="Net earnings"
+            title={t('companyReports.netEarnings')}
             value={money(summary.companyEarnings)}
-            subtitle="Company result for this report"
+            subtitle={t('companyReports.netEarningsSubtitle')}
             icon={<Check className="h-7 w-7" />}
             variant="success"
           />
@@ -245,15 +247,15 @@ export default function CompanyReports() {
       ) : null}
 
       <CompanyPanelCard
-        title="Payments in range"
-        description="Paginated report rows using the same shared panel components."
+        title={t('companyReports.paymentsInRange')}
+        description={t('companyReports.paymentsInRangeDescription')}
       >
         <CompanyPanelToolbar
           rightSlot={
             <CompanyPanelSearch
               value={search}
               onChange={setSearch}
-              placeholder="Search by reservation, customer or car"
+              placeholder={t('companyReports.searchPlaceholder')}
             />
           }
         />
@@ -263,22 +265,22 @@ export default function CompanyReports() {
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
-                  Reservation
+                  {t('companyReports.reservation')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Customer
+                  {t('companyReports.customer')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Car
+                  {t('companyReports.car')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Gross
+                  {t('companyReports.gross')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                  Fee / Net
+                  {t('companyReports.feeNet')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 sm:px-8">
-                  Paid at
+                  {t('companyReports.paidAt')}
                 </th>
               </tr>
             </thead>
@@ -288,8 +290,8 @@ export default function CompanyReports() {
                 <tr>
                   <td colSpan={6}>
                     <CompanyPanelEmptyState
-                      title="No payments in selected range"
-                      description="Try a different date range or search query."
+                      title={t('companyReports.noPaymentsInRange')}
+                      description={t('companyReports.noPaymentsInRangeDescription')}
                     />
                   </td>
                 </tr>
@@ -308,7 +310,7 @@ export default function CompanyReports() {
                         {item.customerName || '—'}
                       </div>
                       <div className="mt-1 text-sm text-gray-500">
-                        {item.customerEmail || 'No email'}
+                        {item.customerEmail || t('companyReports.noEmail')}
                       </div>
                     </td>
 
@@ -322,10 +324,10 @@ export default function CompanyReports() {
 
                     <td className="px-6 py-5 text-sm">
                       <div className="font-medium text-red-600">
-                        Fee {money(item.platformFee)}
+                        {t('companyReports.fee')} {money(item.platformFee)}
                       </div>
                       <div className="mt-1 font-semibold text-emerald-600">
-                        Net {money(item.companyEarnings)}
+                        {t('companyReports.net')} {money(item.companyEarnings)}
                       </div>
                     </td>
 

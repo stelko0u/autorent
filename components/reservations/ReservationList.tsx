@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '@/providers/LanguageProvider';
 // import { Reservation } from '../../types';
 // import { fetchReservations } from '../../lib/api';
 
@@ -12,6 +13,7 @@ type Reservation = {
 };
 
 const ReservationList: React.FC = () => {
+  const { t, locale } = useTranslation();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ useEffect(() => {
                 ];
                 setReservations(mockData);
             } catch {
-                setError('Failed to load reservations');
+                setError(t('rentals.failedToLoad'));
             } finally {
                 setLoading(false);
             }
@@ -42,7 +44,7 @@ useEffect(() => {
     }, []);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <div>{t('common.loading')}</div>;
     }
 
     if (error) {
@@ -51,14 +53,14 @@ useEffect(() => {
 
     return (
         <div className="reservation-list">
-            <h2 className="text-xl font-bold mb-4">Your Reservations</h2>
+            <h2 className="text-xl font-bold mb-4">{t('rentals.title')}</h2>
             <ul>
                 {reservations.map((reservation) => (
                     <li key={reservation.id} className="border p-4 mb-2 rounded">
-<h3 className="font-semibold">Car ID: {reservation.carId}</h3>
-                        <p>Start Date: {new Date(reservation.startDate).toLocaleDateString()}</p>
-                        <p>End Date: {new Date(reservation.endDate).toLocaleDateString()}</p>
-                        <p>Status: {reservation.status}</p>
+<h3 className="font-semibold">{t('paymentPage.reservationId')}: {reservation.carId}</h3>
+                        <p>{t('paymentPage.startDate')}: {new Date(reservation.startDate).toLocaleDateString(locale === 'bg' ? 'bg-BG' : 'en-US')}</p>
+                        <p>{t('paymentPage.endDate')}: {new Date(reservation.endDate).toLocaleDateString(locale === 'bg' ? 'bg-BG' : 'en-US')}</p>
+                        <p>{t('paymentPage.status')}: {reservation.status}</p>
                     </li>
                 ))}
             </ul>

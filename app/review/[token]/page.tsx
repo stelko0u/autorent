@@ -15,6 +15,7 @@ import {
   FullStar,
   TriangleExclamation,
 } from '@/components/icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('bg-BG', {
@@ -24,20 +25,23 @@ function formatDate(value: string) {
   });
 }
 
-function getRatingLabel(value: number) {
+function getRatingLabel(
+  value: number,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
   switch (value) {
     case 1:
-      return 'Много слабо';
+      return t('reviewPage.ratingLabels.one');
     case 2:
-      return 'Слабо';
+      return t('reviewPage.ratingLabels.two');
     case 3:
-      return 'Добре';
+      return t('reviewPage.ratingLabels.three');
     case 4:
-      return 'Много добре';
+      return t('reviewPage.ratingLabels.four');
     case 5:
-      return 'Отлично';
+      return t('reviewPage.ratingLabels.five');
     default:
-      return 'Избери оценка';
+      return t('reviewPage.ratingLabels.select');
   }
 }
 
@@ -67,12 +71,14 @@ function Star({ active, onClick, onMouseEnter, onMouseLeave }: StarProps) {
 }
 
 function LoadingState() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 px-4">
       <div className="rounded-3xl border border-white/10 bg-white/10 px-8 py-10 text-center text-white shadow-2xl backdrop-blur-md">
         <div className="mx-auto mb-4 h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white" />
         <p className="text-lg font-medium">
-          Зареждане на страницата за ревю...
+          {t('reviewPage.loading')}
         </p>
       </div>
     </div>
@@ -86,6 +92,8 @@ function InvalidState({
   message: string;
   onHome: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 px-4">
       <div className="w-full max-w-xl rounded-3xl bg-white p-8 text-center shadow-2xl md:p-10">
@@ -93,14 +101,14 @@ function InvalidState({
           <TriangleExclamation className="h-8 w-8 text-yellow-600" />
         </div>
         <h1 className="mb-3 text-3xl font-bold text-slate-900">
-          Невалиден линк
+          {t('reviewPage.invalidLinkTitle')}
         </h1>
         <p className="mb-8 text-slate-600">{message}</p>
         <button
           onClick={onHome}
           className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700"
         >
-          Към началната страница
+          {t('reviewPage.backToHome')}
         </button>
       </div>
     </div>
@@ -108,6 +116,8 @@ function InvalidState({
 }
 
 function CannotReviewState() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 px-4">
       <div className="w-full max-w-xl rounded-3xl bg-white p-8 text-center shadow-2xl md:p-10">
@@ -115,10 +125,10 @@ function CannotReviewState() {
           <Clock className="h-8 w-8 text-amber-600" />
         </div>
         <h1 className="mb-3 text-3xl font-bold text-slate-900">
-          Все още не може да оставиш ревю
+          {t('reviewPage.cannotReviewTitle')}
         </h1>
         <p className="text-slate-600">
-          Ревю може да се остави след като резервацията е приключила.
+          {t('reviewPage.cannotReviewDescription')}
         </p>
       </div>
     </div>
@@ -134,6 +144,8 @@ function ReviewCompletedState({
   vehicleTitle: string;
   onOpenCar: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-indigo-950 px-4 py-10">
       <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
@@ -167,24 +179,24 @@ function ReviewCompletedState({
             <Check className="h-10 w-10 text-emerald-600" />
           </div>
           <h2 className="mb-3 text-3xl font-bold text-slate-900">
-            Благодарим ти!
+            {t('reviewPage.thankYouTitle')}
           </h2>
           <p className="mb-2 text-lg text-slate-600">
             {data.alreadyReviewed
-              ? 'За тази кола вече има оставено ревю от теб.'
-              : 'Ревюто ти беше изпратено успешно.'}
+              ? t('reviewPage.alreadyReviewed')
+              : t('reviewPage.reviewSubmitted')}
           </p>
           <p className="mb-8 text-slate-500">
-            Радваме се, че отдели време да споделиш впечатленията си.
+            {t('reviewPage.thankYouSubtitle')}
           </p>
 
           <div className="mb-8 grid gap-4 rounded-2xl bg-slate-50 p-5 text-left sm:grid-cols-2">
             <div>
-              <p className="text-sm text-slate-500">Автомобил</p>
+              <p className="text-sm text-slate-500">{t('reviewPage.car')}</p>
               <p className="font-semibold text-slate-900">{vehicleTitle}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-500">Резервация</p>
+              <p className="text-sm text-slate-500">{t('reviewPage.reservation')}</p>
               <p className="font-semibold text-slate-900">
                 #{data.reservation.id}
               </p>
@@ -195,7 +207,7 @@ function ReviewCompletedState({
             onClick={onOpenCar}
             className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-700"
           >
-            Виж автомобила
+            {t('reviewPage.openCar')}
           </button>
         </div>
       </div>
@@ -204,6 +216,7 @@ function ReviewCompletedState({
 }
 
 export default function ReviewPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const token = String(params?.token || '');
@@ -228,7 +241,7 @@ export default function ReviewPage() {
 
   const loadReviewData = useCallback(async () => {
     if (!token) {
-      setPageError('Invalid review link');
+      setPageError(t('reviewPage.invalidReviewLink'));
       setLoading(false);
       return;
     }
@@ -241,12 +254,12 @@ export default function ReviewPage() {
       setData(payload);
     } catch (err: unknown) {
       setPageError(
-        err instanceof Error ? err.message : 'Failed to load review page',
+        err instanceof Error ? err.message : t('reviewPage.failedToLoad'),
       );
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     loadReviewData();
@@ -258,12 +271,12 @@ export default function ReviewPage() {
       setSubmitError(null);
 
       if (rating < 1 || rating > 5) {
-        setSubmitError('Моля избери оценка.');
+        setSubmitError(t('reviewPage.selectRatingError'));
         return;
       }
 
       if (!comment.trim()) {
-        setSubmitError('Моля напиши коментар.');
+        setSubmitError(t('reviewPage.writeCommentError'));
         return;
       }
 
@@ -278,13 +291,13 @@ export default function ReviewPage() {
         setSubmitted(true);
       } catch (err: unknown) {
         setSubmitError(
-          err instanceof Error ? err.message : 'Failed to submit review',
+          err instanceof Error ? err.message : t('reviewPage.failedToSubmit'),
         );
       } finally {
         setSubmitting(false);
       }
     },
-    [token, rating, comment],
+    [token, rating, comment, t],
   );
 
   if (loading) {
@@ -294,7 +307,7 @@ export default function ReviewPage() {
   if (pageError || !data) {
     return (
       <InvalidState
-        message={pageError || 'Линкът за ревю е невалиден или е изтекъл.'}
+        message={pageError || t('reviewPage.invalidDefaultMessage')}
         onHome={() => router.push('/')}
       />
     );
@@ -344,8 +357,7 @@ export default function ReviewPage() {
                 {vehicleTitle}
               </h1>
               <p className="mt-3 max-w-xl text-sm text-white/85 md:text-base">
-                Благодарим ти, че използва Smart Rent. Сподели как премина
-                наемът и помогни на следващите клиенти.
+                {t('reviews.thankYou')}
               </p>
             </div>
           </div>
@@ -354,25 +366,25 @@ export default function ReviewPage() {
             <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-sm text-slate-500">Клиент</p>
+                  <p className="text-sm text-slate-500">{t('reviewPage.customer')}</p>
                   <p className="font-semibold text-slate-900">
                     {data.reservation.firstName} {data.reservation.lastName}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Резервация</p>
+                  <p className="text-sm text-slate-500">{t('reviewPage.reservation')}</p>
                   <p className="font-semibold text-slate-900">
                     #{data.reservation.id}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Начало</p>
+                  <p className="text-sm text-slate-500">{t('reviewPage.start')}</p>
                   <p className="font-semibold text-slate-900">
                     {formatDate(data.reservation.startDate)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500">Край</p>
+                  <p className="text-sm text-slate-500">{t('reviewPage.end')}</p>
                   <p className="font-semibold text-slate-900">
                     {formatDate(data.reservation.endDate)}
                   </p>
@@ -384,10 +396,10 @@ export default function ReviewPage() {
               <div className="mb-8">
                 <div className="mb-3 flex items-center justify-between gap-4">
                   <label className="text-lg font-semibold text-slate-900">
-                    Как би оценил автомобила?
+                    {t('reviewPage.rateCar')}
                   </label>
                   <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">
-                    {getRatingLabel(currentRating)}
+                    {getRatingLabel(currentRating, t)}
                   </span>
                 </div>
 
@@ -409,7 +421,7 @@ export default function ReviewPage() {
                   </div>
 
                   <div className="mt-3 text-sm text-slate-500">
-                    Натисни звезда от 1 до 5.
+                    {t('reviewPage.clickStarHint')}
                   </div>
                 </div>
               </div>
@@ -419,7 +431,7 @@ export default function ReviewPage() {
                   htmlFor="comment"
                   className="mb-3 block text-lg font-semibold text-slate-900"
                 >
-                  Разкажи малко повече
+                  {t('reviewPage.tellMore')}
                 </label>
                 <textarea
                   id="comment"
@@ -427,11 +439,11 @@ export default function ReviewPage() {
                   onChange={(e) => setComment(e.target.value)}
                   rows={7}
                   className="w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-4 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                  placeholder="Например: автомобилът беше чист, комуникацията беше добра, вземането и връщането минаха лесно..."
+                  placeholder={t('reviewPage.commentPlaceholder')}
                   required
                 />
                 <p className="mt-2 text-sm text-slate-500">
-                  Напиши честно мнение, за да помогнеш и на други клиенти.
+                  {t('reviewPage.commentHint')}
                 </p>
               </div>
 
@@ -447,7 +459,7 @@ export default function ReviewPage() {
                   disabled={submitting}
                   className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3.5 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? 'Изпращане...' : 'Изпрати ревю'}
+                  {submitting ? t('reviewPage.submitting') : t('reviewPage.submit')}
                 </button>
 
                 <button
@@ -455,7 +467,7 @@ export default function ReviewPage() {
                   onClick={() => router.push(`/car/${data.car.id}`)}
                   className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
-                  Към автомобила
+                  {t('reviewPage.goToCar')}
                 </button>
               </div>
             </form>

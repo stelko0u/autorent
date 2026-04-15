@@ -11,6 +11,7 @@ import type {
   AuditOperation,
   AuditStatus,
 } from '@/types/audit';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface AuditLogsClientProps {
   mode: 'admin' | 'company';
@@ -51,6 +52,11 @@ export function AuditLogsClient({
   initialData,
   initialFilters,
 }: AuditLogsClientProps) {
+  const { t } = useTranslation();
+  const translatedTitle = title.includes('.') ? t(title) : title;
+  const translatedDescription = description.includes('.')
+    ? t(description)
+    : description;
   const fetcher = useMemo(() => getFetcher(mode), [mode]);
 
   const [filters, setFilters] = useState<AuditLogListFilters>(initialFilters);
@@ -82,12 +88,12 @@ export function AuditLogsClient({
         setData(result);
       } catch (err) {
         console.error('Failed to load audit logs:', err);
-        setError('Неуспешно зареждане на одит записите.');
+        setError(t('audit.failedToLoad'));
       } finally {
         setLoading(false);
       }
     },
-    [fetcher],
+    [fetcher, t],
   );
 
   useEffect(() => {
@@ -112,10 +118,10 @@ export function AuditLogsClient({
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              {title}
+              {translatedTitle}
             </h1>
             <p className="mt-2 max-w-3xl text-sm text-slate-600">
-              {description}
+              {translatedDescription}
             </p>
           </div>
 
@@ -125,7 +131,7 @@ export function AuditLogsClient({
               onClick={() => void loadData(filters)}
               className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-900 px-5 text-sm font-semibold text-white transition hover:opacity-90"
             >
-              Обнови
+              {t('audit.refresh')}
             </button>
 
             <button
@@ -133,7 +139,7 @@ export function AuditLogsClient({
               onClick={handleExportCsv}
               className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              Export CSV
+              {t('audit.exportCsv')}
             </button>
           </div>
         </div>
@@ -141,19 +147,19 @@ export function AuditLogsClient({
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Търсене
+              {t('audit.search')}
             </span>
             <input
               value={filters.search}
               onChange={(event) => updateFilters('search', event.target.value)}
-              placeholder="user, ip, action, metadata..."
+              placeholder={t('audit.searchPlaceholder')}
               className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400"
             />
           </label>
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Entity
+              {t('audit.entity')}
             </span>
             <select
               value={filters.entityType}
@@ -165,17 +171,17 @@ export function AuditLogsClient({
               }
               className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400"
             >
-              <option value="ALL">Всички</option>
-              <option value="USER">Потребители</option>
-              <option value="CAR">Коли</option>
-              <option value="COMPANY">Компании</option>
-              <option value="OFFICE">Офиси</option>
+              <option value="ALL">{t('audit.all')}</option>
+              <option value="USER">{t('audit.users')}</option>
+              <option value="CAR">{t('audit.cars')}</option>
+              <option value="COMPANY">{t('audit.companies')}</option>
+              <option value="OFFICE">{t('audit.offices')}</option>
             </select>
           </label>
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Тип действие
+              {t('audit.operationType')}
             </span>
             <select
               value={filters.operation}
@@ -187,19 +193,19 @@ export function AuditLogsClient({
               }
               className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400"
             >
-              <option value="ALL">Всички</option>
-              <option value="CREATE">Добавяне</option>
-              <option value="UPDATE">Редакция</option>
-              <option value="DELETE">Изтриване</option>
-              <option value="BAN">Бан</option>
-              <option value="UNBAN">Ънбан</option>
-              <option value="PROFILE_UPDATE">Промяна на профил</option>
+              <option value="ALL">{t('audit.all')}</option>
+              <option value="CREATE">{t('audit.create')}</option>
+              <option value="UPDATE">{t('audit.update')}</option>
+              <option value="DELETE">{t('audit.delete')}</option>
+              <option value="BAN">{t('audit.ban')}</option>
+              <option value="UNBAN">{t('audit.unban')}</option>
+              <option value="PROFILE_UPDATE">{t('audit.profileUpdate')}</option>
             </select>
           </label>
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Статус
+              {t('audit.status')}
             </span>
             <select
               value={filters.status}
@@ -211,15 +217,15 @@ export function AuditLogsClient({
               }
               className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400"
             >
-              <option value="ALL">Всички</option>
-              <option value="SUCCESS">Успешно</option>
-              <option value="FAILURE">Неуспешно</option>
+              <option value="ALL">{t('audit.all')}</option>
+              <option value="SUCCESS">{t('audit.success')}</option>
+              <option value="FAILURE">{t('audit.failure')}</option>
             </select>
           </label>
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              От дата
+              {t('audit.fromDate')}
             </span>
             <input
               type="date"
@@ -233,7 +239,7 @@ export function AuditLogsClient({
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              До дата
+              {t('audit.toDate')}
             </span>
             <input
               type="date"
@@ -245,7 +251,7 @@ export function AuditLogsClient({
 
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              На страница
+              {t('audit.perPage')}
             </span>
             <select
               value={filters.pageSize}
@@ -264,15 +270,14 @@ export function AuditLogsClient({
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
           <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-            Общо записи: <span className="font-semibold">{data.total}</span>
+            {t('audit.totalRecords', { count: data.total })}
           </div>
           <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-            Страница: <span className="font-semibold">{data.page}</span> /{' '}
-            <span className="font-semibold">{data.totalPages}</span>
+            {t('audit.page', { page: data.page, totalPages: data.totalPages })}
           </div>
           {loading ? (
             <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-              Зареждане...
+              {t('audit.loading')}
             </div>
           ) : null}
         </div>
@@ -288,8 +293,7 @@ export function AuditLogsClient({
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm">
         <div className="text-sm text-slate-600">
-          Показани <span className="font-semibold">{data.logs.length}</span> от{' '}
-          <span className="font-semibold">{data.total}</span> записа
+          {t('audit.shownRecords', { shown: data.logs.length, total: data.total })}
         </div>
 
         <div className="flex items-center gap-2">
@@ -299,7 +303,7 @@ export function AuditLogsClient({
             onClick={() => updateFilters('page', Math.max(1, filters.page - 1))}
             className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Предишна
+            {t('audit.previous')}
           </button>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">
@@ -314,7 +318,7 @@ export function AuditLogsClient({
             }
             className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Следваща
+            {t('audit.next')}
           </button>
         </div>
       </div>

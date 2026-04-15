@@ -20,6 +20,7 @@ import {
   saveCompanyOffice,
 } from '@/lib/api/companyApi';
 import { useAlert } from '@/providers/AlertProvider';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 const MapComponent = dynamic(() => import('./MapComponent'), {
   ssr: false,
@@ -38,6 +39,7 @@ interface CompanyOfficesProps {
 }
 
 export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
+  const { t } = useTranslation();
   const [offices, setOffices] = useState<OfficeItem[]>([]);
   const [editing, setEditing] = useState<OfficeItem | null>(null);
   const [pos, setPos] = useState<[number, number] | null>(null);
@@ -61,7 +63,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
       const nextOffices = await getCompanyOffices();
       setOffices(nextOffices);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load offices');
+      setError(err instanceof Error ? err.message : t('companyOffices.failedLoad'));
       setOffices([]);
     } finally {
       setLoading(false);
@@ -70,7 +72,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [t]);
 
   const filteredOffices = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -124,7 +126,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
       setPos(null);
       await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save office');
+      setError(err instanceof Error ? err.message : t('companyOffices.failedSave'));
     } finally {
       setSaving(false);
     }
@@ -133,17 +135,19 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
   async function removeOffice(id: number) {
     showConfirm({
       type: 'warning',
-      title: 'Delete Office',
-      message: 'Are you sure you want to delete this office? This action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+      title: t('companyOffices.deleteOffice'),
+      message: t('companyOffices.deleteConfirm'),
+      confirmText: t('companyOffices.delete'),
+      cancelText: t('companyOffices.cancel'),
       onConfirm: async () => {
         try {
           setError(null);
           await deleteCompanyOffice(id);
           await load();
         } catch (err: unknown) {
-          setError(err instanceof Error ? err.message : 'Failed to delete office');
+          setError(
+            err instanceof Error ? err.message : t('companyOffices.failedDelete'),
+          );
         }
       },
     });
@@ -152,20 +156,20 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
   return (
     <div className="space-y-6">
       <CompanyPanelPageHeader
-        eyebrow="Offices"
-        title="Office locations"
-        description="Office management now uses the same premium shell, spacing and cards as the rest of the company panel."
+        eyebrow={t('companyOffices.offices')}
+        title={t('companyOffices.title')}
+        description={t('companyOffices.description')}
         rightSlot={
           <div className="grid gap-3 sm:grid-cols-2">
             <CompanyPanelInfoCard
-              label="Total offices"
+              label={t('companyOffices.totalOffices')}
               value={String(offices.length)}
-              description="All locations attached to this company."
+              description={t('companyOffices.locations')}
             />
             <CompanyPanelInfoCard
-              label="Visible results"
+              label={t('companyOffices.visibleResults')}
               value={String(filteredOffices.length)}
-              description="Search-filtered office count."
+              description={t('companyOffices.visibleResults')}
               tone="success"
             />
           </div>
@@ -180,13 +184,13 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <CompanyPanelMetricCard
-          title="Locations"
+          title={t('companyOffices.locations')}
           value={offices.length}
           icon={<Building className="h-5 w-5 text-indigo-600" />}
           accentClassName="bg-indigo-50"
         />
         <CompanyPanelMetricCard
-          title="Mapped offices"
+          title={t('companyOffices.mappedOffices')}
           value={
             offices.filter(
               (office) => office.latitude != null && office.longitude != null,
@@ -196,13 +200,13 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
           accentClassName="bg-blue-50"
         />
         <CompanyPanelMetricCard
-          title="Named offices"
+          title={t('companyOffices.namedOffices')}
           value={offices.filter((office) => Boolean(office.name)).length}
           icon={<Building className="h-5 w-5 text-emerald-600" />}
           accentClassName="bg-emerald-50"
         />
         <CompanyPanelMetricCard
-          title="With address"
+          title={t('companyOffices.withAddress')}
           value={offices.filter((office) => Boolean(office.address)).length}
           icon={<MapPin className="h-5 w-5 text-amber-600" />}
           accentClassName="bg-amber-50"
@@ -211,8 +215,8 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1.5fr]">
         <CompanyPanelCard
-          title="Office list"
-          description="Consistent list styling, actions and search."
+          title={t('companyOffices.officeList')}
+          description={t('companyOffices.officeListDescription')}
           rightSlot={
             <button
               type="button"
@@ -220,7 +224,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
               className="inline-flex h-11 items-center rounded-2xl bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add office
+              {t('companyOffices.addOffice')}
             </button>
           }
         >
@@ -229,7 +233,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
               <CompanyPanelSearch
                 value={search}
                 onChange={setSearch}
-                placeholder="Search by office name or address"
+                placeholder={t('companyOffices.searchPlaceholder')}
               />
             }
           />
@@ -237,12 +241,12 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
           <div className="space-y-4 px-6 pb-6 sm:px-8">
             {loading ? (
               <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
-                Loading offices…
+                {t('companyOffices.loadingOffices')}
               </div>
             ) : filteredOffices.length === 0 ? (
               <CompanyPanelEmptyState
-                title="No offices found"
-                description="Add your first office or change the search query."
+                title={t('companyOffices.noOffices')}
+                description={t('companyOffices.noOfficesDescription')}
               />
             ) : (
               filteredOffices.map((office) => (
@@ -253,10 +257,13 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h4 className="text-lg font-semibold text-gray-900">
-                        {office.name || `Office #${office.id ?? 'new'}`}
+                        {office.name ||
+                          t('companyOffices.officeDefault', {
+                            id: office.id ?? 'new',
+                          })}
                       </h4>
                       <p className="mt-2 text-sm leading-6 text-gray-500">
-                        {office.address || 'No address specified'}
+                        {office.address || t('companyOffices.noAddress')}
                       </p>
                     </div>
 
@@ -269,7 +276,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
                       onClick={() => startEdit(office)}
                       className="inline-flex h-10 items-center rounded-xl bg-amber-50 px-3 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
                     >
-                      Edit
+                      {t('companyOffices.edit')}
                     </button>
 
                     {office.id ? (
@@ -278,7 +285,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
                         onClick={() => void removeOffice(office.id as number)}
                         className="inline-flex h-10 items-center rounded-xl bg-red-50 px-3 text-sm font-medium text-red-700 transition hover:bg-red-100"
                       >
-                        Delete
+                        {t('companyOffices.delete')}
                       </button>
                     ) : null}
                   </div>
@@ -290,8 +297,8 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
 
         <div className="space-y-6">
           <CompanyPanelCard
-            title="Office map"
-            description="Map and card share the same surface design language."
+            title={t('companyOffices.officeMap')}
+            description={t('companyOffices.officeMapDescription')}
           >
             <div className="p-4 sm:p-6">
               <div className="overflow-hidden rounded-3xl border border-gray-200">
@@ -311,13 +318,17 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
 
           {editing ? (
             <CompanyPanelCard
-              title={editing.id ? 'Edit office' : 'Create office'}
-              description="Update office details and click on the map to set coordinates."
+              title={
+                editing.id
+                  ? t('companyOffices.editOffice')
+                  : t('companyOffices.createOffice')
+              }
+              description={t('companyOffices.editDescription')}
             >
               <div className="grid gap-4 px-6 py-6 sm:px-8">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Office name
+                    {t('companyOffices.officeName')}
                   </label>
                   <input
                     value={editing.name ?? ''}
@@ -330,7 +341,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Address
+                    {t('companyOffices.address')}
                   </label>
                   <input
                     value={editing.address ?? ''}
@@ -342,7 +353,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
                 </div>
 
                 <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
-                  Click on the map to place or update office coordinates.
+                  {t('companyOffices.mapHint')}
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -353,10 +364,10 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
                     className="inline-flex h-11 items-center rounded-2xl bg-indigo-600 px-4 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
                   >
                     {saving
-                      ? 'Saving…'
+                      ? t('companyOffices.saving')
                       : editing.id
-                        ? 'Save changes'
-                        : 'Create office'}
+                        ? t('companyOffices.saveChanges')
+                        : t('companyOffices.createOfficeButton')}
                   </button>
 
                   <button
@@ -367,7 +378,7 @@ export default function CompanyOffices({ companyId }: CompanyOfficesProps) {
                     }}
                     className="inline-flex h-11 items-center rounded-2xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('companyOffices.cancel')}
                   </button>
                 </div>
               </div>

@@ -124,7 +124,7 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="hidden min-h-screen w-64 flex-col border-r border-gray-200 bg-white p-6 md:flex">
+    <aside className="min-h-screen w-64 flex flex-col border-r border-gray-200 bg-white p-6">
       <div className="flex items-center gap-3">
         <img
           src="/logo.png"

@@ -8,6 +8,7 @@ import {
   type UserReservation,
 } from '@/lib/api/reservationApi';
 import { Clipboard } from '../icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface RentedCarsProps {
   userId: number;
@@ -59,6 +60,7 @@ function getPageNumbers(currentPage: number, totalPages: number) {
 }
 
 export default function RentedCars({ userId }: RentedCarsProps) {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [reservations, setReservations] = useState<UserReservation[]>([]);
@@ -96,7 +98,7 @@ export default function RentedCars({ userId }: RentedCarsProps) {
         }
 
         setError(
-          err instanceof Error ? err.message : 'Failed to load reservations',
+          err instanceof Error ? err.message : t('rentals.failedToLoad'),
         );
       } finally {
         if (isMounted) {
@@ -110,11 +112,11 @@ export default function RentedCars({ userId }: RentedCarsProps) {
     return () => {
       isMounted = false;
     };
-  }, [currentPage, userId]);
+  }, [currentPage, userId, t]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [userId]);
+  }, [userId, t]);
 
   const pageNumbers = useMemo(
     () => getPageNumbers(currentPage, totalPages),
@@ -132,7 +134,7 @@ export default function RentedCars({ userId }: RentedCarsProps) {
   if (loading) {
     return (
       <div className="rounded-lg bg-white p-8 shadow">
-        <div className="text-center text-gray-500">Loading rentals...</div>
+        <div className="text-center text-gray-500">{t('rentals.loading')}</div>
       </div>
     );
   }
@@ -148,9 +150,9 @@ export default function RentedCars({ userId }: RentedCarsProps) {
   return (
     <div className="rounded-lg bg-white shadow">
       <div className="border-b p-6">
-        <h2 className="text-xl font-semibold text-gray-800">My Rentals</h2>
+        <h2 className="text-xl font-semibold text-gray-800">{t('rentals.title')}</h2>
         <p className="mt-1 text-sm text-gray-600">
-          View and manage your car reservations
+          {t('rentals.subtitle')}
         </p>
       </div>
 
@@ -158,12 +160,12 @@ export default function RentedCars({ userId }: RentedCarsProps) {
         {reservations.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <Clipboard className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <p>No rentals yet</p>
+            <p>{t('rentals.noRentals')}</p>
             <button
               onClick={() => router.push('/')}
               className="mt-4 rounded-lg bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700"
             >
-              Browse Cars
+              {t('rentals.browseCars')}
             </button>
           </div>
         ) : (
@@ -183,7 +185,7 @@ export default function RentedCars({ userId }: RentedCarsProps) {
                     />
                   ) : (
                     <div className="flex h-24 w-full items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400 sm:w-32">
-                      No image
+                      {t('rentals.noImage')}
                     </div>
                   )}
 
@@ -214,11 +216,11 @@ export default function RentedCars({ userId }: RentedCarsProps) {
 
                     <div className="mb-3 grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2 sm:gap-4">
                       <div>
-                        <span className="font-medium">Pick-up:</span>{' '}
+                        <span className="font-medium">{t('rentals.pickUp')}:</span>{' '}
                         {new Date(reservation.startDate).toLocaleDateString()}
                       </div>
                       <div>
-                        <span className="font-medium">Drop-off:</span>{' '}
+                        <span className="font-medium">{t('rentals.dropOff')}:</span>{' '}
                         {new Date(reservation.endDate).toLocaleDateString()}
                       </div>
                     </div>
@@ -230,9 +232,12 @@ export default function RentedCars({ userId }: RentedCarsProps) {
 
                       {reservation.paymentStatus ? (
                         <div className="text-sm text-gray-500 sm:text-right">
-                          <div>Payment: {reservation.paymentStatus}</div>
                           <div>
-                            Payment Method: {reservation.paymentMethod ?? '-'}
+                            {t('rentals.payment')}: {reservation.paymentStatus}
+                          </div>
+                          <div>
+                            {t('rentals.paymentMethod')}:{' '}
+                            {reservation.paymentMethod ?? '-'}
                           </div>
                         </div>
                       ) : null}
@@ -244,9 +249,11 @@ export default function RentedCars({ userId }: RentedCarsProps) {
 
             <div className="flex flex-col gap-4 border-t p-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-gray-600">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-                {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of{' '}
-                {totalItems} rentals
+                {t('rentals.showing', {
+                  from: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                  to: Math.min(currentPage * ITEMS_PER_PAGE, totalItems),
+                  total: totalItems,
+                })}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -255,7 +262,7 @@ export default function RentedCars({ userId }: RentedCarsProps) {
                   disabled={currentPage === 1}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Previous
+                  {t('rentals.previous')}
                 </button>
 
                 {pageNumbers[0] > 1 ? (
@@ -309,7 +316,7 @@ export default function RentedCars({ userId }: RentedCarsProps) {
                   disabled={currentPage === totalPages}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Next
+                  {t('rentals.next')}
                 </button>
               </div>
             </div>

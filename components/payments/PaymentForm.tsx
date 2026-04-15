@@ -5,6 +5,7 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useRouter } from 'next/navigation';
 import { createPaymentIntent } from '@/lib/api/paymentApi';
 import LoadingCircle from '../icons/LoadingCircle';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 type CheckoutFormProps = {
   reservationId: number;
@@ -16,6 +17,7 @@ type PaymentIntentState = {
 };
 
 export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
@@ -31,7 +33,7 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
   useEffect(() => {
     if (!reservationId) {
       setLoading(false);
-      setError('Invalid reservation.');
+      setError(t('paymentForm.invalidReservation'));
       return;
     }
 
@@ -54,7 +56,7 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
         if (!isActive) return;
 
         const message =
-          err instanceof Error ? err.message : 'Failed to initialize payment';
+          err instanceof Error ? err.message : t('paymentForm.failedInitialize');
 
         setError(message);
       } finally {
@@ -76,14 +78,14 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
     setError(null);
 
     if (!stripe || !elements || !paymentIntent.clientSecret) {
-      setError('Payment form is not ready yet.');
+      setError(t('paymentForm.notReady'));
       return;
     }
 
     const card = elements.getElement(CardElement);
 
     if (!card) {
-      setError('Card element not loaded.');
+      setError(t('paymentForm.cardNotLoaded'));
       return;
     }
 
@@ -98,7 +100,7 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
       );
 
       if (result.error) {
-        setError(result.error.message || 'Payment failed');
+        setError(result.error.message || t('paymentForm.paymentFailed'));
         return;
       }
 
@@ -109,9 +111,9 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
         return;
       }
 
-      setError('Payment was not completed.');
+      setError(t('paymentForm.notCompleted'));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Payment failed';
+      const message = err instanceof Error ? err.message : t('paymentForm.paymentFailed');
 
       setError(message);
     } finally {
@@ -154,7 +156,7 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
       {paymentIntent.amount !== null && (
         <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
           <div className="flex items-center justify-between">
-            <span className="font-medium text-gray-700">Total Amount:</span>
+            <span className="font-medium text-gray-700">{t('paymentForm.totalAmount')}:</span>
             <span className="text-2xl font-bold text-indigo-600">
               €{paymentIntent.amount}
             </span>
@@ -164,7 +166,7 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
 
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Card Details
+          {t('paymentForm.cardDetails')}
         </label>
         <CardElement options={cardOptions} />
       </div>
@@ -183,15 +185,15 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
         {processing ? (
           <span className="flex items-center justify-center gap-2">
             <LoadingCircle className="h-5 w-5 animate-spin" />
-            Processing...
+            {t('paymentForm.processing')}
           </span>
         ) : (
-          `Pay €${paymentIntent.amount ?? '0.00'}`
+          `${t('paymentForm.pay')} €${paymentIntent.amount ?? '0.00'}`
         )}
       </button>
 
       <p className="text-center text-xs text-gray-500">
-        Your payment is secured by Stripe. Test card: 4242 4242 4242 4242
+        {t('paymentForm.securedByStripe')}
       </p>
     </form>
   );

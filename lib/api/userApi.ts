@@ -99,6 +99,11 @@ export interface LoggedInUser {
   };
 }
 
+export interface LoggedInUserResponse {
+  ok: boolean;
+  user: User;
+}
+
 export type UserReview = {
   id: number;
   carId: number;
@@ -126,16 +131,31 @@ type GetUserReviewsResponse = {
   pagination?: UserReviewsPagination;
 };
 
-export async function getLoggedInUser(): Promise<LoggedInUser> {
+export async function getLoggedInUser(): Promise<User | null> {
   const res = await fetch('/api/auth/me', {
     credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+    },
   });
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch logged in user');
+  if (res.status === 401) {
+    return null;
   }
 
-  return res.json() as Promise<LoggedInUser>;
+  const contentType = res.headers.get('content-type') ?? '';
+
+  if (!contentType.includes('application/json')) {
+    return null;
+  }
+
+  const data = (await res.json()) as LoggedInUserResponse;
+
+  if (!res.ok || !data.user) {
+    return null;
+  }
+
+  return data.user;
 }
 
 export async function verifyResetToken(

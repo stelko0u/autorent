@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSimpleReservation } from '@/lib/api/reservationApi';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 const ReservationForm = () => {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [vehicleId, setVehicleId] = useState('');
@@ -18,12 +20,12 @@ const ReservationForm = () => {
     setError(null);
 
     if (!vehicleId || !startDate || !endDate) {
-      setError('All fields are required');
+      setError(t('reservationPage.requiredFields'));
       return;
     }
 
     if (new Date(startDate) > new Date(endDate)) {
-      setError('Start date must be before end date');
+      setError(t('reservationModal.startBeforeEnd'));
       return;
     }
 
@@ -40,7 +42,7 @@ const ReservationForm = () => {
       router.push(`/reservation/${reservation.id}`);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Failed to create reservation';
+        err instanceof Error ? err.message : t('reservationPage.failedCreate');
 
       setError(message);
     } finally {
@@ -56,7 +58,7 @@ const ReservationForm = () => {
 
       <div>
         <label htmlFor="vehicleId" className="block">
-          Vehicle ID
+          {t('reservationForm.vehicleId')}
         </label>
         <input
           type="number"
@@ -70,7 +72,7 @@ const ReservationForm = () => {
 
       <div>
         <label htmlFor="startDate" className="block">
-          Start Date
+          {t('paymentPage.startDate')}
         </label>
         <input
           type="date"
@@ -85,7 +87,7 @@ const ReservationForm = () => {
 
       <div>
         <label htmlFor="endDate" className="block">
-          End Date
+          {t('paymentPage.endDate')}
         </label>
         <input
           type="date"
@@ -103,7 +105,7 @@ const ReservationForm = () => {
         disabled={loading}
         className="rounded bg-blue-500 p-2 text-white disabled:opacity-60"
       >
-        {loading ? 'Creating...' : 'Reserve'}
+        {loading ? t('adminAddCompany.creating') : t('carDetails.reserveNow')}
       </button>
     </form>
   );

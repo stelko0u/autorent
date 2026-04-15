@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight } from '../icons';
 import { useAlert } from '@/providers/AlertProvider';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface Reservation {
   startDate: string | Date;
@@ -25,6 +26,7 @@ export default function Calendar({
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { showAlert } = useAlert();
+  const { t, locale } = useTranslation();
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -95,8 +97,8 @@ export default function Calendar({
         if (hasReservedInBetween) {
           showAlert({
             type: 'warning',
-            title: 'Invalid Selection',
-            message: 'Cannot select dates with reserved days in between',
+            title: t('calendar.invalidSelection'),
+            message: t('calendar.reservedInBetween'),
           });
           onDateSelect(null, null);
         } else {
@@ -166,20 +168,15 @@ export default function Calendar({
     );
   };
 
-  const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+  const monthLabel = new Intl.DateTimeFormat(locale === 'bg' ? 'bg-BG' : 'en-US', {
+    month: 'long',
+    year: 'numeric',
+  }).format(currentMonth);
+
+  const dayNames =
+    locale === 'bg'
+      ? [t('calendar.sun'), t('calendar.mon'), t('calendar.tue'), t('calendar.wed'), t('calendar.thu'), t('calendar.fri'), t('calendar.sat')]
+      : [t('calendar.sun'), t('calendar.mon'), t('calendar.tue'), t('calendar.wed'), t('calendar.thu'), t('calendar.fri'), t('calendar.sat')];
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -191,7 +188,7 @@ export default function Calendar({
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <h3 className="text-lg font-semibold text-gray-600">
-          {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          {monthLabel}
         </h3>
         <button
           onClick={nextMonth}
@@ -202,7 +199,7 @@ export default function Calendar({
       </div>
 
       <div className="grid grid-cols-7 gap-2 mb-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+        {dayNames.map((day) => (
           <div
             key={day}
             className="text-center text-sm font-medium text-gray-700"
@@ -217,19 +214,19 @@ export default function Calendar({
       <div className="mt-6 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-300 rounded" />
-          <span className="text-gray-600">Available</span>
+          <span className="text-gray-600">{t('calendar.available')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-500 rounded" />
-          <span className="text-gray-600">Selected</span>
+          <span className="text-gray-600">{t('calendar.selected')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-red-300 rounded" />
-          <span className="text-gray-600">Reserved</span>
+          <span className="text-gray-600">{t('calendar.reserved')}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-gray-300 rounded" />
-          <span className="text-gray-600">Past</span>
+          <span className="text-gray-600">{t('calendar.past')}</span>
         </div>
       </div>
     </div>

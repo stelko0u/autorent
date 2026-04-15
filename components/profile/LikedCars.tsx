@@ -8,12 +8,14 @@ import {
   type FavoriteCar,
 } from '@/lib/api/userApi';
 import { FullHeart, Heart } from '../icons';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 interface Props {
   userId: number;
 }
 
 export default function LikedCars({ userId }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [cars, setCars] = useState<FavoriteCar[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function LikedCars({ userId }: Props) {
         if (!isActive) return;
 
         const message =
-          err instanceof Error ? err.message : 'Failed to load favorites';
+          err instanceof Error ? err.message : t('likedCars.failedToLoad');
 
         setError(message);
       } finally {
@@ -51,7 +53,7 @@ export default function LikedCars({ userId }: Props) {
     return () => {
       isActive = false;
     };
-  }, [userId]);
+  }, [userId, t]);
 
   const handleRemoveFavorite = async (carId: number) => {
     if (removingId === carId) return;
@@ -70,7 +72,7 @@ export default function LikedCars({ userId }: Props) {
   if (loading) {
     return (
       <div className="rounded-lg bg-white p-8 shadow">
-        <div className="text-center text-gray-500">Loading favorites...</div>
+        <div className="text-center text-gray-500">{t('likedCars.loading')}</div>
       </div>
     );
   }
@@ -86,9 +88,9 @@ export default function LikedCars({ userId }: Props) {
   return (
     <div className="rounded-lg bg-white shadow">
       <div className="border-b p-6">
-        <h2 className="text-xl font-semibold text-gray-800">Liked Cars</h2>
+        <h2 className="text-xl font-semibold text-gray-800">{t('likedCars.title')}</h2>
         <p className="mt-1 text-sm text-gray-600">
-          Cars you&apos;ve saved for later
+          {t('likedCars.subtitle')}
         </p>
       </div>
 
@@ -97,14 +99,14 @@ export default function LikedCars({ userId }: Props) {
           <div className="py-12 text-center text-gray-500">
             <Heart className="mx-auto mb-4 h-10 w-10 text-gray-400" />
 
-            <p>No liked cars yet</p>
-            <p className="mt-2 text-sm">Browse cars and save your favorites!</p>
+            <p>{t('likedCars.noLikedCars')}</p>
+            <p className="mt-2 text-sm">{t('likedCars.browseAndSave')}</p>
 
             <button
               onClick={() => router.push('/')}
               className="mt-4 rounded-lg bg-indigo-600 px-6 py-2 text-white hover:bg-indigo-700"
             >
-              Browse Cars
+              {t('likedCars.browseCars')}
             </button>
           </div>
         ) : (
@@ -129,7 +131,7 @@ export default function LikedCars({ userId }: Props) {
                     onClick={() => handleRemoveFavorite(car.id)}
                     disabled={removingId === car.id}
                     className="absolute right-3 top-3 rounded-full  p-2 shadow-lg  bg-red-500 hover:bg-red-700 hover:scale-105 transition-all cursor-pointer hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                    title="Remove from favorites"
+                    title={t('likedCars.removeFromFavorites')}
                     type="button"
                   >
                     <FullHeart className="h-5 w-5" />
@@ -156,7 +158,7 @@ export default function LikedCars({ userId }: Props) {
                     <div className="text-lg font-bold text-indigo-600">
                       ${car.pricePerDay}
                       <span className="text-sm font-normal text-gray-600">
-                        /day
+                        {t('likedCars.perDay')}
                       </span>
                     </div>
 
@@ -165,7 +167,7 @@ export default function LikedCars({ userId }: Props) {
                       className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white transition hover:bg-indigo-700"
                       type="button"
                     >
-                      Rent Now
+                      {t('likedCars.rentNow')}
                     </button>
                   </div>
                 </div>

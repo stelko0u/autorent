@@ -3,8 +3,10 @@
 import { fetchDashboardStats } from '@/lib/api/adminApi';
 import React, { useEffect, useState } from 'react';
 import { DashboardStats } from '@/types/types';
+import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,7 +22,7 @@ export default function AdminDashboard() {
       const data = await fetchDashboardStats();
       setStats(data);
     } catch {
-      setError('Error loading statistics');
+      setError(t('adminDashboard.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -29,7 +31,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <section className="p-6">
-        <div className="text-center py-8">Loading...</div>
+        <div className="text-center py-8">{t('common.loading')}</div>
       </section>
     );
   }
@@ -46,41 +48,41 @@ export default function AdminDashboard() {
 
   return (
     <section className="p-6 space-y-6">
-      <h2 className="text-2xl font-bold mb-6">Statistics Overview</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('adminDashboard.statisticsOverview')}</h2>
 
       {/* General statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm text-gray-600 mb-1">Total Companies</div>
+          <div className="text-sm text-gray-600 mb-1">{t('adminDashboard.totalCompanies')}</div>
           <div className="text-3xl font-bold text-blue-600">
             {stats.totalCompanies}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm text-gray-600 mb-1">Total Reservations</div>
+          <div className="text-sm text-gray-600 mb-1">{t('adminDashboard.totalReservations')}</div>
           <div className="text-3xl font-bold text-green-600">
             {stats.totalReservations}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm text-gray-600 mb-1">Platform Revenue</div>
+          <div className="text-sm text-gray-600 mb-1">{t('adminDashboard.platformRevenue')}</div>
           <div className="text-3xl font-bold text-purple-600">
             {stats.platformRevenue.toFixed(2)} €
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            Monthly: {stats.monthlyPlatformRevenue.toFixed(2)} €
+            {t('adminDashboard.monthly')}: {stats.monthlyPlatformRevenue.toFixed(2)} €
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm text-gray-600 mb-1">Company Revenue</div>
+          <div className="text-sm text-gray-600 mb-1">{t('adminDashboard.companyRevenue')}</div>
           <div className="text-3xl font-bold text-orange-600">
             {stats.totalRevenue.toFixed(2)} €
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            Monthly: {stats.monthlyRevenue.toFixed(2)} €
+            {t('adminDashboard.monthly')}: {stats.monthlyRevenue.toFixed(2)} €
           </div>
         </div>
       </div>
@@ -88,7 +90,7 @@ export default function AdminDashboard() {
       {/* Companies table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Company Statistics</h3>
+            <h3 className="text-lg font-semibold">{t('adminDashboard.companyStatistics')}</h3>
         </div>
 
         <div className="overflow-x-auto">
@@ -96,22 +98,22 @@ export default function AdminDashboard() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Company
+                  {t('adminDashboard.company')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reservations
+                  {t('adminDashboard.reservations')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Revenue
+                  {t('adminDashboard.revenue')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Platform Fee
+                  {t('adminDashboard.platformFee')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Monthly Revenue
+                  {t('adminDashboard.monthlyRevenue')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Monthly Fee
+                  {t('adminDashboard.monthlyFee')}
                 </th>
               </tr>
             </thead>

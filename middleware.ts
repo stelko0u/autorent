@@ -39,6 +39,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/dev/test-review-email',
   '/api/review-link',
   '/api/cron/review-reminders',
+  '/api/auth/me',
 ];
 
 function isPublicPath(pathname: string) {
