@@ -87,8 +87,7 @@ export default function BannedPage() {
 
           <p className="text-gray-600 mb-6">
             {t('bannedPage.description')}
-          </p>
-
+            </p>
           {banInfo?.reason && (
             <div className="bg-red-50 border border-red-200 rounded p-4 mb-6 text-left flex gap-2">
               <p className="text-sm font-bold text-red-800 mb-1">

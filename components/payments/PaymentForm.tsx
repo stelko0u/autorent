@@ -17,10 +17,10 @@ type PaymentIntentState = {
 };
 
 export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
-  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [paymentIntent, setPaymentIntent] = useState<PaymentIntentState>({
     clientSecret: null,
@@ -46,17 +46,23 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
 
         const data = await createPaymentIntent(reservationId);
 
-        if (!isActive) return;
+        if (!isActive) {
+          return;
+        }
 
         setPaymentIntent({
           clientSecret: data.clientSecret,
           amount: data.amount,
         });
-      } catch (err) {
-        if (!isActive) return;
+      } catch (err: unknown) {
+        if (!isActive) {
+          return;
+        }
 
         const message =
-          err instanceof Error ? err.message : t('paymentForm.failedInitialize');
+          err instanceof Error
+            ? err.message
+            : t('paymentForm.failedInitialize');
 
         setError(message);
       } finally {
@@ -71,7 +77,7 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
     return () => {
       isActive = false;
     };
-  }, [reservationId]);
+  }, [reservationId, t]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -95,7 +101,9 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
       const result = await stripe.confirmCardPayment(
         paymentIntent.clientSecret,
         {
-          payment_method: { card },
+          payment_method: {
+            card,
+          },
         },
       );
 
@@ -112,8 +120,9 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
       }
 
       setError(t('paymentForm.notCompleted'));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('paymentForm.paymentFailed');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : t('paymentForm.paymentFailed');
 
       setError(message);
     } finally {
@@ -156,7 +165,9 @@ export default function CheckoutForm({ reservationId }: CheckoutFormProps) {
       {paymentIntent.amount !== null && (
         <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
           <div className="flex items-center justify-between">
-            <span className="font-medium text-gray-700">{t('paymentForm.totalAmount')}:</span>
+            <span className="font-medium text-gray-700">
+              {t('paymentForm.totalAmount')}:
+            </span>
             <span className="text-2xl font-bold text-indigo-600">
               €{paymentIntent.amount}
             </span>

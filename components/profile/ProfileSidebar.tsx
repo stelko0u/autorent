@@ -62,22 +62,22 @@ export default function ProfileSidebar({
   const menuItems: MenuItem[] = [
     {
       id: 'profile',
-      label: t('profileSidebar.profileSettings'),
+      label: t('profile.profileSettings'),
       icon: <User className="h-5 w-5" />,
     },
     {
       id: 'rentals',
-      label: t('profileSidebar.myRentals'),
+      label: t('profile.myRentals'),
       icon: <Clipboard className="h-5 w-5" />,
     },
     {
       id: 'reviews',
-      label: t('profileSidebar.myReviews'),
+      label: t('profile.myReviews'),
       icon: <EmptyStar className="h-5 w-5" />,
     },
     {
       id: 'favorites',
-      label: t('profileSidebar.likedCars'),
+      label: t('profile.likedCars'),
       icon: <Heart className="h-5 w-5" />,
     },
   ];
@@ -136,7 +136,7 @@ export default function ProfileSidebar({
           className="mt-2 flex w-full cursor-pointer items-center gap-3 border-t border-amber-600 px-4 py-3 pt-3 text-gray-700 transition hover:bg-gray-50"
         >
           <ArrowLeftFromBracket className="h-5 w-5" />
-          <span>{t('profileSidebar.backHome')}</span>
+          <span>{t('profile.backToHome')}</span>
         </button>
       </nav>
     </div>

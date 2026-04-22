@@ -67,7 +67,7 @@ export default function CarCard({ car }: CarCardProps) {
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Няма снимка
+            {t('profile.noImageAvailable')}
           </div>
         )}
       </div>

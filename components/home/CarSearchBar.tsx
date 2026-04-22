@@ -78,7 +78,7 @@ export default function CarSearchBar() {
 
           <p className="mt-1 text-sm text-gray-500">
             {isLoading
-              ? 'Зареждаме свободните автомобили...'
+              ? t('profile.loadingCarsPlaceholder')
               : t('searchBar.carsCount', {
                   filtered: filteredCars.length,
                   total: cars.length,

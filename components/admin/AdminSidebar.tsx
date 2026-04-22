@@ -13,38 +13,33 @@ export default function AdminSidebar({
   active: string;
   setActive: (s: string) => void;
 }) {
-  const router = useRouter();
-  const { t } = useTranslation();
+  const router = useRouter(); // Инициализиране на useRouter
 
   const items = [
     {
       key: 'dashboard',
-      label: t('adminSidebar.dashboard'),
+      label: 'Dashboard',
       icon: <ChartLine className="w-5 h-5" />,
     },
     {
       key: 'companies',
-      label: t('adminSidebar.manageCompanies'),
+      label: 'Manage Companies',
       icon: <Building className="w-5 h-5" />,
     },
     {
       key: 'add-company',
-      label: t('adminSidebar.addCompany'),
+      label: 'Add Company',
       icon: <Plus className="w-5 h-5" />,
     },
-    {
-      key: 'cars',
-      label: t('adminSidebar.manageCars'),
-      icon: <Cars className="w-5 h-5" />,
-    },
+    { key: 'cars', label: 'Manage Cars', icon: <Cars className="w-5 h-5" /> },
     {
       key: 'users',
-      label: t('adminSidebar.manageUsers'),
+      label: 'Manage Users',
       icon: <UsersGear className="w-5 h-5" />,
     },
     {
       key: 'audit',
-      label: t('adminSidebar.auditLogs'),
+      label: 'Audit Logs',
       icon: <UsersGear className="w-5 h-5" />,
     }
   ];
@@ -61,8 +56,8 @@ export default function AdminSidebar({
           AD
         </div>
         <div>
-          <h3 className="text-lg font-semibold">{t('adminSidebar.panelTitle')}</h3>
-          <p className="text-sm text-gray-500">{t('adminSidebar.panelSubtitle')}</p>
+          <h3 className="text-lg font-semibold">Admin Panel</h3>
+          <p className="text-sm text-gray-500">Site administration</p>
         </div>
       </div>
 
@@ -89,7 +84,7 @@ export default function AdminSidebar({
           href="/"
           className="block px-3 py-2 text-sm text-gray-600 hover:text-gray-800"
         >
-          {t('adminSidebar.backToSite')}
+          Back to site
         </Link>
       </div>
     </aside>

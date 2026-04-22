@@ -25,36 +25,37 @@ export default function CompanySidebar({ company, locked }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentTab = searchParams.get('tab') || 'dashboard';
+  const { t } = useTranslation();
 
   const menuItems = [
     {
       id: 'dashboard',
-      label: t('companySidebar.dashboard'),
+      label: 'Dashboard',
       icon: <ChartLine className="w-5 h-5" />,
     },
     {
       id: 'reservations',
-      label: t('companySidebar.reservations'),
+      label: 'Reservations',
       icon: <Clipboard className="w-5 h-5" />,
     },
     {
       id: 'payments',
-      label: t('companySidebar.payments'),
+      label: 'Payments',
       icon: <BadgeDollar className="w-5 h-5" />,
     },
     {
       id: 'invoices',
-      label: t('companySidebar.invoices'),
+      label: 'Invoices',
       icon: <Clipboard className="w-5 h-5" />,
     },
     {
       id: 'reports',
-      label: t('companySidebar.reports'),
+      label: 'Reports',
       icon: <ChartLine className="w-5 h-5" />,
     },
     {
       id: 'manage-cars',
-      label: t('companySidebar.manageCars'),
+      label: 'Manage Cars',
       icon: <Cars className="w-5 h-5" />,
     },
     // {
@@ -64,12 +65,12 @@ export default function CompanySidebar({ company, locked }: Props) {
     // },
     {
       id: 'offices',
-      label: t('companySidebar.offices'),
+      label: 'Offices',
       icon: <Building className="w-5 h-5" />,
     },
     {
       id: 'audit',
-      label: t('companySidebar.auditLogs'),
+      label: 'Audit Logs',
       icon: <Clipboard className="w-5 h-5" />,
     }
   ];
@@ -92,13 +93,13 @@ export default function CompanySidebar({ company, locked }: Props) {
 
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
-              {t('companySidebar.companyAccount')}
+              Company account
             </p>
             <h3 className="mt-1 truncate text-xl font-semibold">
-              {company?.name || t('companySidebar.companyPanel')}
+              {company?.name || 'Company Panel'}
             </h3>
             <p className="mt-1 truncate text-sm text-white/75">
-              {company?.email || t('companySidebar.noEmail')}
+              {company?.email || 'No email available'}
             </p>
           </div>
         </div>
@@ -145,7 +146,7 @@ export default function CompanySidebar({ company, locked }: Props) {
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-500">
             <ArrowLeftFromBracket className="w-5 h-5" />
           </span>
-          <span>{t('companySidebar.backToSite')}</span>
+          <span>Back to site</span>
         </Link>
       </div>
     </aside>
