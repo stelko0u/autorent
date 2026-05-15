@@ -1,5 +1,29 @@
 import { User } from '@/types/database';
 
+function getBrowserLocale(): 'bg' | 'en' {
+  if (typeof document !== 'undefined') {
+    const localeCookie = document.cookie
+      .split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+
+    if (localeCookie === 'en' || localeCookie === 'bg') {
+      return localeCookie;
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    const savedLocale = window.localStorage.getItem('locale');
+
+    if (savedLocale === 'en' || savedLocale === 'bg') {
+      return savedLocale;
+    }
+  }
+
+  return 'bg';
+}
+
 export interface VerifyResetTokenPayload {
   email: string;
   token: string;
@@ -208,13 +232,15 @@ export async function signInUser(
 export async function resendVerificationEmail(
   email: string,
 ): Promise<{ success?: boolean; message?: string }> {
+  const locale = getBrowserLocale();
   const res = await fetch('/api/auth/resend-verification', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      'x-locale': locale,
     },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, locale }),
   });
 
   const data = await res.json().catch(() => null);

@@ -14,7 +14,10 @@ export default function LanguageSwitcher() {
 
       <button
         type="button"
-        onClick={() => setLocale('bg')}
+        onClick={() => {
+          document.cookie = 'locale=bg; path=/; max-age=31536000; SameSite=Lax';
+          setLocale('bg');
+        }}
         className={`rounded-xl px-3 py-1.5 text-sm font-semibold transition ${
           locale === 'bg'
             ? 'bg-black text-white'
@@ -26,7 +29,10 @@ export default function LanguageSwitcher() {
 
       <button
         type="button"
-        onClick={() => setLocale('en')}
+        onClick={() => {
+          document.cookie = 'locale=en; path=/; max-age=31536000; SameSite=Lax';
+          setLocale('en');
+        }}
         className={`rounded-xl px-3 py-1.5 text-sm font-semibold transition ${
           locale === 'en'
             ? 'bg-black text-white'

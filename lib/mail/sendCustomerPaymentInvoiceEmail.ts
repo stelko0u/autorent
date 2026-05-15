@@ -1,6 +1,7 @@
 import Mail from 'nodemailer/lib/mailer';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { sendMail } from '@/lib/mail/mailer';
+import { getEmailTranslations } from '@/lib/i18n/emailTranslations';
 
 type Input = {
   reservation: {
@@ -40,8 +41,8 @@ type Input = {
   } | null;
 };
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('bg-BG', {
+function formatMoney(value: number, locale: 'bg' | 'en') {
+  return new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'bg-BG', {
     style: 'currency',
     currency: 'EUR',
   })
@@ -49,10 +50,11 @@ function formatMoney(value: number) {
     .replace(/\u00A0/g, ' ');
 }
 
-function formatDate(value: Date | string | null | undefined) {
+function formatDate(value: Date | string | null | undefined, locale: 'bg' | 'en') {
   if (!value) return '—';
 
-  return new Date(value).toLocaleDateString('bg-BG', {
+  const localeTag = locale === 'en' ? 'en-US' : 'bg-BG';
+  return new Date(value).toLocaleDateString(localeTag, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -162,7 +164,10 @@ function calculateRentalDays(startDate: Date | string, endDate: Date | string) {
   return Math.max(diffDays, 1);
 }
 
-async function buildInvoicePdf(input: Input): Promise<Buffer> {
+async function buildInvoicePdf(
+  input: Input,
+  locale: 'bg' | 'en',
+): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595.28, 841.89]); // A4
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -201,9 +206,9 @@ async function buildInvoicePdf(input: Input): Promise<Buffer> {
     input.reservation.endDate,
   );
 
-  const paidDate = formatDate(input.payment.paidAt || new Date());
-  const totalPaid = formatMoney(input.payment.amountPaid);
-  const pricePerDay = formatMoney(input.car.pricePerDay);
+  const paidDate = formatDate(input.payment.paidAt || new Date(), locale);
+  const totalPaid = formatMoney(input.payment.amountPaid, locale);
+  const pricePerDay = formatMoney(input.car.pricePerDay, locale);
 
   const drawText = (
     text: string,
@@ -543,9 +548,13 @@ async function buildInvoicePdf(input: Input): Promise<Buffer> {
   return Buffer.from(bytes);
 }
 
-export async function sendCustomerPaymentInvoiceEmail(input: Input) {
-  const subject = `Фактура за плащане по резервация #${input.reservation.id}`;
-  const invoicePdf = await buildInvoicePdf(input);
+export async function sendCustomerPaymentInvoiceEmail(
+  input: Input,
+  locale: 'bg' | 'en' = 'bg',
+) {
+  const copy = getEmailTranslations(locale).invoice;
+  const subject = copy.subject(input.reservation.id);
+  const invoicePdf = await buildInvoicePdf(input, locale);
 
   const attachments: Mail.Attachment[] = [
     {
@@ -561,58 +570,102 @@ export async function sendCustomerPaymentInvoiceEmail(input: Input) {
     <div style="margin:0;padding:24px;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;">
       <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;">
         <div style="background:linear-gradient(135deg,#4f46e5 0%,#6366f1 100%);padding:32px 28px;color:#ffffff;">
-          <div style="font-size:28px;font-weight:700;line-height:1.2;margin-bottom:8px;">Успешно плащане</div>
+          <div style="font-size:28px;font-weight:700;line-height:1.2;margin-bottom:8px;">${
+            copy.title
+          }</div>
           <div style="font-size:15px;opacity:0.95;">
-            Резервация #${input.reservation.id}
+            ${
+              locale === 'en'
+                ? copy.reservationLabel(input.reservation.id)
+                : copy.reservationLabel(input.reservation.id)
+            }
           </div>
         </div>
 
         <div style="padding:28px;">
           <p style="margin:0 0 16px 0;font-size:16px;">
-            Здравей, <strong>${input.reservation.firstName} ${input.reservation.lastName}</strong>,
+            ${
+              locale === 'en'
+                ? copy.greeting(`<strong>${input.reservation.firstName} ${input.reservation.lastName}</strong>`)
+                : copy.greeting(`<strong>${input.reservation.firstName} ${input.reservation.lastName}</strong>`)
+            }
           </p>
 
           <p style="margin:0 0 20px 0;font-size:15px;line-height:1.7;color:#374151;">
-            Плащането за твоята резервация беше успешно. Прикачили сме PDF фактура към този имейл.
+            ${
+              locale === 'en'
+                ? copy.intro
+                : copy.intro
+            }
           </p>
 
           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:0 0 20px 0;">
-            <div style="font-size:13px;color:#6b7280;margin-bottom:10px;">Детайли за плащането</div>
+            <div style="font-size:13px;color:#6b7280;margin-bottom:10px;">${
+              copy.detailsTitle
+            }</div>
             <div style="font-size:15px;line-height:1.9;">
-              <div><strong>Автомобил:</strong> ${input.car.make} ${input.car.model} ${input.car.year}</div>
-              <div><strong>Период:</strong> ${formatDate(input.reservation.startDate)} - ${formatDate(input.reservation.endDate)}</div>
-              <div><strong>Общо платена сума:</strong> ${formatMoney(input.payment.amountPaid)}</div>
-              <div><strong>Дата на плащане:</strong> ${formatDate(input.payment.paidAt || new Date())}</div>
+              <div><strong>${
+                copy.carLabel
+              }</strong> ${input.car.make} ${input.car.model} ${input.car.year}</div>
+              <div><strong>${
+                copy.periodLabel
+              }</strong> ${formatDate(input.reservation.startDate, locale)} - ${formatDate(input.reservation.endDate, locale)}</div>
+              <div><strong>${
+                copy.totalPaidLabel
+              }</strong> ${formatMoney(input.payment.amountPaid, locale)}</div>
+              <div><strong>${
+                copy.paidDateLabel
+              }</strong> ${formatDate(input.payment.paidAt || new Date(), locale)}</div>
             </div>
           </div>
 
           <p style="margin:0;font-size:15px;line-height:1.7;color:#374151;">
-            Благодарим ти, че използваш <strong>${companyName}</strong>.
+            ${
+              locale === 'en'
+                ? copy.thanks(`<strong>${companyName}</strong>`)
+                : copy.thanks(`<strong>${companyName}</strong>`)
+            }
           </p>
 
           <p style="margin:18px 0 0 0;font-size:15px;line-height:1.7;color:#374151;">
-            Поздрави,<br />
-            <strong>${companyName}</strong>
+            ${locale === 'en' ? 'Regards,' : 'Поздрави,'}<br />
+            <strong>${copy.signature(companyName)}</strong>
           </p>
         </div>
       </div>
     </div>
   `;
 
-  const text = [
-    `Здравей, ${input.reservation.firstName} ${input.reservation.lastName},`,
-    '',
-    `Плащането за резервация #${input.reservation.id} беше успешно.`,
-    'PDF фактурата е прикачена към този имейл.',
-    '',
-    `Автомобил: ${input.car.make} ${input.car.model} ${input.car.year}`,
-    `Период: ${formatDate(input.reservation.startDate)} - ${formatDate(input.reservation.endDate)}`,
-    `Общо платена сума: ${formatMoney(input.payment.amountPaid)}`,
-    `Дата на плащане: ${formatDate(input.payment.paidAt || new Date())}`,
-    '',
-    `Поздрави,`,
-    companyName,
-  ].join('\n');
+  const text =
+    locale === 'en'
+      ? [
+          `Hello, ${input.reservation.firstName} ${input.reservation.lastName},`,
+          '',
+          copy.textIntro(input.reservation.id),
+          copy.textAttachment,
+          '',
+          `${copy.textCarLabel} ${input.car.make} ${input.car.model} ${input.car.year}`,
+          `${copy.textPeriodLabel} ${formatDate(input.reservation.startDate, locale)} - ${formatDate(input.reservation.endDate, locale)}`,
+          `${copy.textTotalPaidLabel} ${formatMoney(input.payment.amountPaid, locale)}`,
+          `${copy.textPaidDateLabel} ${formatDate(input.payment.paidAt || new Date(), locale)}`,
+          '',
+          'Regards,',
+          companyName,
+        ].join('\n')
+      : [
+          `Здравей, ${input.reservation.firstName} ${input.reservation.lastName},`,
+          '',
+          copy.textIntro(input.reservation.id),
+          copy.textAttachment,
+          '',
+          `${copy.textCarLabel} ${input.car.make} ${input.car.model} ${input.car.year}`,
+          `${copy.textPeriodLabel} ${formatDate(input.reservation.startDate, locale)} - ${formatDate(input.reservation.endDate, locale)}`,
+          `${copy.textTotalPaidLabel} ${formatMoney(input.payment.amountPaid, locale)}`,
+          `${copy.textPaidDateLabel} ${formatDate(input.payment.paidAt || new Date(), locale)}`,
+          '',
+          `Поздрави,`,
+          companyName,
+        ].join('\n');
 
   await sendMail({
     to: input.reservation.email,

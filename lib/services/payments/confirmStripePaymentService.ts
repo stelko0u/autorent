@@ -9,7 +9,10 @@ import { saveConfirmedPayment } from '@/lib/services/payments/saveConfirmedPayme
 import { tryCreateAndSendCustomerInvoice } from '@/lib/services/payments/customerInvoiceService';
 import type Stripe from 'stripe';
 
-export async function confirmStripePayment(paymentIntentId: string) {
+export async function confirmStripePayment(
+  paymentIntentId: string,
+  locale: 'bg' | 'en' = 'bg',
+) {
   if (!paymentIntentId || !paymentIntentId.trim()) {
     throw new Error('MISSING_PAYMENT_INTENT_ID');
   }
@@ -28,6 +31,8 @@ export async function confirmStripePayment(paymentIntentId: string) {
 
   const { reservation, car, company } =
     await getReservationCarCompanyForPaymentOrThrow(reservationId);
+
+  const resolvedLocale = locale === 'en' ? 'en' : 'bg';
 
   const totalAmount = Number((paymentIntent.amount / 100).toFixed(2));
   const applicationFeeAmount = paymentIntent.application_fee_amount || 0;
@@ -66,7 +71,10 @@ export async function confirmStripePayment(paymentIntentId: string) {
   if (!wasAlreadyPaid) {
     const invoiceResult = await tryCreateAndSendCustomerInvoice({
       company,
-      reservation,
+      reservation: {
+        ...reservation,
+        locale: resolvedLocale,
+      },
       car,
       paymentIntentId,
       chargeId,

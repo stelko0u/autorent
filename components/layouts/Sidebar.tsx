@@ -11,8 +11,11 @@ import {
   CarKey,
   Cars,
   ChartLine,
+  CircleInfo,
+  Clipboard,
   House,
   MagnifyingGlassPlus,
+  MapPin,
   ScrewdriverWrench,
   TriangleExclamation,
   User,
@@ -65,6 +68,24 @@ export default function Sidebar({
         href: '/profile',
         icon: <User className="w-6 h-6" />,
       },
+      {
+        label: t('nav.about'),
+        key: 'about',
+        href: '/about',
+        icon: <CircleInfo className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.contacts'),
+        key: 'contacts',
+        href: '/contacts',
+        icon: <MapPin className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.faq'),
+        key: 'faq',
+        href: '/faq',
+        icon: <Clipboard className="w-6 h-6" />,
+      },
     );
   } else if (role === 'company') {
     navItems.push(
@@ -92,6 +113,24 @@ export default function Sidebar({
         href: '/profile',
         icon: <User className="w-6 h-6" />,
       },
+      {
+        label: t('nav.about'),
+        key: 'about',
+        href: '/about',
+        icon: <CircleInfo className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.contacts'),
+        key: 'contacts',
+        href: '/contacts',
+        icon: <MapPin className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.faq'),
+        key: 'faq',
+        href: '/faq',
+        icon: <Clipboard className="w-6 h-6" />,
+      },
     );
   } else if (role === 'admin') {
     navItems.push(
@@ -113,6 +152,24 @@ export default function Sidebar({
         href: '/admin/reports',
         icon: <TriangleExclamation className="w-6 h-6" />,
       },
+      {
+        label: t('nav.about'),
+        key: 'about',
+        href: '/about',
+        icon: <CircleInfo className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.contacts'),
+        key: 'contacts',
+        href: '/contacts',
+        icon: <MapPin className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.faq'),
+        key: 'faq',
+        href: '/faq',
+        icon: <Clipboard className="w-6 h-6" />,
+      },
     );
   } else {
     navItems.push({
@@ -121,6 +178,26 @@ export default function Sidebar({
       href: '/',
       icon: <House className="w-6 h-6" />,
     });
+    navItems.push(
+      {
+        label: t('nav.about'),
+        key: 'about',
+        href: '/about',
+        icon: <CircleInfo className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.contacts'),
+        key: 'contacts',
+        href: '/contacts',
+        icon: <MapPin className="w-6 h-6" />,
+      },
+      {
+        label: t('nav.faq'),
+        key: 'faq',
+        href: '/faq',
+        icon: <Clipboard className="w-6 h-6" />,
+      },
+    );
   }
 
   return (

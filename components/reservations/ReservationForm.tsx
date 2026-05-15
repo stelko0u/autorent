@@ -6,7 +6,7 @@ import { createSimpleReservation } from '@/lib/api/reservationApi';
 import { useTranslation } from '@/providers/LanguageProvider';
 
 const ReservationForm = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
 
   const [vehicleId, setVehicleId] = useState('');
@@ -36,6 +36,7 @@ const ReservationForm = () => {
         vehicleId: Number(vehicleId),
         startDate,
         endDate,
+        locale,
       });
 
       // ако API-то връща id

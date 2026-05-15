@@ -13,6 +13,21 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    const localeCookie = req.headers
+      .get('cookie')
+      ?.split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+    const localeHeader = req.headers.get('x-locale');
+    const locale =
+      body?.locale === 'en'
+        ? 'en'
+        : localeHeader === 'en'
+          ? 'en'
+          : localeCookie === 'en'
+            ? 'en'
+            : 'bg';
 
     const result = await createReservation({
       user: {
@@ -20,7 +35,10 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
       },
-      body,
+      body: {
+        ...body,
+        locale,
+      },
     });
 
     return NextResponse.json(result);

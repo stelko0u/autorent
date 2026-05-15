@@ -2,10 +2,15 @@ import crypto from 'crypto';
 import { UserRepository } from '@/lib/repository/UserRepository';
 import { PasswordResetTokenRepository } from '@/lib/repository/PasswordResetTokenRepository';
 import { getResetPasswordEmailTemplate } from '@/lib/mail/templates/resetPasswordTemplate';
+import type { Locale } from '@/lib/i18n/translations';
+import { getEmailTranslations } from '@/lib/i18n/emailTranslations';
 import { isValidEmail, normalizeEmail } from '@/lib/utils/email';
 import { sendMail } from '@/lib/mail/sendMail';
 
-export async function sendForgotPasswordEmail(rawEmail: string) {
+export async function sendForgotPasswordEmail(
+  rawEmail: string,
+  locale: Locale = 'bg',
+) {
   const normalizedEmail = normalizeEmail(rawEmail);
 
   if (!isValidEmail(normalizedEmail)) {
@@ -44,12 +49,16 @@ export async function sendForgotPasswordEmail(rawEmail: string) {
   const resetLink = `${host}/reset-password?token=${rawToken}&email=${encodeURIComponent(
     normalizedEmail,
   )}`;
+  const copy = getEmailTranslations(locale).resetPassword;
 
   await sendMail({
     to: normalizedEmail,
-    subject: 'Инструкции за нулиране на паролата',
-    text: `Отвори този линк, за да зададеш нова парола: ${resetLink}`,
-    html: getResetPasswordEmailTemplate(resetLink),
+    subject: copy.subject,
+    text:
+      locale === 'en'
+        ? `Open this link to set a new password: ${resetLink}`
+        : `Отвори този линк, за да зададеш нова парола: ${resetLink}`,
+    html: getResetPasswordEmailTemplate({ resetLink, locale }),
   });
 
   return {

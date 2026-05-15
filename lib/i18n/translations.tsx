@@ -32,6 +32,7 @@ export const translations = {
       search: 'Търси',
       clear: 'Изчисти',
       all: 'Всички',
+      quickLinks: 'Бързи връзки',
       loading: 'Зареждане...',
       email: 'Имейл',
       phone: 'Телефон',
@@ -52,6 +53,9 @@ export const translations = {
       adminPanel: 'Админ панел',
       manageUsers: 'Управление на потребители',
       reports: 'Справки',
+      about: 'За нас',
+      contacts: 'Контакти',
+      faq: 'Често задавани въпроси',
     },
     hero: {
       title: 'Намери перфектната кола за следващото си пътуване',
@@ -62,6 +66,37 @@ export const translations = {
       searchCars: 'Търси автомобили',
       searchPlaceholder: 'Търси по модел или тип (напр. Tesla, SUV)',
       searchButton: 'Търси',
+    },
+    dateRangePicker: {
+      rentalPeriod: 'Период за наем',
+      selectStartAndEndDate: 'Избери начална и крайна дата',
+      firstSelecteStartThenEnd: 'Първо избери начална дата, после крайна',
+      startDate: 'Начална дата',
+      endDate: 'Крайна дата',
+      selectStartDate: 'Избери начална дата',
+      selectEndDate: 'Избери крайна дата',
+      previus: 'Назад',
+      next: 'Напред',
+      pastDatesUnavailable: 'Миналите дати са недостъпни',
+      mondayShort: 'Пн',
+      tuesdayShort: 'Вт',
+      wednesdayShort: 'Ср',
+      thursdayShort: 'Чт',
+      fridayShort: 'Пт',
+      saturdayShort: 'Сб',
+      sundayShort: 'Нд',
+      januaryShort: 'Ян',
+      februaryShort: 'Фев',
+      marchShort: 'Мар',
+      aprilShort: 'Апр',
+      mayShort: 'Май',
+      juneShort: 'Юни',
+      julyShort: 'Юли',
+      augustShort: 'Авг',
+      septemberShort: 'Сеп',
+      octoberShort: 'Окт',
+      novemberShort: 'Ное',
+      decemberShort: 'Дек',
     },
     searchBar: {
       smartSearch: 'Интелигентно търсене',
@@ -240,6 +275,101 @@ export const translations = {
         'Разгледай наличните автомобили според избраните от теб критерии.',
       results: 'Резултати',
       closeMobileMenu: 'Затвори мобилното меню',
+    },
+    aboutPage: {
+      eyebrow: 'За Smart Rent',
+      title: 'Лесен, сигурен и прозрачен наем на автомобил',
+      subtitle:
+        'Фирма, която иска да обедини всички рент кар компании в една, за да улесни потребителите да намерят лесно и бързо своята кола за пътешествие.',
+      aboutTitle: 'За нас',
+      aboutBody:
+        'Ние сме фирма, която иска да обедини всички рент кар компании в една платформа, за да улесни потребителите да намерят лесно и бързо своята кола за пътешествие.',
+      missionTitle: 'Нашата мисия',
+      missionBody:
+        'Да направим наемането на автомобил удобно, предвидимо и достъпно за всеки, като комбинираме качествени оферти, ясни условия и модерни инструменти за управление.',
+      valuesTitle: 'Какво ни отличава',
+      values: {
+        transparent: {
+          title: 'Прозрачни условия',
+          description:
+            'Ясни цени, видими политики и без скрити такси, за да знаеш точно какво получаваш.',
+        },
+        curated: {
+          title: 'Проверени партньори',
+          description:
+            'Работим с компании с доказано качество и постоянна поддръжка на автопарка.',
+        },
+        support: {
+          title: 'Подкрепа при нужда',
+          description:
+            'Бърза реакция и реални хора, които помагат при въпроси преди и по време на наема.',
+        },
+      },
+    },
+    contactPage: {
+      eyebrow: 'Контакти',
+      title: 'Готови сме да помогнем',
+      subtitle:
+        'Свържи се с нас за въпроси, партньорства или съдействие при резервации.',
+      cards: {
+        support: {
+          title: 'Поддръжка',
+          description: 'Помощ при резервации, плащания и общи въпроси.',
+          emailLabel: 'Имейл',
+          phoneLabel: 'Телефон',
+        },
+        partnerships: {
+          title: 'Партньорства',
+          description: 'Работа с компании и управление на автопарк.',
+          emailLabel: 'Имейл',
+        },
+        office: {
+          title: 'Офис',
+          description: 'Посети ни или изпрати запитване за среща.',
+          addressLabel: 'Адрес',
+          hoursLabel: 'Работно време',
+        },
+      },
+      details: {
+        supportEmail: 'smartrentalpro@abv.bg',
+        supportPhone: '+359 887 435 500',
+        partnershipsEmail: 'smartrentalpro@abv.bg',
+        officeAddress: 'София, бул. Витоша 12',
+        officeHours: 'Понеделник - Петък, 09:00 - 18:30',
+      },
+    },
+    faqPage: {
+      eyebrow: 'Помощ',
+      title: 'Често задавани въпроси',
+      subtitle:
+        'Отговори на най-често срещаните въпроси за резервации, плащания и условия.',
+      items: {
+        booking: {
+          question: 'Как резервирам автомобил?',
+          answer:
+            'Избери автомобил, задай период, попълни данните си и потвърди резервацията. Ще получиш имейл с детайли.',
+        },
+        payment: {
+          question: 'Какви методи на плащане приемате?',
+          answer:
+            'Поддържаме онлайн плащане с карта и плащане на място, според настройките на конкретната компания.',
+        },
+        cancellation: {
+          question: 'Мога ли да отменя резервация?',
+          answer:
+            'Да, условията за отказ са описани в обявата на автомобила. При въпроси се свържи с поддръжка.',
+        },
+        documents: {
+          question: 'Какви документи са нужни при получаване?',
+          answer:
+            'Обикновено са нужни валидна лична карта и шофьорска книжка. Компанията може да изисква допълнителни документи.',
+        },
+        deposit: {
+          question: 'Има ли депозит?',
+          answer:
+            'Някои компании изискват депозит. Всяка обява показва ясно дали се изисква и какъв е размерът му.',
+        },
+      },
     },
     profilePage: {
       title: 'Моят профил',
@@ -1185,6 +1315,7 @@ export const translations = {
       search: 'Search',
       clear: 'Clear',
       all: 'All',
+      quickLinks: 'Quick links',
       loading: 'Loading...',
       email: 'Email',
       phone: 'Phone',
@@ -1205,6 +1336,9 @@ export const translations = {
       adminPanel: 'Admin Panel',
       manageUsers: 'Manage Users',
       reports: 'Reports',
+      about: 'About Us',
+      contacts: 'Contact',
+      faq: 'FAQ',
     },
     hero: {
       title: 'Find the perfect car for your next trip',
@@ -1241,6 +1375,38 @@ export const translations = {
       yearFrom: 'Year from',
       yearTo: 'Year to',
     },
+    dateRangePicker: {
+      rentalPeriod: 'Rental period',
+      selectStartAndEndDate: 'Select start and end date',
+      firstSelecteStartThenEnd: 'First select start date, then end date',
+      startDate: 'Start date',
+      endDate: 'End date',
+      selectStartDate: 'Select start date',
+      selectEndDate: 'Select end date',
+      previus: 'Previous',
+      next: 'Next',
+      pastDatesUnavailable: 'Past dates are unavailable',
+      mondayShort: 'Mon',
+      tuesdayShort: 'Tue',
+      wednesdayShort: 'Wed',
+      thursdayShort: 'Thu',
+      fridayShort: 'Fri',
+      saturdayShort: 'Sat',
+      sundayShort: 'Sun',
+      januaryShort: 'Jan',
+      februaryShort: 'Feb',
+      marchShort: 'Mar',
+      aprilShort: 'Apr',
+      mayShort: 'May',
+      juneShort: 'Jun',
+      julyShort: 'Jul',
+      augustShort: 'Aug',
+      septemberShort: 'Sep',
+      octoberShort: 'Oct',
+      novemberShort: 'Nov',
+      decemberShort: 'Dec',
+    },
+
     language: {
       label: 'Language',
       bg: 'Български',
@@ -1324,6 +1490,43 @@ export const translations = {
       sendNewResetLink: 'Send new reset link',
       invalidToken:
         'The token is invalid or has expired. Please request a new password reset link.',
+    },
+    vehicle: {
+      year: 'Year',
+      brand: 'Brand',
+      model: 'Model',
+      pricePerDay: 'Price per day',
+      location: 'Location',
+      bodyType: 'Body type',
+      transmission: 'Transmission',
+      fuelType: 'Fuel type',
+      horsepower: 'Horsepower',
+      hp: 'hp',
+      bodyTypes: {
+        sedan: 'Sedan',
+        hatchback: 'Hatchback',
+        suv: 'SUV',
+        coupe: 'Coupe',
+        convertible: 'Convertible',
+        wagon: 'Wagon',
+        van: 'Van',
+        pickup: 'Pickup',
+        other: 'Other',
+      },
+      transmissions: {
+        automatic: 'Automatic',
+        manual: 'Manual',
+        semiAutomatic: 'Semi-automatic',
+        cvt: 'CVT',
+        other: 'Other',
+      },
+      fuelTypes: {
+        petrol: 'Petrol',
+        diesel: 'Diesel',
+        electric: 'Electric',
+        hybrid: 'Hybrid',
+        other: 'Other',
+      },
     },
     profile: {
       profileSettings: 'Profile Settings',
@@ -1458,6 +1661,102 @@ export const translations = {
         'Browse available cars based on your selected criteria.',
       results: 'Results',
       closeMobileMenu: 'Close mobile menu',
+    },
+    aboutPage: {
+      eyebrow: 'About Smart Rent',
+      title: 'Simple, secure, and transparent car rental',
+      subtitle:
+        'We are a company that unites rent-a-car companies in one place, making it easier for customers to quickly find the right car for their journey.',
+      aboutTitle: 'About us',
+      aboutBody:
+        'We are a company that wants to unite rent-a-car companies into one platform, helping customers quickly and easily find the right car for their journey.',
+      missionTitle: 'Our mission',
+      missionBody:
+        'Make car rental convenient, predictable, and accessible through quality listings, clear terms, and modern management tools.',
+      valuesTitle: 'What sets us apart',
+      values: {
+        transparent: {
+          title: 'Transparent terms',
+          description:
+            'Clear pricing, visible policies, and no hidden fees so you always know what you get.',
+        },
+        curated: {
+          title: 'Trusted partners',
+          description:
+            'We work with companies that maintain high standards for fleet quality and service.',
+        },
+        support: {
+          title: 'Here when you need us',
+          description:
+            'Quick responses and real people ready to help before and during your rental.',
+        },
+      },
+    },
+    contactPage: {
+      eyebrow: 'Contact',
+      title: 'We are here to help',
+      subtitle:
+        'Reach out for questions, partnerships, or help with a reservation.',
+      cards: {
+        support: {
+          title: 'Support',
+          description:
+            'Help with reservations, payments, and general questions.',
+          emailLabel: 'Email',
+          phoneLabel: 'Phone',
+        },
+        partnerships: {
+          title: 'Partnerships',
+          description: 'Work with us on fleet management and listings.',
+          emailLabel: 'Email',
+        },
+        office: {
+          title: 'Office',
+          description: 'Visit us or send a request for a meeting.',
+          addressLabel: 'Address',
+          hoursLabel: 'Working hours',
+        },
+      },
+      details: {
+        supportEmail: 'smartrentalpro@abv.bg',
+        supportPhone: '+359 887 435 500',
+        partnershipsEmail: 'smartrentalpro@abv.bg',
+        officeAddress: 'Sofia, 12 Vitosha Blvd',
+        officeHours: 'Monday - Friday, 09:00 - 18:30',
+      },
+    },
+    faqPage: {
+      eyebrow: 'Help',
+      title: 'Frequently asked questions',
+      subtitle:
+        'Answers to common questions about bookings, payments, and rental terms.',
+      items: {
+        booking: {
+          question: 'How do I book a car?',
+          answer:
+            'Pick a car, choose dates, fill in your details, and confirm the reservation. You will receive an email with the details.',
+        },
+        payment: {
+          question: 'What payment methods do you accept?',
+          answer:
+            'We support online card payments and on-site payments, depending on the company settings.',
+        },
+        cancellation: {
+          question: 'Can I cancel a reservation?',
+          answer:
+            'Yes. Cancellation rules are shown in the car listing. Contact support if you need help.',
+        },
+        documents: {
+          question: 'What documents are required at pickup?',
+          answer:
+            'Typically a valid ID and driving license are required. Some companies may request additional documents.',
+        },
+        deposit: {
+          question: 'Is there a deposit?',
+          answer:
+            'Some companies require a deposit. Each listing clearly states whether it applies and the amount.',
+        },
+      },
     },
     profilePage: {
       title: 'My Profile',
@@ -1676,8 +1975,7 @@ export const translations = {
       description: 'View, edit, and manage company records.',
       loading: 'Loading companies...',
       noCompanies: 'No companies found',
-      noCompaniesDescription:
-        'Try a different query or create a new company.',
+      noCompaniesDescription: 'Try a different query or create a new company.',
       searchPlaceholder: 'Search by ID, name, email or owner',
       name: 'Name',
       ownerId: 'Owner ID',
@@ -2354,14 +2652,19 @@ export function getNestedValue(
   obj: Record<string, TranslationValue>,
   path: string,
 ): string | undefined {
-  const result = path
-    .split('.')
-    .reduce<TranslationValue | undefined>((acc, part) => {
-      if (!acc || typeof acc === 'string') return undefined;
-      return acc[part];
-    }, obj);
+  const parts = path.split('.');
 
-  return typeof result === 'string' ? result : undefined;
+  let current: TranslationValue | Record<string, TranslationValue> = obj;
+
+  for (const part of parts) {
+    if (typeof current !== 'object' || current === null || !(part in current)) {
+      return undefined;
+    }
+
+    current = current[part] as TranslationValue;
+  }
+
+  return typeof current === 'string' ? current : undefined;
 }
 
 export function interpolate(

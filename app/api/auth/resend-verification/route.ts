@@ -6,7 +6,22 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const { email, locale: bodyLocale } = await req.json();
+    const localeCookie = req.headers
+      .get('cookie')
+      ?.split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+    const localeHeader = req.headers.get('x-locale');
+    const locale =
+      bodyLocale === 'en'
+        ? 'en'
+        : localeHeader === 'en'
+          ? 'en'
+          : localeCookie === 'en'
+            ? 'en'
+            : 'bg';
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
@@ -33,7 +48,7 @@ export async function POST(req: Request) {
       );
     }
 
-    await sendVerificationEmail(user.email, user.id, user.name);
+    await sendVerificationEmail(user.email, user.id, user.name, locale);
 
     return NextResponse.json({
       success: true,

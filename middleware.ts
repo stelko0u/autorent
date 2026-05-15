@@ -20,6 +20,9 @@ const PUBLIC_PATHS = [
   '/review',
   '/banned',
   '/change-temporary-password',
+  '/about',
+  '/contacts',
+  '/faq'
 ];
 
 const PUBLIC_API_PREFIXES = [

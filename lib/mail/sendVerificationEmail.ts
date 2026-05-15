@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { sendMail } from '@/lib/mail/mailer';
 import { getConfirmEmailTemplate } from '@/lib/mail/templates/confirmEmailTemplate';
+import { getEmailTranslations } from '@/lib/i18n/emailTranslations';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -16,6 +17,7 @@ export async function sendVerificationEmail(
   email: string,
   userId: number,
   userName?: string | null,
+  locale: 'bg' | 'en' = 'bg',
 ) {
   if (!JWT_SECRET) {
     throw new Error('JWT_SECRET not configured');
@@ -30,15 +32,17 @@ export async function sendVerificationEmail(
   const verifyUrl = `${appUrl}/api/auth/verify?token=${encodeURIComponent(
     token,
   )}`;
+  const copy = getEmailTranslations(locale).verification;
 
   await sendMail({
     to: email,
-    subject: 'Потвърди своя имейл адрес',
-    text: `Потвърди своя имейл адрес: ${verifyUrl}`,
+    subject: copy.subject,
+    text: `${copy.title}: ${verifyUrl}`,
     html: getConfirmEmailTemplate({
       verifyUrl,
       appName: 'SmartRent',
       userName,
+      locale,
     }),
   });
 }

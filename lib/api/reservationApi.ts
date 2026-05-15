@@ -47,6 +47,7 @@ export interface CreateReservationPayload {
   email: string;
   phone: string;
   paymentMethod: 'CARD' | 'ON_SPOT';
+  locale?: 'bg' | 'en';
 }
 
 export interface CreateReservationResponse {
@@ -63,6 +64,7 @@ export type CreateSimpleReservationPayload = {
   vehicleId: number;
   startDate: string;
   endDate: string;
+  locale?: 'bg' | 'en';
 };
 
 export type CreateSimpleReservationResponse = {
@@ -166,12 +168,18 @@ export async function getReservationPageData(
 export async function createReservation(
   payload: CreateReservationPayload,
 ): Promise<CreateReservationResponse> {
+  const localeCookie = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('locale='))
+    ?.split('=')[1];
   const res = await fetch('/api/reservations', {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      'x-locale': localeCookie === 'en' ? 'en' : 'bg',
     },
     body: JSON.stringify(payload),
   });
@@ -192,12 +200,18 @@ export async function createReservation(
 export async function createSimpleReservation(
   payload: CreateSimpleReservationPayload,
 ): Promise<CreateSimpleReservationResponse> {
+  const localeCookie = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('locale='))
+    ?.split('=')[1];
   const res = await fetch('/api/reservations', {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      'x-locale': localeCookie === 'en' ? 'en' : 'bg',
     },
     body: JSON.stringify(payload),
   });

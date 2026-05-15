@@ -13,6 +13,7 @@ type OnboardCompanyInput = {
   name: string;
   email: string;
   maintenancePercent: number;
+  locale?: 'bg' | 'en';
 };
 
 export async function onboardCompany(input: OnboardCompanyInput) {
@@ -57,6 +58,7 @@ export async function onboardCompany(input: OnboardCompanyInput) {
       companyName: input.name,
       loginEmail: input.email,
       temporaryPassword,
+      locale: input.locale,
     });
 
     return { company, mailInfo };

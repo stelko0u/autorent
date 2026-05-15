@@ -1,3 +1,5 @@
+import { getEmailTranslations } from '@/lib/i18n/emailTranslations';
+
 function escapeHtml(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -11,24 +13,35 @@ type ConfirmEmailTemplateInput = {
   verifyUrl: string;
   appName?: string;
   userName?: string | null;
+  locale?: 'bg' | 'en';
 };
 
 export function getConfirmEmailTemplate({
   verifyUrl,
   appName = 'SmartRent',
   userName,
+  locale = 'bg',
 }: ConfirmEmailTemplateInput) {
+  const isEnglish = locale === 'en';
+  const copy = getEmailTranslations(locale).verification;
   const safeVerifyUrl = escapeHtml(verifyUrl);
   const safeAppName = escapeHtml(appName);
   const safeUserName = userName?.trim() ? escapeHtml(userName.trim()) : null;
+  const title = copy.title;
+  const greeting = copy.greeting;
+  const intro = copy.intro.replace('SmartRent', `<strong>${safeAppName}</strong>`);
+  const ctaLabel = copy.cta;
+  const fallback = copy.fallback;
+  const validity = copy.validity.replace('24 часа', '<strong>24 часа</strong>').replace('24 hours', '<strong>24 hours</strong>');
+  const ignore = copy.ignore;
 
   return `
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="${isEnglish ? 'en' : 'bg'}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Потвърждение на имейл</title>
+  <title>${title}</title>
 </head>
 <body style="margin:0; padding:0; background:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f8; padding:32px 12px;">
@@ -46,16 +59,15 @@ export function getConfirmEmailTemplate({
           <tr>
             <td style="padding:32px;">
               <h2 style="margin:0 0 16px; color:#111827; font-size:22px;">
-                Потвърди своя имейл
+                ${title}
               </h2>
 
               <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.7;">
-                ${safeUserName ? `Здравей, <strong>${safeUserName}</strong>,` : 'Здравей,'}
+                ${safeUserName ? `${greeting}, <strong>${safeUserName}</strong>,` : `${greeting},`}
               </p>
 
               <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.7;">
-                Благодарим ти за регистрацията в <strong>${safeAppName}</strong>.
-                За да активираш своя акаунт, моля потвърди имейл адреса си чрез бутона по-долу.
+                ${intro}
               </p>
 
               <div style="text-align:center; margin:32px 0;">
@@ -63,12 +75,12 @@ export function getConfirmEmailTemplate({
                   href="${safeVerifyUrl}"
                   style="display:inline-block; background:#2563eb; color:#ffffff; padding:14px 28px; font-size:16px; font-weight:700; text-decoration:none; border-radius:10px;"
                 >
-                  Потвърди имейла
+                  ${ctaLabel}
                 </a>
               </div>
 
               <p style="margin:0 0 12px; color:#6b7280; font-size:14px; line-height:1.6;">
-                Ако бутонът не работи, копирай и постави този линк в браузъра си:
+                ${fallback}
               </p>
 
               <p style="margin:0 0 18px; word-break:break-all; font-size:14px; line-height:1.6;">
@@ -78,11 +90,11 @@ export function getConfirmEmailTemplate({
               </p>
 
               <p style="margin:0; color:#6b7280; font-size:14px; line-height:1.6;">
-                Линкът е валиден за <strong>24 часа</strong>.
+                ${validity}
               </p>
 
               <p style="margin:24px 0 0; color:#6b7280; font-size:14px; line-height:1.6;">
-                Ако не си създавал акаунт, просто игнорирай този имейл.
+                ${ignore}
               </p>
             </td>
           </tr>
@@ -90,7 +102,7 @@ export function getConfirmEmailTemplate({
           <tr>
             <td style="background:#f9fafb; padding:18px; text-align:center;">
               <p style="margin:0; color:#9ca3af; font-size:12px;">
-                © ${new Date().getFullYear()} ${safeAppName}. Всички права запазени.
+                © ${new Date().getFullYear()} ${safeAppName}. ${isEnglish ? 'All rights reserved.' : 'Всички права запазени.'}
               </p>
             </td>
           </tr>

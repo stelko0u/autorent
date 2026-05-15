@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { UserRepository } from '@/lib/repository/UserRepository';
 import bcrypt from 'bcryptjs';
+import { sendCompanyCredentialsEmail } from '@/lib/mail/sendCompanyCredentialsEmail';
+import { generateTemporaryPassword } from '@/lib/utils/password';
 
 type UpdateCompanyBody = {
   id?: unknown;
@@ -96,7 +98,24 @@ export async function POST(req: Request) {
   if (!check.ok) return check.resp;
 
   try {
-    const body = (await req.json()) as CreateCompanyBody;
+    const body = (await req.json()) as CreateCompanyBody & {
+      locale?: 'bg' | 'en';
+    };
+    const localeCookie = req.headers
+      .get('cookie')
+      ?.split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+    const localeHeader = req.headers.get('x-locale');
+    const locale =
+      body.locale === 'en'
+        ? 'en'
+        : localeHeader === 'en'
+          ? 'en'
+          : localeCookie === 'en'
+            ? 'en'
+            : 'bg';
     const name = typeof body.name === 'string' ? body.name.trim() : '';
     const email = typeof body.email === 'string' ? body.email.trim() : '';
     const maintenancePercent = Number(body.maintenancePercent);
@@ -123,7 +142,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const temporaryPassword = Math.random().toString(36).slice(-12);
+    const temporaryPassword = generateTemporaryPassword();
     const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
     const user = await UserRepository.create({
@@ -132,7 +151,7 @@ export async function POST(req: Request) {
       name,
       role: 'COMPANY',
       emailVerified: true,
-      mustChangePassword: false,
+      mustChangePassword: true,
     });
 
     try {
@@ -145,9 +164,18 @@ export async function POST(req: Request) {
 
       await UserRepository.update(user.id, {
         companyId: company.id,
+        mustChangePassword: true,
       });
 
-      return NextResponse.json({ ok: true, company });
+      const mailInfo = await sendCompanyCredentialsEmail({
+        to: email,
+        companyName: name,
+        loginEmail: email,
+        temporaryPassword,
+        locale,
+      });
+
+      return NextResponse.json({ ok: true, company, mailInfo });
     } catch (createErr) {
       await UserRepository.delete(user.id);
       throw createErr;

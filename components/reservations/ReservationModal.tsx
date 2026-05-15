@@ -33,7 +33,7 @@ export default function ReservationModal({
   onClose,
   onSuccess,
 }: ReservationModalProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [formData, setFormData] = useState<ReservationFormData>({
     startDate: '',
     endDate: '',
@@ -111,6 +111,7 @@ export default function ReservationModal({
         email: formData.email,
         phone: formData.phone,
         paymentMethod: formData.paymentMethod,
+        locale,
       });
 
       toast.success(

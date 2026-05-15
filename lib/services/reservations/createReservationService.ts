@@ -21,10 +21,12 @@ type Input = {
     email?: string;
     phone?: string;
     paymentMethod?: 'CARD' | 'ON_SPOT';
+    locale?: 'bg' | 'en';
   };
 };
 
 export async function createReservation({ user, body }: Input) {
+  const locale = body.locale === 'en' ? 'en' : 'bg';
   const {
     carId,
     startDate,
@@ -103,6 +105,7 @@ export async function createReservation({ user, body }: Input) {
           year: car.year,
           pricePerDay: car.pricePerDay,
         },
+        locale,
       );
 
       emailSent = true;

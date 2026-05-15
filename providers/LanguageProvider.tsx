@@ -43,6 +43,7 @@ export function LanguageProvider({
 
     if (savedLocale === 'bg' || savedLocale === 'en') {
       setLocaleState(savedLocale);
+      document.cookie = `locale=${savedLocale}; path=/; max-age=31536000; SameSite=Lax`;
     }
 
     setMounted(true);
@@ -50,6 +51,7 @@ export function LanguageProvider({
 
   const setLocale = (nextLocale: Locale) => {
     window.localStorage.setItem('locale', nextLocale);
+    document.cookie = `locale=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
     setLocaleState(nextLocale);
   };
 

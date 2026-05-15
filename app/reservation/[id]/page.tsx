@@ -136,6 +136,7 @@ export default function ReservationPage() {
         email,
         phone,
         paymentMethod,
+        locale,
       });
 
       const reservationId = data.reservation?.id;

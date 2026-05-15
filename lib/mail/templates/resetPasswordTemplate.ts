@@ -1,10 +1,30 @@
-export function getResetPasswordEmailTemplate(resetLink: string) {
+import { getEmailTranslations } from '@/lib/i18n/emailTranslations';
+
+type ResetPasswordTemplateInput = {
+  resetLink: string;
+  locale?: 'bg' | 'en';
+};
+
+export function getResetPasswordEmailTemplate({
+  resetLink,
+  locale = 'bg',
+}: ResetPasswordTemplateInput) {
+  const isEnglish = locale === 'en';
+  const copy = getEmailTranslations(locale).resetPassword;
+  const title = copy.title;
+  const greeting = `${copy.greeting},`;
+  const intro = copy.intro;
+  const cta = copy.cta;
+  const fallback = copy.fallback;
+  const ignore = copy.ignore;
+  const signature = copy.signature;
+
   return `
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="${isEnglish ? 'en' : 'bg'}">
 <head>
   <meta charset="UTF-8" />
-  <title>Нулиране на парола – SmartRent</title>
+  <title>${isEnglish ? 'Password reset - SmartRent' : 'Нулиране на парола - SmartRent'}</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -18,20 +38,19 @@ export function getResetPasswordEmailTemplate(resetLink: string) {
           </tr>
           <tr>
             <td style="padding:32px;">
-              <h2 style="margin-top:0; color:#111827; font-size:20px;">Нулиране на паролата</h2>
-              <p style="color:#374151; font-size:15px; line-height:1.6;">Здравей,</p>
+              <h2 style="margin-top:0; color:#111827; font-size:20px;">${title}</h2>
+              <p style="color:#374151; font-size:15px; line-height:1.6;">${greeting}</p>
               <p style="color:#374151; font-size:15px; line-height:1.6;">
-                Получихме заявка за нулиране на паролата ти в <strong>SmartRent</strong>.
-                Натисни бутона по-долу, за да зададеш нова парола.
+                ${intro}
               </p>
               <div style="text-align:center; margin:32px 0;">
                 <a href="${resetLink}"
                    style="display:inline-block; background:#2563eb; color:#ffffff; padding:14px 28px; font-size:16px; font-weight:600; text-decoration:none; border-radius:8px;">
-                  Нулирай паролата
+                  ${cta}
                 </a>
               </div>
               <p style="color:#6b7280; font-size:14px; line-height:1.6;">
-                Ако бутонът не работи, копирай и постави този линк в браузъра си:
+                ${fallback}
               </p>
               <p style="word-break:break-all; color:#2563eb; font-size:14px;">
                 <a href="${resetLink}" style="color:#2563eb; text-decoration:none;">
@@ -39,18 +58,18 @@ export function getResetPasswordEmailTemplate(resetLink: string) {
                 </a>
               </p>
               <p style="color:#6b7280; font-size:14px; line-height:1.6; margin-top:24px;">
-                Ако не си поискал нулиране на парола, можеш спокойно да игнорираш този имейл.
+                ${ignore}
               </p>
               <p style="color:#374151; font-size:14px; margin-top:32px;">
-                Поздрави,<br />
-                <strong>Екипът на SmartRent</strong>
+                ${isEnglish ? 'Regards,' : 'Поздрави,'}<br />
+                <strong>${signature}</strong>
               </p>
             </td>
           </tr>
           <tr>
             <td style="background:#f9fafb; padding:20px; text-align:center;">
               <p style="margin:0; font-size:12px; color:#9ca3af;">
-                © ${new Date().getFullYear()} SmartRent. Всички права запазени.
+                © ${new Date().getFullYear()} SmartRent. ${isEnglish ? 'All rights reserved.' : 'Всички права запазени.'}
               </p>
             </td>
           </tr>

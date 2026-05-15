@@ -11,7 +11,7 @@ export default function FilteredCarsList() {
     return (
       <div className="rounded-3xl border border-dashed border-amber-300 bg-amber-50 p-10 text-center">
         <h3 className="text-lg font-semibold text-amber-900">
-          Избери начална и крайна дата
+          Избери начална и крайна датааа??
         </h3>
         <p className="mt-2 text-sm text-amber-700">
           За да покажем само свободните автомобили за периода.

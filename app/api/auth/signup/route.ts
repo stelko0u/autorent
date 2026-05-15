@@ -16,6 +16,7 @@ type ReqBody = {
   country?: string;
   postalCode?: string;
   dateOfBirth?: string;
+  locale?: 'bg' | 'en';
 };
 
 function calculateAge(dob: string): number {
@@ -40,6 +41,21 @@ function calculateAge(dob: string): number {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as ReqBody;
+    const localeCookie = req.headers
+      .get('cookie')
+      ?.split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+    const localeHeader = req.headers.get('x-locale');
+    const locale =
+      body.locale === 'en'
+        ? 'en'
+        : localeHeader === 'en'
+          ? 'en'
+          : localeCookie === 'en'
+            ? 'en'
+            : 'bg';
 
     const firstName = String(body.firstName ?? '').trim();
     const lastName = String(body.lastName ?? '').trim();
@@ -184,7 +200,7 @@ export async function POST(req: Request) {
     });
 
     try {
-      await sendVerificationEmail(user.email, user.id, user.name);
+      await sendVerificationEmail(user.email, user.id, user.name, locale);
     } catch (sendErr) {
       console.error('sendVerificationEmail failed:', sendErr);
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from '@/providers/LanguageProvider';
 import React, {
   useEffect,
   useLayoutEffect,
@@ -35,8 +36,6 @@ interface PopupPosition {
   left: number;
   width: number;
 }
-
-const WEEK_DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
 
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -98,21 +97,25 @@ function addMonths(date: Date, amount: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1);
 }
 
-function formatVisibleMonth(date: Date): string {
-  return new Intl.DateTimeFormat('bg-BG', {
+function formatVisibleMonth(date: Date, locale: 'bg' | 'en'): string {
+  return new Intl.DateTimeFormat(locale === 'bg' ? 'bg-BG' : 'en-US', {
     month: 'long',
     year: 'numeric',
   }).format(date);
 }
 
-function formatDisplayDate(value: string, placeholder: string): string {
+function formatDisplayDate(
+  value: string,
+  placeholder: string,
+  locale: 'bg' | 'en',
+): string {
   const parsed = parseIsoDate(value);
 
   if (!parsed) {
     return placeholder;
   }
 
-  return new Intl.DateTimeFormat('bg-BG', {
+  return new Intl.DateTimeFormat(locale === 'bg' ? 'bg-BG' : 'en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -133,6 +136,7 @@ function buildMonthCells(
   );
 
   const firstWeekDay = (firstDayOfMonth.getDay() + 6) % 7;
+
   const firstGridDate = new Date(
     firstDayOfMonth.getFullYear(),
     firstDayOfMonth.getMonth(),
@@ -176,7 +180,7 @@ function getCellClasses(cell: CalendarCell): string {
     'flex h-11 w-full items-center justify-center rounded-2xl text-sm font-semibold transition';
 
   if (!cell.isCurrentMonth || cell.isDisabled) {
-    return `${baseClasses} cursor-not-allowed text-slate-400 bg-gray-100`;
+    return `${baseClasses} cursor-not-allowed bg-gray-100 text-slate-400`;
   }
 
   if (cell.isSelected) {
@@ -207,6 +211,11 @@ interface CalendarPopupProps {
   canGoPrev: boolean;
   position: PopupPosition;
   popupType: 'start' | 'end';
+  locale: 'bg' | 'en';
+  weekDays: string[];
+  previousLabel: string;
+  nextLabel: string;
+  unavailableText: string;
 }
 
 function CalendarPopup({
@@ -222,6 +231,11 @@ function CalendarPopup({
   canGoPrev,
   position,
   popupType,
+  locale,
+  weekDays,
+  previousLabel,
+  nextLabel,
+  unavailableText,
 }: CalendarPopupProps) {
   const cells = useMemo(
     () =>
@@ -249,35 +263,38 @@ function CalendarPopup({
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
           {title}
         </p>
-        <h4 className="mt-1 text-base font-bold text-slate-900">
-          {formatVisibleMonth(visibleMonth)}
+
+        <h4 className="mt-1 text-base font-bold capitalize text-slate-900">
+          {formatVisibleMonth(visibleMonth, locale)}
         </h4>
       </div>
 
       <div className="p-4">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onPrevMonth}
             disabled={!canGoPrev}
             className="rounded-2xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Назад
+            {previousLabel}
           </button>
 
-          <p className="text-xs text-slate-500">Миналите дати са недостъпни</p>
+          <p className="text-center text-xs text-slate-500">
+            {unavailableText}
+          </p>
 
           <button
             type="button"
             onClick={onNextMonth}
             className="rounded-2xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
-            Напред
+            {nextLabel}
           </button>
         </div>
 
         <div className="grid grid-cols-7 gap-2">
-          {WEEK_DAYS.map((day) => (
+          {weekDays.map((day) => (
             <div
               key={day}
               className="py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-400"
@@ -311,18 +328,37 @@ export function DateRangePicker({
   onChangeEndDate,
   minDate,
 }: DateRangePickerProps) {
+  const { t, locale } = useTranslation();
+
   const absoluteMinDate = useMemo(() => {
     const parsed = parseIsoDate(minDate ?? '');
+
     return parsed ?? startOfDay(new Date());
   }, [minDate]);
 
   const selectedStartDate = useMemo(() => parseIsoDate(startDate), [startDate]);
+
   const selectedEndDate = useMemo(() => parseIsoDate(endDate), [endDate]);
+
+  const weekDays = useMemo(
+    () => [
+      t('dateRangePicker.mondayShort'),
+      t('dateRangePicker.tuesdayShort'),
+      t('dateRangePicker.wednesdayShort'),
+      t('dateRangePicker.thursdayShort'),
+      t('dateRangePicker.fridayShort'),
+      t('dateRangePicker.saturdayShort'),
+      t('dateRangePicker.sundayShort'),
+    ],
+    [t],
+  );
 
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [isMounted, setIsMounted] = useState(false);
+
   const [startPopupPosition, setStartPopupPosition] =
     useState<PopupPosition | null>(null);
+
   const [endPopupPosition, setEndPopupPosition] =
     useState<PopupPosition | null>(null);
 
@@ -335,7 +371,9 @@ export function DateRangePicker({
   );
 
   const rootRef = useRef<HTMLDivElement | null>(null);
+
   const startTriggerRef = useRef<HTMLDivElement | null>(null);
+
   const endTriggerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -344,6 +382,7 @@ export function DateRangePicker({
 
   function updatePopupPositions() {
     const startRect = startTriggerRef.current?.getBoundingClientRect();
+
     const endRect = endTriggerRef.current?.getBoundingClientRect();
 
     if (startRect) {
@@ -390,10 +429,12 @@ export function DateRangePicker({
       }
 
       const clickedInsideRoot = rootRef.current?.contains(target);
+
       const clickedInsideStartPopup =
         target instanceof Element
           ? target.closest('[data-calendar-popup="start"]')
           : null;
+
       const clickedInsideEndPopup =
         target instanceof Element
           ? target.closest('[data-calendar-popup="end"]')
@@ -440,6 +481,7 @@ export function DateRangePicker({
       setEndVisibleMonth(
         new Date(selectedEndDate.getFullYear(), selectedEndDate.getMonth(), 1),
       );
+
       return;
     }
 
@@ -467,6 +509,7 @@ export function DateRangePicker({
   );
 
   const endMinAllowedDate = selectedStartDate ?? absoluteMinDate;
+
   const endMonthMin = new Date(
     endMinAllowedDate.getFullYear(),
     endMinAllowedDate.getMonth(),
@@ -529,7 +572,9 @@ export function DateRangePicker({
     }
 
     setEndVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+
     updatePopupPositions();
+
     setOpenPanel('end');
   }
 
@@ -539,16 +584,20 @@ export function DateRangePicker({
     }
 
     onChangeEndDate(formatIsoDate(date));
+
     setOpenPanel(null);
   }
 
   function handleClear() {
     onChangeStartDate('');
     onChangeEndDate('');
+
     setOpenPanel(null);
+
     setStartVisibleMonth(
       new Date(absoluteMinDate.getFullYear(), absoluteMinDate.getMonth(), 1),
     );
+
     setEndVisibleMonth(
       new Date(absoluteMinDate.getFullYear(), absoluteMinDate.getMonth(), 1),
     );
@@ -562,13 +611,15 @@ export function DateRangePicker({
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Период за наем
+            {t('dateRangePicker.rentalPeriod')}
           </p>
+
           <h3 className="mt-1 text-lg font-bold text-slate-900">
-            Избери начална и крайна дата
+            {t('dateRangePicker.selectStartAndEndDate')}
           </h3>
+
           <p className="mt-1 text-sm text-slate-500">
-            Първо избери начална дата, после крайна.
+            {t('dateRangePicker.firstSelecteStartThenEnd')}
           </p>
         </div>
 
@@ -578,7 +629,7 @@ export function DateRangePicker({
             onClick={handleClear}
             className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
-            Изчисти датите
+            {t('common.clear')}
           </button>
         )}
       </div>
@@ -595,10 +646,15 @@ export function DateRangePicker({
             }`}
           >
             <span className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Начална дата
+              {t('dateRangePicker.startDate')}
             </span>
+
             <span className="mt-2 block text-base font-bold text-slate-900">
-              {formatDisplayDate(startDate, 'Избери начална дата')}
+              {formatDisplayDate(
+                startDate,
+                t('dateRangePicker.selectStartDate'),
+                locale,
+              )}
             </span>
           </button>
         </div>
@@ -614,10 +670,15 @@ export function DateRangePicker({
             }`}
           >
             <span className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Крайна дата
+              {t('dateRangePicker.endDate')}
             </span>
+
             <span className="mt-2 block text-base font-bold text-slate-900">
-              {formatDisplayDate(endDate, 'Избери крайна дата')}
+              {formatDisplayDate(
+                endDate,
+                t('dateRangePicker.selectEndDate'),
+                locale,
+              )}
             </span>
           </button>
         </div>
@@ -626,7 +687,7 @@ export function DateRangePicker({
       {isMounted && openPanel === 'start' && startPopupPosition && (
         <div data-calendar-popup="start">
           <CalendarPopup
-            title="Начална дата"
+            title={t('dateRangePicker.startDate')}
             selectedDate={selectedStartDate}
             rangeStartDate={selectedStartDate}
             rangeEndDate={selectedEndDate}
@@ -642,6 +703,11 @@ export function DateRangePicker({
             canGoPrev={canGoPrevStart}
             position={startPopupPosition}
             popupType="start"
+            locale={locale}
+            weekDays={weekDays}
+            previousLabel={t('dateRangePicker.previous')}
+            nextLabel={t('dateRangePicker.next')}
+            unavailableText={t('dateRangePicker.pastDatesUnavailable')}
           />
         </div>
       )}
@@ -649,7 +715,7 @@ export function DateRangePicker({
       {isMounted && openPanel === 'end' && endPopupPosition && (
         <div data-calendar-popup="end">
           <CalendarPopup
-            title="Крайна дата"
+            title={t('dateRangePicker.endDate')}
             selectedDate={selectedEndDate}
             rangeStartDate={selectedStartDate}
             rangeEndDate={selectedEndDate}
@@ -665,6 +731,11 @@ export function DateRangePicker({
             canGoPrev={canGoPrevEnd}
             position={endPopupPosition}
             popupType="end"
+            locale={locale}
+            weekDays={weekDays}
+            previousLabel={t('dateRangePicker.previous')}
+            nextLabel={t('dateRangePicker.next')}
+            unavailableText={t('dateRangePicker.pastDatesUnavailable')}
           />
         </div>
       )}

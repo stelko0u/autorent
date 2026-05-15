@@ -1,5 +1,29 @@
 import { Car } from '@/types/types';
 
+function getBrowserLocale(): 'bg' | 'en' {
+  if (typeof document !== 'undefined') {
+    const localeCookie = document.cookie
+      .split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+
+    if (localeCookie === 'en' || localeCookie === 'bg') {
+      return localeCookie;
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    const savedLocale = window.localStorage.getItem('locale');
+
+    if (savedLocale === 'en' || savedLocale === 'bg') {
+      return savedLocale;
+    }
+  }
+
+  return 'bg';
+}
+
 export async function fetchUsers(): Promise<{ users: import('@/types/database').User[] }> {
   const res = await fetch('/api/admin/users', {
     method: 'GET',
@@ -193,11 +217,12 @@ export async function createCompany(payload: {
   maintenancePercent: number;
   // password: string;
 }): Promise<void> {
+  const locale = getBrowserLocale();
   const res = await fetch('/api/admin/companies', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json', 'x-locale': locale },
+    body: JSON.stringify({ ...payload, locale }),
   });
 
   const data = await res.json();

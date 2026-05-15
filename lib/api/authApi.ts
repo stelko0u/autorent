@@ -58,6 +58,7 @@ export interface AuthResponse {
 
 export interface ForgotPasswordPayload {
   email: string;
+  locale?: 'bg' | 'en';
 }
 
 export interface ForgotPasswordResponse {
@@ -88,6 +89,30 @@ export type SignInResponse =
       mustChangePassword?: boolean;
       redirectTo?: string;
     };
+
+function getBrowserLocale(): 'bg' | 'en' {
+  if (typeof document !== 'undefined') {
+    const localeCookie = document.cookie
+      .split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('locale='))
+      ?.split('=')[1];
+
+    if (localeCookie === 'en' || localeCookie === 'bg') {
+      return localeCookie;
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    const savedLocale = window.localStorage.getItem('locale');
+
+    if (savedLocale === 'en' || savedLocale === 'bg') {
+      return savedLocale;
+    }
+  }
+
+  return 'bg';
+}
 
 export async function getCurrentUser(): Promise<MeResponse> {
   const res = await fetch('/api/auth/me', {
@@ -135,12 +160,14 @@ export async function completeOnboarding(
 }
 
 export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
+  const locale = getBrowserLocale();
   const res = await fetch('/api/auth/signup', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'x-locale': locale,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ ...data, locale }),
   });
 
   return res.json();
@@ -176,12 +203,14 @@ export async function signOut(): Promise<void> {
 export async function forgotPassword(
   payload: ForgotPasswordPayload,
 ): Promise<ForgotPasswordResponse> {
+  const locale = payload.locale ?? getBrowserLocale();
   const response = await fetch('/api/auth/forgot-password', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'x-locale': locale,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, locale }),
   });
 
   const data: ForgotPasswordResponse = await response.json().catch(() => ({}));
