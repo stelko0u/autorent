@@ -182,7 +182,7 @@ export default function ReservationModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Start Date *
+                  {t('reservationModal.startDateLabel')} *
                 </label>
                 <input
                   type="date"
@@ -202,7 +202,7 @@ export default function ReservationModal({
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  End Date *
+                  {t('reservationModal.endDateLabel')} *
                 </label>
                 <input
                   type="date"
@@ -224,7 +224,7 @@ export default function ReservationModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  First Name *
+                  {t('reservationModal.firstNameLabel')} *
                 </label>
                 <input
                   type="text"
@@ -243,7 +243,7 @@ export default function ReservationModal({
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Last Name *
+                  {t('reservationModal.lastNameLabel')} *
                 </label>
                 <input
                   type="text"
@@ -262,7 +262,7 @@ export default function ReservationModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Email *
+                  {t('reservationModal.emailLabel')} *
                 </label>
                 <input
                   type="email"
@@ -279,7 +279,7 @@ export default function ReservationModal({
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Phone *
+                  {t('reservationModal.phoneLabel')} *
                 </label>
                 <input
                   type="tel"
@@ -297,7 +297,7 @@ export default function ReservationModal({
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Payment Method *
+                {t('reservationModal.paymentMethodLabel')} *
               </label>
               <select
                 value={formData.paymentMethod}
@@ -316,7 +316,7 @@ export default function ReservationModal({
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Additional Notes
+                {t('reservationModal.additionalNotesLabel')}
               </label>
               <textarea
                 value={formData.notes}

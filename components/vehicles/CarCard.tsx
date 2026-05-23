@@ -118,32 +118,32 @@ export default function CarCard({ car }: CarCardProps) {
             </p>
           </div>
 
-          <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+          <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
             {car.year || '-'}
           </span>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
           <div className="rounded-2xl bg-gray-50 px-3 py-2">
-            <p className="text-xs text-gray-400">{t('vehicle.bodyType')}</p>
+            <p className="text-sm text-gray-400">{t('vehicle.bodyType')}</p>
 
             <p className="font-medium text-gray-800">{bodyTypeLabel}</p>
           </div>
 
           <div className="rounded-2xl bg-gray-50 px-3 py-2">
-            <p className="text-xs text-gray-400">{t('vehicle.fuelType')}</p>
+            <p className="text-sm text-gray-400">{t('vehicle.fuelType')}</p>
 
             <p className="font-medium text-gray-800">{fuelTypeLabel}</p>
           </div>
 
           <div className="rounded-2xl bg-gray-50 px-3 py-2">
-            <p className="text-xs text-gray-400">{t('vehicle.transmission')}</p>
+            <p className="text-sm text-gray-400">{t('vehicle.transmission')}</p>
 
             <p className="font-medium text-gray-800">{transmissionLabel}</p>
           </div>
 
           <div className="rounded-2xl bg-gray-50 px-3 py-2">
-            <p className="text-xs text-gray-400">{t('vehicle.horsepower')}</p>
+            <p className="text-sm text-gray-400">{t('vehicle.horsepower')}</p>
 
             <p className="font-medium text-gray-800">
               {car.power ? `${car.power} ${t('vehicle.hp')}` : '-'}
@@ -153,7 +153,7 @@ export default function CarCard({ car }: CarCardProps) {
 
         <div className="flex items-center justify-between border-t border-gray-100 pt-2">
           <div className="min-w-0">
-            <p className="text-xs text-gray-400">{t('vehicle.location')}</p>
+            <p className="text-sm text-gray-400">{t('vehicle.location')}</p>
 
             <p className="truncate text-sm font-medium text-gray-800">
               {car.location || '-'}
@@ -165,7 +165,7 @@ export default function CarCard({ car }: CarCardProps) {
               €{Number(car.pricePerDay ?? 0).toFixed(2)}
             </p>
 
-            <p className="text-xs text-gray-400">{t('vehicle.pricePerDay')}</p>
+            <p className="text-sm text-gray-400">{t('vehicle.pricePerDay')}</p>
           </div>
         </div>
       </div>

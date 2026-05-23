@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building, Cars, ChartLine, Plus, UsersGear } from '../icons';
+import { Building, Cars, ChartLine, Clipboard, Plus, UsersGear } from '../icons';
 import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AdminSidebar({
@@ -36,6 +36,11 @@ export default function AdminSidebar({
       key: 'cars',
       label: t('adminSidebar.manageCars'),
       icon: <Cars className="w-5 h-5" />,
+    },
+    {
+      key: 'reservations',
+      label: t('adminSidebar.reservations'),
+      icon: <Clipboard className="w-5 h-5" />,
     },
     {
       key: 'users',

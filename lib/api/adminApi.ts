@@ -101,6 +101,67 @@ export async function fetchDashboardStats(): Promise<import('@/types/types').Das
   return response.json();
 }
 
+export type AdminReservationFilters = {
+  companyId?: number | string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export type AdminReservationRow = {
+  id: number;
+  company_id: number;
+  company_name: string;
+  car_id: number;
+  car_make: string;
+  car_model: string;
+  car_year: number | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+  start_date: string;
+  end_date: string;
+  total_price: string | number | null;
+  status: string;
+  payment_status: string | null;
+  payment_method: string | null;
+  created_at: string;
+};
+
+export async function fetchAdminReservations(
+  filters: AdminReservationFilters = {},
+): Promise<AdminReservationRow[]> {
+  const searchParams = new URLSearchParams();
+
+  if (filters.companyId) {
+    searchParams.set('companyId', String(filters.companyId));
+  }
+
+  if (filters.dateFrom) {
+    searchParams.set('dateFrom', filters.dateFrom);
+  }
+
+  if (filters.dateTo) {
+    searchParams.set('dateTo', filters.dateTo);
+  }
+
+  const url = searchParams.toString()
+    ? `/api/admin/reservations?${searchParams.toString()}`
+    : '/api/admin/reservations';
+
+  const response = await fetch(url, {
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data?.error || 'Failed to load reservations');
+  }
+
+  return Array.isArray(data?.reservations) ? data.reservations : [];
+}
+
 export async function fetchCarsAndCompanies(): Promise<{
   cars: import('@/types/types').CarRow[];
   companies: import('@/types/types').Company[];

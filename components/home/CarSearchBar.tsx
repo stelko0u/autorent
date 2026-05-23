@@ -68,9 +68,7 @@ export default function CarSearchBar() {
     <section className="rounded-[28px] border border-white/60 bg-white/85 p-4 shadow-[0_15px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl md:p-6">
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-            {t('searchBar.smartSearch')}
-          </p>
+          
 
           <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">
             {t('searchBar.findExactCar')}

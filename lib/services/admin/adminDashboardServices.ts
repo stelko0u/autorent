@@ -1,5 +1,6 @@
 import {
   getAdminDashboardCompanies,
+  getAdminDashboardPayments,
   getAdminDashboardReservations,
 } from '@/lib/repository/admin/AdminRepository';
 
@@ -14,9 +15,10 @@ type CompanyStats = {
 };
 
 export async function getAdminDashboardStats() {
-  const [companies, reservations] = await Promise.all([
+  const [companies, reservations, payments] = await Promise.all([
     getAdminDashboardCompanies(),
     getAdminDashboardReservations(),
+    getAdminDashboardPayments(),
   ]);
 
   let totalRevenue = 0;
@@ -26,6 +28,7 @@ export async function getAdminDashboardStats() {
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   const companiesStatsMap = new Map<number, CompanyStats>();
 
@@ -42,26 +45,31 @@ export async function getAdminDashboardStats() {
   }
 
   for (const reservation of reservations) {
-    const totalPrice = Number(reservation.total_price ?? 0);
-    const feePercent = Number(reservation.maintenance_percent ?? 0);
-    const platformFee = Number(((totalPrice * feePercent) / 100).toFixed(2));
-    const companyRevenue = Number((totalPrice - platformFee).toFixed(2));
+    const companyStats = companiesStatsMap.get(reservation.company_id);
+    if (!companyStats) continue;
+
+    companyStats.reservationsCount += 1;
+  }
+
+  for (const payment of payments) {
+    const platformFee = Number(payment.platform_fee ?? 0);
+    const companyRevenue = Number(payment.company_earnings ?? 0);
 
     totalRevenue += companyRevenue;
     platformRevenue += platformFee;
 
-    const reservationDate = new Date(reservation.created_at);
-    const isCurrentMonth = reservationDate >= monthStart;
+    const paymentDate = new Date(payment.paid_at ?? payment.created_at);
+    const isCurrentMonth =
+      paymentDate >= monthStart && paymentDate < nextMonthStart;
 
     if (isCurrentMonth) {
       monthlyRevenue += companyRevenue;
       monthlyPlatformRevenue += platformFee;
     }
 
-    const companyStats = companiesStatsMap.get(reservation.company_id);
+    const companyStats = companiesStatsMap.get(payment.company_id);
     if (!companyStats) continue;
 
-    companyStats.reservationsCount += 1;
     companyStats.revenue += companyRevenue;
     companyStats.platformFee += platformFee;
 

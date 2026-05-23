@@ -437,7 +437,7 @@ async function buildInvoicePdf(
   drawLabelValueRow('Vehicle', vehicleName, y - 52, { valueBold: true });
   drawLabelValueRow(
     'Rental period',
-    `${formatDate(input.reservation.startDate)} - ${formatDate(input.reservation.endDate)}`,
+    `${formatDate(input.reservation.startDate, locale)} - ${formatDate(input.reservation.endDate, locale)}`,
     y - 78,
   );
   drawLabelValueRow('Rental days', `${rentalDays} day(s)`, y - 104);
