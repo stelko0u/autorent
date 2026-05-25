@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   title: 'Company Panel',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function CompanyPage() {
   const authUser = await getAuthUser();
   if (

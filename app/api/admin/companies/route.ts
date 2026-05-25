@@ -3,25 +3,15 @@ import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { UserRepository } from '@/lib/repository/UserRepository';
 import bcrypt from 'bcryptjs';
+import { ZodError } from 'zod';
 import { sendCompanyCredentialsEmail } from '@/lib/mail/sendCompanyCredentialsEmail';
 import { generateTemporaryPassword } from '@/lib/utils/password';
-
-type UpdateCompanyBody = {
-  id?: unknown;
-  name?: unknown;
-  email?: unknown;
-  maintenancePercent?: unknown;
-};
-
-type DeleteCompanyBody = {
-  id?: unknown;
-};
-
-type CreateCompanyBody = {
-  name?: unknown;
-  email?: unknown;
-  maintenancePercent?: unknown;
-};
+import {
+  adminCompanyPayloadSchema,
+  adminCompanyUpdateSchema,
+  adminIdSchema,
+  getZodErrorCode,
+} from '@/lib/validators/schemas';
 
 export async function GET(req: Request) {
   const check = await requireAdmin(req);
@@ -41,39 +31,14 @@ export async function PATCH(req: Request) {
   if (!check.ok) return check.resp;
 
   try {
-    const body = (await req.json()) as UpdateCompanyBody;
-    const id = Number(body.id);
-
-    if (!id || Number.isNaN(id)) {
-      return NextResponse.json(
-        { ok: false, error: 'id_required' },
-        { status: 400 },
-      );
-    }
+    const body = adminCompanyUpdateSchema.parse(await req.json());
+    const { id, name, email, maintenancePercent } = body;
 
     const existing = await CompanyRepository.findById(id);
     if (!existing) {
       return NextResponse.json(
         { ok: false, error: 'not_found' },
         { status: 404 },
-      );
-    }
-
-    const name = typeof body.name === 'string' ? body.name.trim() : '';
-    const email = typeof body.email === 'string' ? body.email.trim() : '';
-    const maintenancePercent = Number(body.maintenancePercent);
-
-    if (!name || !email || Number.isNaN(maintenancePercent)) {
-      return NextResponse.json(
-        { ok: false, error: 'invalid_payload' },
-        { status: 400 },
-      );
-    }
-
-    if (maintenancePercent < 0 || maintenancePercent > 100) {
-      return NextResponse.json(
-        { ok: false, error: 'invalid_maintenance_percent' },
-        { status: 400 },
       );
     }
 
@@ -86,6 +51,14 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ ok: true, company: updated });
   } catch (err) {
     console.error('PATCH /api/admin/companies error:', err);
+
+    if (err instanceof ZodError) {
+      return NextResponse.json(
+        { ok: false, error: getZodErrorCode(err) },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error: 'update_error' },
       { status: 500 },
@@ -98,9 +71,8 @@ export async function POST(req: Request) {
   if (!check.ok) return check.resp;
 
   try {
-    const body = (await req.json()) as CreateCompanyBody & {
-      locale?: 'bg' | 'en';
-    };
+    const rawBody = await req.json();
+    const body = adminCompanyPayloadSchema.parse(rawBody);
     const localeCookie = req.headers
       .get('cookie')
       ?.split(';')
@@ -116,23 +88,7 @@ export async function POST(req: Request) {
           : localeCookie === 'en'
             ? 'en'
             : 'bg';
-    const name = typeof body.name === 'string' ? body.name.trim() : '';
-    const email = typeof body.email === 'string' ? body.email.trim() : '';
-    const maintenancePercent = Number(body.maintenancePercent);
-
-    if (!name || !email || Number.isNaN(maintenancePercent)) {
-      return NextResponse.json(
-        { ok: false, error: 'invalid_payload' },
-        { status: 400 },
-      );
-    }
-
-    if (maintenancePercent < 0 || maintenancePercent > 100) {
-      return NextResponse.json(
-        { ok: false, error: 'invalid_maintenance_percent' },
-        { status: 400 },
-      );
-    }
+    const { name, email, maintenancePercent } = body;
 
     const existingUser = await UserRepository.findByEmail(email);
     if (existingUser) {
@@ -182,6 +138,14 @@ export async function POST(req: Request) {
     }
   } catch (err) {
     console.error('POST /api/admin/companies error:', err);
+
+    if (err instanceof ZodError) {
+      return NextResponse.json(
+        { ok: false, error: getZodErrorCode(err) },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error: 'create_error' },
       { status: 500 },
@@ -194,15 +158,7 @@ export async function DELETE(req: Request) {
   if (!check.ok) return check.resp;
 
   try {
-    const body = (await req.json()) as DeleteCompanyBody;
-    const id = Number(body.id);
-
-    if (!id || Number.isNaN(id)) {
-      return NextResponse.json(
-        { ok: false, error: 'id_required' },
-        { status: 400 },
-      );
-    }
+    const { id } = adminIdSchema.parse(await req.json());
 
     const company = await CompanyRepository.findById(id);
     if (!company) {
@@ -216,6 +172,14 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('DELETE /api/admin/companies error:', err);
+
+    if (err instanceof ZodError) {
+      return NextResponse.json(
+        { ok: false, error: getZodErrorCode(err) },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error: 'delete_error' },
       { status: 500 },

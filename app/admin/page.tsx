@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: 'Admin Panel',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
   const authUser = await getAuthUser();
   if (

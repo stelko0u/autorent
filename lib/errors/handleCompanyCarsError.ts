@@ -77,6 +77,18 @@ export function handleCompanyCarsError(error: unknown) {
           { status: 400 },
         );
 
+      case 'INVALID_OFFICE_ID':
+        return NextResponse.json(
+          { error: 'Invalid officeId' },
+          { status: 400 },
+        );
+
+      case 'NO_UPDATE_FIELDS':
+        return NextResponse.json(
+          { error: 'No fields to update' },
+          { status: 400 },
+        );
+
       case 'CAR_HAS_RESERVATIONS':
         return NextResponse.json(
           { error: 'Cannot delete car with existing reservations' },

@@ -1,10 +1,6 @@
 import { CompanyRepository } from '@/lib/repository/CompanyRepository';
 import { CarRepository } from '@/lib/repository/CarRepository';
-import {
-  getStripeBalanceSummary,
-  listStripePaymentsForCompany,
-  summarizePayments,
-} from '@/lib/services/stripe/companyFinance';
+import { PaymentsRepository } from '@/lib/repository/PaymentsRepository';
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
 import type { Company } from '@/types/database';
 
@@ -90,44 +86,48 @@ async function getCompanyMoneyStats(
   company: Company,
   maintenancePercent: number,
 ) {
-  let moneySource: 'stripe' | 'database' = 'stripe';
-  let totalRevenue = 0;
-  let platformFee = 0;
-  let companyEarnings = 0;
-  let balanceAvailable = 0;
-  let balancePending = 0;
+  const payments = await PaymentsRepository.findByCompany(company.id);
 
-  try {
-    const stripePayments = await listStripePaymentsForCompany(company);
-    const moneySummary = summarizePayments(stripePayments);
-    const balance = await getStripeBalanceSummary(company);
+  const paidPayments = payments.filter(
+    (payment) => String(payment.paymentStatus).toUpperCase() === 'PAID',
+  );
+  const pendingPayments = payments.filter(
+    (payment) => String(payment.paymentStatus).toUpperCase() === 'PENDING',
+  );
 
-    totalRevenue = moneySummary.totalRevenue;
-    platformFee = moneySummary.platformFee;
-    companyEarnings = moneySummary.companyEarnings;
-    balanceAvailable = balance.available;
-    balancePending = balance.pending;
-  } catch (err) {
-    console.error('Stripe dashboard fallback to database:', err);
+  const totalRevenue = Number(
+    paidPayments
+      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
+      .toFixed(2),
+  );
+  let platformFee = Number(
+    paidPayments
+      .reduce((sum, payment) => sum + Number(payment.platformFee || 0), 0)
+      .toFixed(2),
+  );
+  let companyEarnings = Number(
+    paidPayments
+      .reduce((sum, payment) => sum + Number(payment.companyEarnings || 0), 0)
+      .toFixed(2),
+  );
 
-    moneySource = 'database';
-
-    totalRevenue = await ReservationRepository.getCompanyRevenueSummary(company.id);
-
-    platformFee = Number(
-      ((totalRevenue * maintenancePercent) / 100).toFixed(2),
-    );
+  if (totalRevenue > 0 && platformFee === 0 && companyEarnings === 0) {
+    platformFee = Number(((totalRevenue * maintenancePercent) / 100).toFixed(2));
     companyEarnings = Number((totalRevenue - platformFee).toFixed(2));
-    balanceAvailable = companyEarnings;
-    balancePending = 0;
   }
 
+  const balancePending = Number(
+    pendingPayments
+      .reduce((sum, payment) => sum + Number(payment.companyEarnings || 0), 0)
+      .toFixed(2),
+  );
+
   return {
-    moneySource,
+    moneySource: 'database' as const,
     totalRevenue,
     platformFee,
     companyEarnings,
-    balanceAvailable,
+    balanceAvailable: companyEarnings,
     balancePending,
   };
 }

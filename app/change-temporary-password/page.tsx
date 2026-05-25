@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { completeOnboarding } from '@/lib/api/authApi';
-import authbg from 'public/authbg.jpg';
 import { useTranslation } from '@/providers/LanguageProvider';
 
 function ChangeTemporaryPasswordForm() {
@@ -73,7 +72,7 @@ function ChangeTemporaryPasswordForm() {
     <div className="relative min-h-screen flex items-center justify-center p-4">
       <div className="absolute inset-0 -z-10 bg-black overflow-hidden">
         <Image
-          src={authbg}
+          src="/authbg.jpg"
           alt=""
           fill
           priority

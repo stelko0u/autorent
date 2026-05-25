@@ -3,6 +3,8 @@ import AdminShell from '../../../components/admin/AdminShell';
 import AdminCompanies from '../../../components/admin/AdminCompanies';
 import { getAuthUser } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ManageCompaniesPage() {
   const authUser = await getAuthUser();
 

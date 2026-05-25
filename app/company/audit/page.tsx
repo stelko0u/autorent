@@ -8,6 +8,8 @@ interface CompanyAuditPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const dynamic = 'force-dynamic';
+
 function getSingleQueryValue(
   value: string | string[] | undefined,
 ): string | null {

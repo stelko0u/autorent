@@ -15,6 +15,8 @@ interface ProfilePageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export interface ProfilePageUser {
   id: number;
   email: string;

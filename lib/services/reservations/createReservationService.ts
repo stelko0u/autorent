@@ -5,6 +5,7 @@ import {
   calculateReservationPricing,
   getReservationDateRangeOrThrow,
 } from '@/lib/services/reservations/reservationPricing';
+import { createReservationSchema } from '@/lib/validators/schemas';
 
 type Input = {
   user: {
@@ -26,7 +27,14 @@ type Input = {
 };
 
 export async function createReservation({ user, body }: Input) {
-  const locale = body.locale === 'en' ? 'en' : 'bg';
+  const parsed = createReservationSchema.safeParse(body);
+
+  if (!parsed.success) {
+    throw new Error('MISSING_REQUIRED_FIELDS');
+  }
+
+  const reservationInput = parsed.data;
+  const locale = reservationInput.locale === 'en' ? 'en' : 'bg';
   const {
     carId,
     startDate,
@@ -36,11 +44,7 @@ export async function createReservation({ user, body }: Input) {
     email,
     phone,
     paymentMethod,
-  } = body;
-
-  if (!carId || !startDate || !endDate) {
-    throw new Error('MISSING_REQUIRED_FIELDS');
-  }
+  } = reservationInput;
 
   const normalizedPaymentMethod =
     paymentMethod === 'ON_SPOT' ? 'ON_SPOT' : 'CARD';

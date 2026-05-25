@@ -88,7 +88,7 @@ function shouldIncludeDatabasePaymentWhenStripeExists(
   return !stripePaymentIntentIds.has(paymentIntentId);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await requireCompanyUser();
 
@@ -103,6 +103,27 @@ export async function GET() {
     const databasePayments = normalizeDatabasePayments(
       await PaymentsRepository.findByCompany(company.id),
     );
+
+    const shouldSyncStripe = new URL(request.url).searchParams.get('sync') === 'stripe';
+
+    if (!shouldSyncStripe) {
+      const paidPayments = databasePayments.filter((payment) =>
+        isPaidStatus(payment.paymentStatus),
+      );
+
+      const totals = summarizePayments(
+        paidPayments as CompanyStripePaymentRow[],
+      );
+
+      return NextResponse.json({
+        ok: true,
+        source: 'database',
+        payments: databasePayments,
+        totalRevenue: totals.totalRevenue,
+        totalPlatformFee: totals.platformFee,
+        totalEarnings: totals.companyEarnings,
+      });
+    }
 
     try {
       const stripePayments = await listStripePaymentsForCompany(company);

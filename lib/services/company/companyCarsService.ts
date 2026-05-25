@@ -9,6 +9,10 @@ import {
 } from '@/lib/utils/carMappers';
 import { saveCompanyCarImages } from '@/lib/utils/fileUpload';
 import { validateCompanyCarInput } from '@/lib/validators/companyCarValidator';
+import {
+  companyCarUpdateSchema,
+  getCompanyCarZodErrorCode,
+} from '@/lib/validators/schemas';
 import { ReservationRepository } from '@/lib/repository/ReservationRepository';
 
 type CompanyUser = {
@@ -146,22 +150,22 @@ async function parseCreateCompanyCarRequest(
 export async function createCompanyCar(req: NextRequest, user: CompanyUser) {
   const parsed = await parseCreateCompanyCarRequest(req, user.companyId);
 
-  validateCompanyCarInput(parsed);
+  const valid = validateCompanyCarInput(parsed);
 
   const created = await CarRepository.create({
-    make: parsed.make!,
-    model: parsed.model!,
-    year: Number(parsed.year),
-    pricePerDay: Number(parsed.pricePerDay),
-    power: Number(parsed.power),
-    displacement: Number(parsed.displacement),
-    images: parsed.images,
+    make: valid.make,
+    model: valid.model,
+    year: valid.year,
+    pricePerDay: valid.pricePerDay,
+    power: valid.power,
+    displacement: valid.displacement,
+    images: valid.images,
     ownerId: Number(user.id),
     companyId: Number(user.companyId),
-    carType: parsed.carType!,
-    transmissionType: parsed.transmissionType!,
-    fuelType: parsed.fuelType!,
-    officeId: parsed.officeId ?? undefined,
+    carType: valid.carType,
+    transmissionType: valid.transmissionType,
+    fuelType: valid.fuelType,
+    officeId: valid.officeId ?? undefined,
   });
 
   return {
@@ -234,97 +238,73 @@ export async function updateCompanyCar(
     throw new Error('INVALID_JSON_BODY');
   }
 
-  const updateData: Partial<Omit<Car, 'id' | 'createdAt' | 'updatedAt'>> = {};
+  const updateInput: Record<string, unknown> = {};
 
-  if (body.make !== undefined) updateData.make = String(body.make).trim();
-  if (body.model !== undefined) updateData.model = String(body.model).trim();
-  if (body.year !== undefined) updateData.year = Number(body.year);
+  if (body.make !== undefined) updateInput.make = String(body.make).trim();
+  if (body.model !== undefined) updateInput.model = String(body.model).trim();
+  if (body.year !== undefined) updateInput.year = Number(body.year);
   if (body.pricePerDay !== undefined) {
-    updateData.pricePerDay = Number(body.pricePerDay);
+    updateInput.pricePerDay = Number(body.pricePerDay);
   }
-  if (body.power !== undefined) updateData.power = Number(body.power);
+  if (body.power !== undefined) updateInput.power = Number(body.power);
   if (body.displacement !== undefined) {
-    updateData.displacement = Number(body.displacement);
+    updateInput.displacement = Number(body.displacement);
   }
 
   if (body.carType !== undefined) {
-    updateData.carType =
+    updateInput.carType =
       mapCarType(body.carType != null ? String(body.carType) : null) ??
       undefined;
   }
 
-  if (body.transmissionType !== undefined) {
-    updateData.transmissionType =
+  if (body.transmission !== undefined || body.transmissionType !== undefined) {
+    updateInput.transmissionType =
+      mapTransmissionType(
+        body.transmission != null ? String(body.transmission) : null,
+      ) ??
       mapTransmissionType(
         body.transmissionType != null ? String(body.transmissionType) : null,
       ) ?? undefined;
   }
 
   if (body.fuelType !== undefined) {
-    updateData.fuelType =
+    updateInput.fuelType =
       mapFuelType(body.fuelType != null ? String(body.fuelType) : null) ??
       undefined;
   }
 
   if (body.officeId !== undefined) {
-    updateData.officeId =
-      body.officeId === null ? undefined : Number(body.officeId);
+    updateInput.officeId =
+      body.officeId === null || body.officeId === ''
+        ? null
+        : Number(body.officeId);
   }
 
   if (body.images !== undefined && Array.isArray(body.images)) {
-    updateData.images = body.images.filter(
+    updateInput.images = body.images.filter(
       (it: unknown) => typeof it === 'string',
     );
+  }
+
+  const result = companyCarUpdateSchema.safeParse(updateInput);
+
+  if (!result.success) {
+    throw new Error(getCompanyCarZodErrorCode(result.error));
+  }
+
+  const { officeId, ...validatedUpdateData } = result.data;
+  const updateData: Partial<Omit<Car, 'id' | 'createdAt' | 'updatedAt'>> = {
+    ...validatedUpdateData,
+  };
+
+  if (officeId !== undefined && officeId !== null) {
+    updateData.officeId = officeId;
   }
 
   const updated = await CarRepository.update(carId, updateData);
 
   if (!updated) {
     throw new Error('CAR_NOT_FOUND');
-  }
-
-  if (body.year !== undefined) {
-    const year = Number(body.year);
-    if (Number.isNaN(year)) {
-      throw new Error('INVALID_CAR_YEAR');
-    }
-    updateData.year = year;
-  }
-
-  if (body.pricePerDay !== undefined) {
-    const pricePerDay = Number(body.pricePerDay);
-    if (Number.isNaN(pricePerDay)) {
-      throw new Error('INVALID_CAR_PRICE');
-    }
-    updateData.pricePerDay = pricePerDay;
-  }
-
-  if (body.power !== undefined) {
-    const power = Number(body.power);
-    if (Number.isNaN(power)) {
-      throw new Error('INVALID_CAR_POWER');
-    }
-    updateData.power = power;
-  }
-
-  if (body.displacement !== undefined) {
-    const displacement = Number(body.displacement);
-    if (Number.isNaN(displacement)) {
-      throw new Error('INVALID_CAR_DISPLACEMENT');
-    }
-    updateData.displacement = displacement;
-  }
-
-  if (body.officeId !== undefined) {
-    if (body.officeId === null || body.officeId === '') {
-      updateData.officeId = undefined;
-    } else {
-      const officeId = Number(body.officeId);
-      if (Number.isNaN(officeId)) {
-        throw new Error('INVALID_OFFICE_ID');
-      }
-      updateData.officeId = officeId;
-    }
   }
 
   return updated;
