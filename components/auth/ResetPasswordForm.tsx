@@ -197,7 +197,7 @@ export default function ResetPasswordForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+          className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
         />
       </label>
 
@@ -210,7 +210,7 @@ export default function ResetPasswordForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+          className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
         />
       </label>
 

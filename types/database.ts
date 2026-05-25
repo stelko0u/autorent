@@ -133,6 +133,7 @@ export interface Office {
 
 export interface PasswordResetToken {
   id: string;
+  userId: number;
   email: string;
   token: string;
   expiresAt: Date;

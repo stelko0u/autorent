@@ -216,6 +216,7 @@ export type Review = {
 
 export type PasswordResetToken = {
   id: string;
+  userId: number;
   email: string;
   token: string;
   expiresAt: Date;

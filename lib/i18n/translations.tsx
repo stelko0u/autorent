@@ -216,6 +216,8 @@ export const translations = {
       invalidEmail: 'Моля, въведи валиден имейл.',
       passwordMin: 'Паролата трябва да е поне 6 символа.',
       passwordsMismatch: 'Паролите не съвпадат.',
+      passwordsDoNotMatch: 'Паролите не съвпадат.',
+      passwordMinLength: 'Паролата трябва да е поне 6 символа.',
     },
     messages: {
       signInSuccess: 'Успешен вход.',
@@ -1608,6 +1610,17 @@ export const translations = {
     },
     home: {
       noCarsAvailable: 'No cars available',
+    },
+    validation: {
+      requiredEmail: 'Email is required.',
+      requiredPassword: 'Password is required.',
+      requiredFirstName: 'First name is required.',
+      requiredLastName: 'Last name is required.',
+      invalidEmail: 'Please enter a valid email.',
+      passwordMin: 'Password must be at least 6 characters.',
+      passwordsMismatch: 'Passwords do not match.',
+      passwordsDoNotMatch: 'Passwords do not match.',
+      passwordMinLength: 'Password must be at least 6 characters.',
     },
     company: {
       dashboard: 'Dashboard',

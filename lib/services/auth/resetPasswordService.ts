@@ -35,18 +35,18 @@ export async function resetPassword({ email, token, password }: Input) {
     throw new Error('INVALID_OR_USED_TOKEN');
   }
 
-  if (record.email !== normalizedEmail) {
-    throw new Error('EMAIL_TOKEN_MISMATCH');
-  }
-
   if (new Date(record.expiresAt) < new Date()) {
     throw new Error('TOKEN_EXPIRED');
   }
 
-  const user = await UserRepository.findByEmail(normalizedEmail);
+  const user = await UserRepository.findById(record.userId);
 
   if (!user) {
     throw new Error('USER_NOT_FOUND');
+  }
+
+  if (normalizeEmail(user.email) !== normalizedEmail) {
+    throw new Error('EMAIL_TOKEN_MISMATCH');
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);

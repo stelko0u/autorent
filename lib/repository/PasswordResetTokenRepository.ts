@@ -1,4 +1,4 @@
-import { query, queryOne, execute } from '@/lib/db';
+import { queryOne, execute } from '@/lib/db';
 import { PasswordResetToken } from '@/types/database';
 
 export class PasswordResetTokenRepository {
@@ -6,10 +6,10 @@ export class PasswordResetTokenRepository {
     data: Omit<PasswordResetToken, 'createdAt'>,
   ): Promise<PasswordResetToken> {
     const result = await queryOne<PasswordResetToken>(
-      `INSERT INTO "PasswordResetToken" (id, email, token, "expiresAt") 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO "PasswordResetToken" (id, "userId", email, token, "expiresAt") 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
-      [data.id, data.email, data.token, data.expiresAt],
+      [data.id, data.userId, data.email, data.token, data.expiresAt],
     );
     return result!;
   }
@@ -25,6 +25,14 @@ export class PasswordResetTokenRepository {
     const result = await execute(
       'DELETE FROM "PasswordResetToken" WHERE email = $1',
       [email],
+    );
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  static async deleteByUserId(userId: number): Promise<boolean> {
+    const result = await execute(
+      'DELETE FROM "PasswordResetToken" WHERE "userId" = $1',
+      [userId],
     );
     return result.rowCount !== null && result.rowCount > 0;
   }
@@ -52,7 +60,12 @@ export class PasswordResetTokenRepository {
     return queryOne<PasswordResetToken>(
       `SELECT * 
        FROM "PasswordResetToken" 
-       WHERE email = $1 
+       WHERE "userId" = (
+           SELECT id
+           FROM "User"
+           WHERE email = $1
+           LIMIT 1
+         )
          AND token = $2
          AND "expiresAt" >= NOW()
        LIMIT 1`,

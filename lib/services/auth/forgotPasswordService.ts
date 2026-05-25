@@ -30,12 +30,15 @@ export async function sendForgotPasswordEmail(
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
   const id = crypto.randomBytes(16).toString('hex');
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
+  const expiresAt = new Date(
+    Date.now() + Number(process.env.PASSWORD_RESET_EXPIRES),
+  );
 
-  await PasswordResetTokenRepository.deleteByEmail(normalizedEmail);
+  await PasswordResetTokenRepository.deleteByUserId(user.id);
 
   await PasswordResetTokenRepository.create({
     id,
+    userId: user.id,
     email: normalizedEmail,
     token: tokenHash,
     expiresAt,
