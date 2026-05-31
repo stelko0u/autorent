@@ -107,7 +107,7 @@ export default function SignUpForm() {
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+              className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
             />
           </div>
 
@@ -119,7 +119,7 @@ export default function SignUpForm() {
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+              className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
             />
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function SignUpForm() {
             type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
           />
         </div>
 
@@ -145,7 +145,7 @@ export default function SignUpForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
             placeholder="name@example.com"
           />
         </div>
@@ -159,7 +159,7 @@ export default function SignUpForm() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
             placeholder="••••••••"
           />
         </div>
@@ -173,7 +173,7 @@ export default function SignUpForm() {
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black"
+            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm outline-none transition focus:border-black text-black"
             placeholder="••••••••"
           />
         </div>

@@ -80,6 +80,9 @@ export interface UserReservation {
   status: string;
   paymentStatus?: string;
   paymentMethod?: string;
+  cancelRequestStatus?: string | null;
+  cancelRequestedAt?: string | null;
+  cancelRequestResolvedAt?: string | null;
   car?: {
     id: number;
     make: string;
@@ -87,6 +90,22 @@ export interface UserReservation {
     year: number;
     images: string[];
   } | null;
+}
+
+export async function requestReservationCancellation(reservationId: number): Promise<void> {
+  const res = await fetch(`/api/user/reservations/${reservationId}/cancel-request`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error || 'Failed to request cancellation');
+  }
 }
 
 export interface UserReservationsPagination {

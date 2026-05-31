@@ -12,6 +12,7 @@ type Input = {
     id: number;
     name?: string | null;
     email?: string | null;
+    role?: 'USER' | 'ADMIN' | 'COMPANY' | null;
   };
   body: {
     carId?: number;
@@ -27,6 +28,10 @@ type Input = {
 };
 
 export async function createReservation({ user, body }: Input) {
+  if (user.role === 'COMPANY') {
+    throw new Error('COMPANY_CANNOT_RENT');
+  }
+
   const parsed = createReservationSchema.safeParse(body);
 
   if (!parsed.success) {

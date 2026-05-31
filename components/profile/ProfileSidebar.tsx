@@ -32,11 +32,28 @@ interface MenuItem {
   icon: React.ReactElement;
 }
 
+const roleLabels = {
+  bg: {
+    USER: 'Потребител',
+    COMPANY: 'Компания',
+    ADMIN: 'Админ',
+  },
+  en: {
+    USER: 'User',
+    COMPANY: 'Company',
+    ADMIN: 'Admin',
+  },
+};
+
+function translateRole(locale: 'bg' | 'en', role: string) {
+  return roleLabels[locale][role.toUpperCase() as keyof typeof roleLabels.bg] ?? role;
+}
+
 export default function ProfileSidebar({
   user,
   activeTab,
 }: ProfileSidebarProps) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -62,22 +79,22 @@ export default function ProfileSidebar({
   const menuItems: MenuItem[] = [
     {
       id: 'profile',
-      label: t('profile.profileSettings'),
+      label: t('profileSidebar.profileSettings'),
       icon: <User className="h-5 w-5" />,
     },
     {
       id: 'rentals',
-      label: t('profile.myRentals'),
+      label: t('profileSidebar.myRentals'),
       icon: <Clipboard className="h-5 w-5" />,
     },
     {
       id: 'reviews',
-      label: t('profile.myReviews'),
+      label: t('profileSidebar.myReviews'),
       icon: <EmptyStar className="h-5 w-5" />,
     },
     {
       id: 'favorites',
-      label: t('profile.likedCars'),
+      label: t('profileSidebar.likedCars'),
       icon: <Heart className="h-5 w-5" />,
     },
   ];
@@ -107,7 +124,7 @@ export default function ProfileSidebar({
             </h3>
             <p className="truncate text-sm text-white/80">{user.email}</p>
             <span className="mt-1 inline-block rounded bg-white/20 px-2 py-0.5 text-xs">
-              {user.role}
+              {translateRole(locale, user.role)}
             </span>
           </div>
         </div>
@@ -136,7 +153,7 @@ export default function ProfileSidebar({
           className="mt-2 flex w-full cursor-pointer items-center gap-3 border-t border-amber-600 px-4 py-3 pt-3 text-gray-700 transition hover:bg-gray-50"
         >
           <ArrowLeftFromBracket className="h-5 w-5" />
-          <span>{t('profile.backToHome')}</span>
+          <span>{t('profileSidebar.backHome')}</span>
         </button>
       </nav>
     </div>

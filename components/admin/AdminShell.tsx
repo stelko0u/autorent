@@ -35,7 +35,6 @@ export default function AdminShell({ children }: AdminShellProps) {
       companies: t('adminSidebar.manageCompanies'),
       'add-company': t('adminSidebar.addCompany'),
       cars: t('adminSidebar.manageCars'),
-      reservations: t('adminSidebar.reservations'),
       users: t('adminSidebar.manageUsers'),
       audit: t('adminSidebar.auditLogs'),
     };
@@ -62,7 +61,6 @@ export default function AdminShell({ children }: AdminShellProps) {
               {active === 'companies' && <AdminCompanies />}
               {active === 'add-company' && <AdminAddCompany />}
               {active === 'cars' && <AdminCars />}
-              {active === 'reservations' && <AdminReservations />}
               {active === 'users' && <AdminUsersPage />}
               {active === 'audit' && <AdminAuditPageClient />}
             </>

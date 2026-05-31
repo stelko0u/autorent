@@ -18,10 +18,10 @@ function buildPageHref(page: number) {
   return `/profile?tab=reviews&page=${page}`;
 }
 
-function formatReviewDate(value: Date | string) {
+function formatReviewDate(value: Date | string, locale: 'bg' | 'en') {
   const date = typeof value === 'string' ? new Date(value) : value;
 
-  return date.toLocaleDateString('bg-BG', {
+  return date.toLocaleDateString(locale === 'en' ? 'en-US' : 'bg-BG', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -69,7 +69,7 @@ export default function UserReviews({
   totalPages = 1,
   totalCount = 0,
 }: UserReviewsProps) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
 
   const renderStars = (rating: number) => {
     return (
@@ -137,7 +137,7 @@ export default function UserReviews({
                         {review.car?.make} {review.car?.model}
                       </Link>
                       <p className="text-sm text-gray-600">
-                        {formatReviewDate(review.createdAt)}
+                        {formatReviewDate(review.createdAt, locale)}
                       </p>
                     </div>
 

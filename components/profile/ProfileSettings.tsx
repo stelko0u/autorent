@@ -138,11 +138,11 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
       await updateUserProfile(payload);
 
-      showSuccessMessage('Profile updated successfully!');
+      showSuccessMessage(t('profileSettings.profileUpdated'));
       router.refresh();
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : 'Failed to update profile';
+        err instanceof Error ? err.message : t('profileSettings.failedProfileUpdate');
 
       setError(message);
     } finally {
@@ -155,12 +155,12 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
     clearMessages();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('profileSettings.passwordsDoNotMatch'));
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('profileSettings.passwordMin'));
       return;
     }
 
@@ -174,7 +174,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
       await changeUserPassword(payload);
 
-      showSuccessMessage('Password changed successfully!');
+      showSuccessMessage(t('profileSettings.passwordChanged'));
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -182,7 +182,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
       });
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : 'Failed to change password';
+        err instanceof Error ? err.message : t('profileSettings.failedPasswordChange');
 
       setError(message);
     } finally {
@@ -194,7 +194,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
     <div className="space-y-6">
       <div className="rounded-lg bg-white p-6 shadow">
         <h2 className="mb-6 text-xl font-semibold text-gray-800">
-          Profile Information
+          {t('profileSettings.profileInformation')}
         </h2>
 
         {error ? (
@@ -215,20 +215,20 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Full Name
+                {t('profileSettings.fullName')}
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={updateProfileField('name')}
-                placeholder="Enter your full name"
+                placeholder={t('profileSettings.fullNamePlaceholder')}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-600 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Email
+                {t('profileSettings.email')}
               </label>
               <input
                 type="email"
@@ -237,13 +237,13 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                 className="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-500"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Email cannot be changed
+                {t('profileSettings.emailCannotChange')}
               </p>
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Phone Number
+                {t('profileSettings.phoneNumber')}
               </label>
               <input
                 type="tel"
@@ -256,7 +256,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Date of Birth
+                {t('profileSettings.dateOfBirth')}
               </label>
               <input
                 type="date"
@@ -268,33 +268,33 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
             <div className="md:col-span-2">
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Address
+                {t('profileSettings.address')}
               </label>
               <input
                 type="text"
                 value={formData.address}
                 onChange={updateProfileField('address')}
-                placeholder="Street address"
+                placeholder={t('profileSettings.addressPlaceholder')}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-600 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                City
+                {t('profileSettings.city')}
               </label>
               <input
                 type="text"
                 value={formData.city}
                 onChange={updateProfileField('city')}
-                placeholder="City"
+                placeholder={t('profileSettings.cityPlaceholder')}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-600 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Postal Code
+                {t('profileSettings.postalCode')}
               </label>
               <input
                 type="text"
@@ -307,13 +307,13 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Country
+                {t('profileSettings.country')}
               </label>
               <input
                 type="text"
                 value={formData.country}
                 onChange={updateProfileField('country')}
-                placeholder="Country"
+                placeholder={t('profileSettings.countryPlaceholder')}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-600 focus:border-transparent focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -324,20 +324,22 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             disabled={profileLoading}
             className="w-full rounded-lg bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400 md:w-auto"
           >
-            {profileLoading ? 'Saving...' : 'Save Changes'}
+            {profileLoading
+              ? t('profileSettings.saving')
+              : t('profileSettings.saveChanges')}
           </button>
         </form>
       </div>
 
       <div className="rounded-lg bg-white p-6 shadow">
         <h2 className="mb-6 text-xl font-semibold text-gray-800">
-          Change Password
+          {t('profileSettings.changePassword')}
         </h2>
 
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Current Password
+              {t('profileSettings.currentPassword')}
             </label>
             <input
               type="password"
@@ -350,7 +352,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              New Password
+              {t('profileSettings.newPassword')}
             </label>
             <input
               type="password"
@@ -360,12 +362,14 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
               required
               minLength={6}
             />
-            <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+            <p className="mt-1 text-xs text-gray-500">
+              {t('profileSettings.minimumChars')}
+            </p>
           </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Confirm New Password
+              {t('profileSettings.confirmNewPassword')}
             </label>
             <input
               type="password"
@@ -382,7 +386,9 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             disabled={passwordLoading}
             className="w-full rounded-lg bg-indigo-600 px-6 py-2 text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400 md:w-auto"
           >
-            {passwordLoading ? 'Changing...' : 'Change Password'}
+            {passwordLoading
+              ? t('profileSettings.changing')
+              : t('profileSettings.changePasswordButton')}
           </button>
         </form>
       </div>

@@ -14,6 +14,49 @@ interface Props {
   userId: number;
 }
 
+function normalizeEnumKey(value?: string | null) {
+  if (!value) {
+    return '';
+  }
+
+  const enumMap: Record<string, string> = {
+    SEMI_AUTOMATIC: 'semiAutomatic',
+    ELECTRICITY: 'electric',
+  };
+
+  if (enumMap[value]) {
+    return enumMap[value];
+  }
+
+  return value
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map((part, index) =>
+      index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1),
+    )
+    .join('');
+}
+
+function translateEnumValue(
+  t: (key: string) => string,
+  baseKey: string,
+  value?: string | null,
+) {
+  if (!value) {
+    return '-';
+  }
+
+  const translationKey = `${baseKey}.${normalizeEnumKey(value)}`;
+  const translated = t(translationKey);
+
+  if (translated === translationKey) {
+    return value.replaceAll('_', ' ');
+  }
+
+  return translated;
+}
+
 export default function LikedCars({ userId }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -149,14 +192,22 @@ export default function LikedCars({ userId }: Props) {
                   <p className="mb-3 text-sm text-gray-600">{car.year}</p>
 
                   <div className="mb-3 flex items-center gap-4 text-xs text-gray-500">
-                    <span>{car.carType}</span>
+                    <span>
+                      {translateEnumValue(t, 'vehicle.bodyTypes', car.carType)}
+                    </span>
                     <span>•</span>
-                    <span>{car.transmissionType}</span>
+                    <span>
+                      {translateEnumValue(
+                        t,
+                        'vehicle.transmissions',
+                        car.transmissionType,
+                      )}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="text-lg font-bold text-indigo-600">
-                      ${car.pricePerDay}
+                      €{car.pricePerDay}
                       <span className="text-sm font-normal text-gray-600">
                         {t('likedCars.perDay')}
                       </span>

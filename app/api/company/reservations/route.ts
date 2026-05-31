@@ -16,7 +16,8 @@ export async function GET() {
       );
     }
 
-    const reservations = await ReservationRepository.getReservationsByCompanyId(company.id);
+    const reservations =
+      await ReservationRepository.getReservationsByCompanyId(company.id);
 
     return NextResponse.json({
       ok: true,

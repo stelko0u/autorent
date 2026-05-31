@@ -7,6 +7,18 @@ import { getEmailTranslations } from '@/lib/i18n/emailTranslations';
 import { isValidEmail, normalizeEmail } from '@/lib/utils/email';
 import { sendMail } from '@/lib/mail/sendMail';
 
+const DEFAULT_PASSWORD_RESET_EXPIRES_MS = 60 * 60 * 1000;
+
+function getPasswordResetExpiresAt() {
+  const configuredValue = Number(process.env.PASSWORD_RESET_EXPIRES);
+  const expiresInMs =
+    Number.isFinite(configuredValue) && configuredValue > 0
+      ? configuredValue
+      : DEFAULT_PASSWORD_RESET_EXPIRES_MS;
+
+  return new Date(Date.now() + expiresInMs);
+}
+
 export async function sendForgotPasswordEmail(
   rawEmail: string,
   locale: Locale = 'bg',
@@ -30,9 +42,7 @@ export async function sendForgotPasswordEmail(
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
   const id = crypto.randomBytes(16).toString('hex');
-  const expiresAt = new Date(
-    Date.now() + Number(process.env.PASSWORD_RESET_EXPIRES),
-  );
+  const expiresAt = getPasswordResetExpiresAt();
 
   await PasswordResetTokenRepository.deleteByUserId(user.id);
 

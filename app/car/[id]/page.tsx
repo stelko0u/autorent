@@ -418,7 +418,7 @@ function CarDetailPageInner() {
               </div>
             )}
 
-            {user && (
+            {user && user.role !== 'COMPANY' && (
               <button
                 type="button"
                 onClick={() => router.push(`/reservation/${car.id}`)}

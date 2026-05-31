@@ -110,6 +110,11 @@ export default function ReservationPage() {
   const total = calculateTotal();
 
   const handleContinue = async () => {
+    if (userData?.role === 'COMPANY') {
+      setError(t('reservationPage.companyCannotRent'));
+      return;
+    }
+
     if (
       !selectedStartDate ||
       !selectedEndDate ||
@@ -453,7 +458,7 @@ export default function ReservationPage() {
 
                 <button
                   onClick={handleContinue}
-                  disabled={submitting}
+                  disabled={submitting || userData?.role === 'COMPANY'}
                   className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                 >
                   {submitting

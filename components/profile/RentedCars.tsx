@@ -4,17 +4,81 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   getUserReservations,
+  requestReservationCancellation,
   type PaginatedUserReservationsResponse,
   type UserReservation,
 } from '@/lib/api/reservationApi';
 import { Clipboard } from '../icons';
 import { useTranslation } from '@/providers/LanguageProvider';
+import { useAlert } from '@/providers/AlertProvider';
+import { toast } from 'react-hot-toast';
 
 interface RentedCarsProps {
   userId: number;
 }
 
 const ITEMS_PER_PAGE = 5;
+
+const reservationStatusLabels = {
+  bg: {
+    PENDING: 'Изчаква',
+    CONFIRMED: 'Потвърдена',
+    IN_PROGRESS: 'В процес',
+    COMPLETED: 'Завършена',
+    RETURNED: 'Върната',
+    CANCELLED: 'Отказана',
+  },
+  en: {
+    PENDING: 'Pending',
+    CONFIRMED: 'Confirmed',
+    IN_PROGRESS: 'In progress',
+    COMPLETED: 'Completed',
+    RETURNED: 'Returned',
+    CANCELLED: 'Cancelled',
+  },
+};
+
+const paymentStatusLabels = {
+  bg: {
+    PENDING: 'Изчаква',
+    PAID: 'Платено',
+    SUCCEEDED: 'Платено',
+    FAILED: 'Неуспешно',
+    REFUNDED: 'Възстановено',
+  },
+  en: {
+    PENDING: 'Pending',
+    PAID: 'Paid',
+    SUCCEEDED: 'Paid',
+    FAILED: 'Failed',
+    REFUNDED: 'Refunded',
+  },
+};
+
+const paymentMethodLabels = {
+  bg: {
+    CARD: 'Карта',
+    CASH: 'В брой',
+    ON_SPOT: 'На място',
+  },
+  en: {
+    CARD: 'Card',
+    CASH: 'Cash',
+    ON_SPOT: 'On spot',
+  },
+};
+
+function translateKnownValue(
+  labels: Record<'bg' | 'en', Record<string, string>>,
+  locale: 'bg' | 'en',
+  value?: string | null,
+) {
+  if (!value) {
+    return '-';
+  }
+
+  return labels[locale][value] ?? value.replaceAll('_', ' ');
+}
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -60,12 +124,16 @@ function getPageNumbers(currentPage: number, totalPages: number) {
 }
 
 export default function RentedCars({ userId }: RentedCarsProps) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const router = useRouter();
+  const { showConfirm } = useAlert();
 
   const [reservations, setReservations] = useState<UserReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingCancelIds, setPendingCancelIds] = useState<Set<number>>(
+    () => new Set(),
+  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -129,6 +197,43 @@ export default function RentedCars({ userId }: RentedCarsProps) {
     }
 
     setCurrentPage(page);
+  }
+
+  function canRequestCancel(reservation: UserReservation) {
+    return (
+      ['PENDING', 'CONFIRMED'].includes(reservation.status) &&
+      reservation.cancelRequestStatus !== 'PENDING'
+    );
+  }
+
+  async function submitCancelRequest(reservationId: number) {
+    setPendingCancelIds((prev) => {
+      const next = new Set(prev);
+      next.add(reservationId);
+      return next;
+    });
+
+    try {
+      await requestReservationCancellation(reservationId);
+      toast.success(t('rentals.cancelRequestSent'));
+      // Refresh list to reflect "PENDING" state.
+      const data: PaginatedUserReservationsResponse = await getUserReservations({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      });
+      setReservations(data.reservations);
+      setTotalItems(data.pagination.totalItems);
+      setTotalPages(data.pagination.totalPages);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('rentals.cancelRequestFailed');
+      toast.error(message);
+    } finally {
+      setPendingCancelIds((prev) => {
+        const next = new Set(prev);
+        next.delete(reservationId);
+        return next;
+      });
+    }
   }
 
   if (loading) {
@@ -195,7 +300,9 @@ export default function RentedCars({ userId }: RentedCarsProps) {
                         <h3 className="text-lg font-semibold text-gray-900">
                           {reservation.car
                             ? `${reservation.car.make} ${reservation.car.model}`
-                            : `Car #${reservation.carId}`}
+                            : t('rentals.carFallback', {
+                                id: reservation.carId,
+                              })}
                         </h3>
 
                         {reservation.car?.year ? (
@@ -210,18 +317,26 @@ export default function RentedCars({ userId }: RentedCarsProps) {
                           reservation.status,
                         )}`}
                       >
-                        {reservation.status}
+                        {translateKnownValue(
+                          reservationStatusLabels,
+                          locale,
+                          reservation.status,
+                        )}
                       </span>
                     </div>
 
                     <div className="mb-3 grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2 sm:gap-4">
                       <div>
                         <span className="font-medium">{t('rentals.pickUp')}:</span>{' '}
-                        {new Date(reservation.startDate).toLocaleDateString()}
+                        {new Date(reservation.startDate).toLocaleDateString(
+                          locale === 'en' ? 'en-US' : 'bg-BG',
+                        )}
                       </div>
                       <div>
                         <span className="font-medium">{t('rentals.dropOff')}:</span>{' '}
-                        {new Date(reservation.endDate).toLocaleDateString()}
+                        {new Date(reservation.endDate).toLocaleDateString(
+                          locale === 'en' ? 'en-US' : 'bg-BG',
+                        )}
                       </div>
                     </div>
 
@@ -230,14 +345,60 @@ export default function RentedCars({ userId }: RentedCarsProps) {
                         €{reservation.totalPrice}
                       </div>
 
+                      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                        {reservation.cancelRequestStatus === 'PENDING' ? (
+                          <button
+                            type="button"
+                            disabled
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 opacity-90"
+                          >
+                            {t('rentals.pendingCancel')}
+                          </button>
+                        ) : canRequestCancel(reservation) ? (
+                          <button
+                            type="button"
+                            disabled={pendingCancelIds.has(reservation.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              showConfirm({
+                                title: t('rentals.cancelTitle'),
+                                message: t('rentals.cancelConfirm'),
+                                confirmText: t('rentals.cancelRequestButton'),
+                                cancelText: t('common.cancel'),
+                                onConfirm: () => {
+                                  void submitCancelRequest(reservation.id);
+                                },
+                              });
+                            }}
+                            className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {pendingCancelIds.has(reservation.id)
+                              ? t('rentals.sendingCancel')
+                              : t('rentals.cancelRequestButton')}
+                          </button>
+                        ) : null}
+                      </div>
+
                       {reservation.paymentStatus ? (
                         <div className="text-sm text-gray-500 sm:text-right">
                           <div>
-                            {t('rentals.payment')}: {reservation.paymentStatus}
+                            {t('rentals.payment')}:{' '}
+                            {translateKnownValue(
+                              paymentStatusLabels,
+                              locale,
+                              reservation.paymentStatus,
+                            )}
                           </div>
                           <div>
                             {t('rentals.paymentMethod')}:{' '}
-                            {reservation.paymentMethod ?? '-'}
+                            {translateKnownValue(
+                              paymentMethodLabels,
+                              locale,
+                              reservation.paymentMethod,
+                            )}
                           </div>
                         </div>
                       ) : null}

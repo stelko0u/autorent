@@ -91,6 +91,11 @@ export interface Reservation {
   paymentMethod?: 'CARD' | 'ON_SPOT';
   paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
   reviewRequestSentAt?: Date | null;
+
+  // Cancellation request flow (customer -> company).
+  cancelRequestStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+  cancelRequestedAt?: Date | null;
+  cancelRequestResolvedAt?: Date | null;
 }
 
 export interface Payments {

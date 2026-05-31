@@ -431,6 +431,16 @@ export const translations = {
       previous: 'Предишна',
       next: 'Следваща',
       failedToLoad: 'Неуспешно зареждане на резервациите',
+
+      cancelTitle: 'Отказ на резервация',
+      cancelConfirm:
+        'Сигурен ли си, че искаш да заявиш отказ? Компанията трябва да потвърди заявката.',
+      cancelRequestButton: 'Откажи резервацията',
+      sendingCancel: 'Изпращане...',
+      pendingCancel: 'Изчаква отказ',
+      carFallback: 'Кола #{{id}}',
+      cancelRequestSent: 'Заявката за отказ беше изпратена.',
+      cancelRequestFailed: 'Неуспешно изпращане на заявката за отказ.',
     },
     userReviews: {
       title: 'Моите ревюта',
@@ -896,6 +906,7 @@ export const translations = {
     },
     reservationPage: {
       requiredFields: 'Моля попълни всички задължителни полета',
+      companyCannotRent: 'Фирмените профили не могат да наемат автомобили',
       missingReservationId: 'Липсва ID на резервация',
       failedToLoad: 'Неуспешно зареждане на данни',
       failedCreate: 'Неуспешно създаване на резервация',
@@ -1854,6 +1865,7 @@ export const translations = {
       noRentals: 'No rentals yet',
       browseCars: 'Browse Cars',
       noImage: 'No image',
+      carFallback: 'Car #{{id}}',
       pickUp: 'Pick-up',
       dropOff: 'Drop-off',
       payment: 'Payment',
@@ -1862,6 +1874,15 @@ export const translations = {
       previous: 'Previous',
       next: 'Next',
       failedToLoad: 'Failed to load reservations',
+
+      cancelTitle: 'Cancel reservation',
+      cancelConfirm:
+        'Are you sure you want to request cancellation? The company must confirm the request.',
+      cancelRequestButton: 'Cancel reservation',
+      sendingCancel: 'Sending...',
+      pendingCancel: 'Pending cancel',
+      cancelRequestSent: 'Cancellation request sent.',
+      cancelRequestFailed: 'Failed to send cancellation request.',
     },
     userReviews: {
       title: 'My Reviews',
@@ -2320,6 +2341,7 @@ export const translations = {
     },
     reservationPage: {
       requiredFields: 'Please fill in all required fields',
+      companyCannotRent: 'Company accounts cannot rent cars',
       missingReservationId: 'Missing reservation id',
       failedToLoad: 'Failed to load data',
       failedCreate: 'Failed to create reservation',

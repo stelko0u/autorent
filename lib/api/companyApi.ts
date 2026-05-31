@@ -81,6 +81,9 @@ export interface CompanyReservation {
   customerEmail: string;
   customerPhone: string;
   createdAt: string;
+  cancelRequestStatus?: string | null;
+  cancelRequestedAt?: string | null;
+  cancelRequestResolvedAt?: string | null;
 }
 
 export type CompanyReservationsResponse = {
@@ -357,6 +360,21 @@ export async function getCompanyReservations(): Promise<CompanyReservation[]> {
   );
 
   return Array.isArray(data.reservations) ? data.reservations : [];
+}
+
+export async function resolveReservationCancellationRequest(params: {
+  reservationId: number;
+  action: 'approve' | 'reject';
+}): Promise<void> {
+  const res = await apiJson<{ ok?: boolean; error?: string }, { action: 'approve' | 'reject' }>(
+    `/api/company/reservations/${params.reservationId}/cancel-request`,
+    'POST',
+    { action: params.action },
+  );
+
+  if (!res?.ok) {
+    throw new Error(res?.error || 'Failed to resolve cancellation request');
+  }
 }
 
 export async function getCompanyPayments(): Promise<{

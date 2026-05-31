@@ -3,7 +3,14 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building, Cars, ChartLine, Clipboard, Plus, UsersGear } from '../icons';
+import {
+  Building,
+  Cars,
+  ChartLine,
+  Clipboard,
+  Plus,
+  UsersGear,
+} from '../icons';
 import { useTranslation } from '@/providers/LanguageProvider';
 
 export default function AdminSidebar({
@@ -37,11 +44,7 @@ export default function AdminSidebar({
       label: t('adminSidebar.manageCars'),
       icon: <Cars className="w-5 h-5" />,
     },
-    {
-      key: 'reservations',
-      label: t('adminSidebar.reservations'),
-      icon: <Clipboard className="w-5 h-5" />,
-    },
+
     {
       key: 'users',
       label: t('adminSidebar.manageUsers'),
@@ -71,7 +74,9 @@ export default function AdminSidebar({
               <h3 className="text-sm font-semibold text-gray-900">
                 {t('adminSidebar.panelTitle')}
               </h3>
-              <p className="text-xs text-gray-500">{t('adminSidebar.panelSubtitle')}</p>
+              <p className="text-xs text-gray-500">
+                {t('adminSidebar.panelSubtitle')}
+              </p>
             </div>
           </div>
           <Link
@@ -106,8 +111,12 @@ export default function AdminSidebar({
             AD
           </div>
           <div>
-            <h3 className="text-lg font-semibold">{t('adminSidebar.panelTitle')}</h3>
-            <p className="text-sm text-gray-500">{t('adminSidebar.panelSubtitle')}</p>
+            <h3 className="text-lg font-semibold">
+              {t('adminSidebar.panelTitle')}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {t('adminSidebar.panelSubtitle')}
+            </p>
           </div>
         </div>
 
@@ -118,7 +127,9 @@ export default function AdminSidebar({
               onClick={() => handleTabChange(it.key)}
               className={
                 'w-full rounded-md px-3 py-2 text-left hover:bg-gray-100 ' +
-                (active === it.key ? 'border border-indigo-200 bg-indigo-50' : '')
+                (active === it.key
+                  ? 'border border-indigo-200 bg-indigo-50'
+                  : '')
               }
             >
               <span className="flex items-center gap-3">

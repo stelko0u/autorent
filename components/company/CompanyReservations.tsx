@@ -14,8 +14,13 @@ import {
   CompanyPanelTabs,
   CompanyPanelToolbar,
 } from './CompanyPanelUI';
-import { getCompanyReservations } from '@/lib/api/companyApi';
+import {
+  getCompanyReservations,
+  resolveReservationCancellationRequest,
+} from '@/lib/api/companyApi';
 import { ConfirmCashPaymentButton } from '@/components/company/ConfirmCashPaymentButton';
+import { toast } from 'react-hot-toast';
+import { useAlert } from '@/providers/AlertProvider';
 
 interface Reservation {
   id: number;
@@ -32,6 +37,9 @@ interface Reservation {
   customerEmail: string;
   customerPhone: string;
   createdAt: string;
+  cancelRequestStatus?: string | null;
+  cancelRequestedAt?: string | null;
+  cancelRequestResolvedAt?: string | null;
 }
 
 type ReservationFilter =
@@ -99,12 +107,50 @@ function getPaymentTone(
 }
 
 export default function CompanyReservations() {
+  const { showConfirm } = useAlert();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [filter, setFilter] = useState<ReservationFilter>('all');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingCancelActions, setPendingCancelActions] = useState<Set<number>>(
+    () => new Set(),
+  );
+
+  async function refreshReservations() {
+    const nextReservations = await getCompanyReservations();
+    setReservations(nextReservations);
+  }
+
+  async function handleCancelRequestAction(params: {
+    reservationId: number;
+    action: 'approve' | 'reject';
+  }) {
+    setPendingCancelActions((prev) => {
+      const next = new Set(prev);
+      next.add(params.reservationId);
+      return next;
+    });
+
+    try {
+      await resolveReservationCancellationRequest(params);
+      toast.success(
+        params.action === 'approve'
+          ? 'Reservation cancelled'
+          : 'Cancellation rejected',
+      );
+      await refreshReservations();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Request failed');
+    } finally {
+      setPendingCancelActions((prev) => {
+        const next = new Set(prev);
+        next.delete(params.reservationId);
+        return next;
+      });
+    }
+  }
 
   useEffect(() => {
     async function loadReservations() {
@@ -112,8 +158,7 @@ export default function CompanyReservations() {
         setLoading(true);
         setError(null);
 
-        const nextReservations = await getCompanyReservations();
-        setReservations(nextReservations);
+        await refreshReservations();
       } catch (err: unknown) {
         setError(
           err instanceof Error ? err.message : 'Failed to load reservations',
@@ -350,9 +395,65 @@ export default function CompanyReservations() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {reservation.paymentMethod === 'ON_SPOT' &&
-                  reservation.paymentStatus !== 'PAID' &&
-                  reservation.status !== 'CANCELLED' ? (
+                  {reservation.cancelRequestStatus === 'PENDING' ? (
+                    <div className="flex flex-col items-start gap-2">
+                      <span className="inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                        Pending cancel
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={pendingCancelActions.has(reservation.id)}
+                          onClick={() =>
+                            showConfirm({
+                              title: 'Cancel reservation',
+                              message:
+                                'Confirm cancellation for this customer reservation?',
+                              confirmText: 'Cancel',
+                              cancelText: 'Back',
+                              onConfirm: () => {
+                                void handleCancelRequestAction({
+                                  reservationId: reservation.id,
+                                  action: 'approve',
+                                });
+                              },
+                            })
+                          }
+                          className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 transition-transform transition-colors hover:cursor-pointer hover:bg-rose-100 hover:scale-[1.03] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                        >
+                          {pendingCancelActions.has(reservation.id)
+                            ? 'Working...'
+                            : 'Cancel'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={pendingCancelActions.has(reservation.id)}
+                          onClick={() =>
+                            showConfirm({
+                              title: 'Keep reservation',
+                              message:
+                                'Reject cancellation request and keep the reservation active?',
+                              confirmText: 'Keep',
+                              cancelText: 'Back',
+                              onConfirm: () => {
+                                void handleCancelRequestAction({
+                                  reservationId: reservation.id,
+                                  action: 'reject',
+                                });
+                              },
+                            })
+                          }
+                          className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 transition-transform transition-colors hover:cursor-pointer hover:bg-emerald-100 hover:scale-[1.03] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                        >
+                          {pendingCancelActions.has(reservation.id)
+                            ? 'Working...'
+                            : 'Keep'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : reservation.paymentMethod === 'ON_SPOT' &&
+                    reservation.paymentStatus !== 'PAID' &&
+                    reservation.status !== 'CANCELLED' ? (
                     <ConfirmCashPaymentButton
                       reservationId={reservation.id}
                       initialPaymentStatus={reservation.paymentStatus}
@@ -459,10 +560,66 @@ export default function CompanyReservations() {
                             ? 'On spot'
                             : reservation.paymentMethod}
                         </span> */}
-                      <div className="flex flex-col gap-2">
-                        {reservation.paymentMethod === 'ON_SPOT' &&
-                        reservation.paymentStatus !== 'PAID' &&
-                        reservation.status !== 'CANCELLED' ? (
+                        <div className="flex flex-col gap-2">
+                        {reservation.cancelRequestStatus === 'PENDING' ? (
+                          <div className="flex flex-col items-start gap-2">
+                            <span className="inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                              Pending cancel
+                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={pendingCancelActions.has(reservation.id)}
+                                onClick={() =>
+                                  showConfirm({
+                                    title: 'Cancel reservation',
+                                    message:
+                                      'Confirm cancellation for this customer reservation?',
+                                    confirmText: 'Cancel',
+                                    cancelText: 'Back',
+                                    onConfirm: () => {
+                                      void handleCancelRequestAction({
+                                        reservationId: reservation.id,
+                                        action: 'approve',
+                                      });
+                                    },
+                                  })
+                                }
+                                className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 transition-transform transition-colors hover:cursor-pointer hover:bg-rose-100 hover:scale-[1.03] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                              >
+                                {pendingCancelActions.has(reservation.id)
+                                  ? 'Working...'
+                                  : 'Cancel'}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={pendingCancelActions.has(reservation.id)}
+                                onClick={() =>
+                                  showConfirm({
+                                    title: 'Keep reservation',
+                                    message:
+                                      'Reject cancellation request and keep the reservation active?',
+                                    confirmText: 'Keep',
+                                    cancelText: 'Back',
+                                    onConfirm: () => {
+                                      void handleCancelRequestAction({
+                                        reservationId: reservation.id,
+                                        action: 'reject',
+                                      });
+                                    },
+                                  })
+                                }
+                                className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 transition-transform transition-colors hover:cursor-pointer hover:bg-emerald-100 hover:scale-[1.03] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                              >
+                                {pendingCancelActions.has(reservation.id)
+                                  ? 'Working...'
+                                  : 'Keep'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : reservation.paymentMethod === 'ON_SPOT' &&
+                          reservation.paymentStatus !== 'PAID' &&
+                          reservation.status !== 'CANCELLED' ? (
                           <ConfirmCashPaymentButton
                             reservationId={reservation.id}
                             initialPaymentStatus={reservation.paymentStatus}

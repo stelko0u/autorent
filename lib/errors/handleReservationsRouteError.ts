@@ -20,6 +20,13 @@ export function handleReservationsRouteError(
     }
 
     if (mode === 'create') {
+      if (err.message === 'COMPANY_CANNOT_RENT') {
+        return NextResponse.json(
+          { ok: false, error: 'Company accounts cannot create reservations' },
+          { status: 403 },
+        );
+      }
+
       if (err.message === 'MISSING_REQUIRED_FIELDS') {
         return NextResponse.json(
           { ok: false, error: 'Missing required fields' },
